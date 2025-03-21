@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -18,39 +18,39 @@ public class Volunteer extends Person {
     @JoinTable(name = "volunteer_skills",
             joinColumns = @JoinColumn(name = "volunteer_dni"),
             inverseJoinColumns = @JoinColumn(name = "skill_name"))
-    private Set<Skill> skills;
+    private List<Skill> skills;
 
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL)
-    private Set<ScheduleAvailability> scheduleAvailabilities;
+    private List<ScheduleAvailability> scheduleAvailabilities;
 
     @ManyToMany
     @JoinTable(name = "volunteer_preferences",
             joinColumns = @JoinColumn(name = "volunteer_dni"),
             inverseJoinColumns = @JoinColumn(name = "preference_name"))
-    private Set<Preference> preferences;
+    private List<Preference> preferences;
 
     @ManyToMany
     @JoinTable(name = "volunteer_tasks",
             joinColumns = @JoinColumn(name = "volunteer_dni"),
             inverseJoinColumns = @JoinColumn(name = "task_id"))
-    private Set<Task> tasks;
+    private List<Task> tasks;
 
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL)
-    private Set<Donation> donations;
+    private List<Donation> donations;
 
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL)
-    private Set<Certificate> certificates;
+    private List<Certificate> certificates;
 
     @OneToMany(mappedBy = "volunteer")
-    private Set<Notification> notifications;
+    private List<Notification> notifications;
 
     public Volunteer(String dNI, String firstName, String lastName, String email,
-                     int phone, String address, String password, Set<Skill> skills,
-                     Set<ScheduleAvailability> scheduleAvailabilities, Set<Preference> preferences) {
+                     int phone, String address, String password, List<Skill> skills,
+                     List<ScheduleAvailability> scheduleAvailabilities, List<Preference> preferences) {
         super(dNI, firstName, lastName, email, phone, address, password);
-        this.tasks = new HashSet<>();
-        this.donations = new HashSet<>();
-        this.certificates = new HashSet<>();
+        this.tasks = new ArrayList<>();
+        this.donations = new ArrayList<>();
+        this.certificates = new ArrayList<>();
         this.skills = skills;
         this.scheduleAvailabilities = scheduleAvailabilities;
         this.preferences = preferences;

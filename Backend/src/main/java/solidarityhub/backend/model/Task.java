@@ -4,12 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.enums.NeedType;
-import solidarityhub.backend.model.enums.Priority;
-import solidarityhub.backend.model.enums.Status;
+import solidarityhub.backend.model.enums.*;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Entity
@@ -21,7 +19,7 @@ public class Task {
 
     @Setter
     @OneToMany(mappedBy = "task")
-    private Set<Need> need;
+    private List<Need> need;
 
     @Setter
     private String taskName;
@@ -48,7 +46,7 @@ public class Task {
 
     @Setter
     @ManyToMany(mappedBy = "tasks")
-    private Set<Volunteer> volunteers;
+    private List<Volunteer> volunteers;
 
     @Setter
     @ManyToOne(cascade = CascadeType.ALL)
@@ -61,14 +59,14 @@ public class Task {
 
     public Task(Need need, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, Status status, Volunteer volunteer) {
-        this.need = Set.of(need);
+        this.need = List.of(need);
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.startTimeDate = startTimeDate;
         this.estimatedEndTimeDate = estimatedEndTimeDate;
         this.priority = priority;
         this.status = status;
-        this.volunteers= Set.of(volunteer);
+        this.volunteers= List.of(volunteer);
         volunteer.getTasks().add(this);
         this.type = need.getNeedType();
     }

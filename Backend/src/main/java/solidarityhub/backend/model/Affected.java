@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -24,13 +24,13 @@ public class Affected extends Person {
     private boolean disability;
 
     @OneToMany(mappedBy = "affected")
-    private Set<Need> needs;
+    private List<Need> needs;
 
     public Affected(String dNI, String firstName, String lastName, String email, int phone,
                     String address, String password, boolean disability) {
         super(dNI, firstName, lastName, email, phone, address, password);
         this.disability = disability;
-        this.needs = new HashSet<>();
+        this.needs = new ArrayList<>();
     }
 
     public void addNeed(Need need) {

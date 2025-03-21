@@ -8,8 +8,8 @@ import lombok.Setter;
 import solidarityhub.backend.model.enums.EmergencyLevel;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -41,14 +41,14 @@ public class Catastrophe {
 
     @Setter
     @OneToMany(mappedBy = "catastrophe")
-    private Set<Need> needs;
+    private List<Need> needs;
 
     @Setter
     @ManyToMany(mappedBy = "catastrophes")
-    private Set<Zone> zones;
+    private List<Zone> zones;
 
     public Catastrophe(String name, GPSCoordinates location, LocalDate startDate , EmergencyLevel emergencyLevel) {
-        this.zones = new HashSet<>();
+        this.zones = new ArrayList<>();
         this.name = name;
         this.location = location;
         this.startDate = startDate;

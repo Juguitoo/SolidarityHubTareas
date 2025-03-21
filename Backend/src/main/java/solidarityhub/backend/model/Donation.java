@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,10 +21,14 @@ public class Donation {
     private Volunteer volunteer;
 
     @OneToMany(mappedBy = "donation")
-    private Set<Resource> resources;
+    private List<Resource> resources;
 
     public Donation(Volunteer volunteer, Resource resource) {
         this.volunteer = volunteer;
-        this.resources = Set.of(resource);
+        this.resources = List.of(resource);
+    }
+
+    public void addResource(Resource resource) {
+        this.resources.add(resource);
     }
 }

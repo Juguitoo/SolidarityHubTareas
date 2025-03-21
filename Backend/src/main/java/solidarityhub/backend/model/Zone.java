@@ -5,9 +5,7 @@ import lombok.*;
 import solidarityhub.backend.model.enums.EmergencyLevel;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Entity
@@ -33,11 +31,11 @@ public class Zone {
     @JoinTable(name = "catastrophic_zones",
             joinColumns = @JoinColumn(name = "zone_id"),
             inverseJoinColumns = @JoinColumn(name = "catastrophe_id"))
-    private Set<Catastrophe> catastrophes;
+    private List<Catastrophe> catastrophes;
 
     @Setter
     @OneToMany(mappedBy = "zone")
-    private Set<Storage> storages;
+    private List<Storage> storages;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "location_id")
@@ -46,11 +44,18 @@ public class Zone {
     private List<GPSCoordinates> points;
 
     public Zone(String name, String description, EmergencyLevel emergencyLevel) {
-        this.catastrophes = new HashSet<>();
-        this.storages = new HashSet<>();
+        this.catastrophes = new ArrayList<>();
+        this.storages = new ArrayList<>();
         this.name = name;
         this.description = description;
         this.emergencyLevel = emergencyLevel;
         points = new ArrayList<>();
+    }
+
+    public void addStorage(Storage storage) {
+        this.storages.add(storage);
+    }
+    public void addCatastrophe(Catastrophe catastrophe) {
+        this.catastrophes.add(catastrophe);
     }
 }
