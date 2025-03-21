@@ -11,4 +11,8 @@ public class NeedService {
     public Need saveNeed(Need need) {
         return needRepository.save(need);
     }
+    public Need findNeed(Integer id) {
+        return needRepository.findById(id).get();
+    }
+
 }

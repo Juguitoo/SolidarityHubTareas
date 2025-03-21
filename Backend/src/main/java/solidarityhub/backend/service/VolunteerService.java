@@ -11,4 +11,7 @@ public class VolunteerService {
     public Volunteer saveVolunteer(Volunteer volunteer) {
         return volunteerRepository.save(volunteer);
     }
+    public Volunteer getVolunteer(String volunteerId) {
+        return volunteerRepository.findById(volunteerId).get();
+    }
 }
