@@ -11,6 +11,6 @@ public class TaskService {
     private final TaskRepository taskRepository;
     public TaskService(TaskRepository taskRepository) {this.taskRepository = taskRepository;}
     public Task saveTask(Task task) {return this.taskRepository.save(task);}
-    public List<Task> getTasks() {return this.taskRepository.findAll();}
+    public List<Task> getAllTasks() {return this.taskRepository.findAll();}
 
 }

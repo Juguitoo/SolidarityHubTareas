@@ -1,23 +1,18 @@
 package solidarityhub.backend.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.Volunteer;
-import solidarityhub.backend.model.enums.NeedType;
 import solidarityhub.backend.model.enums.Priority;
 import solidarityhub.backend.model.enums.Status;
 import solidarityhub.backend.service.NeedService;
 import solidarityhub.backend.service.TaskService;
 import solidarityhub.backend.service.VolunteerService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,7 +30,7 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<?> getTasks() {
-        return ResponseEntity.ok(taskService.getTasks());
+        return ResponseEntity.ok(taskService.getAllTasks());
     }
 
     @PostMapping

@@ -24,6 +24,9 @@ public class Catastrophe {
     @NonNull
     private String name;
 
+    @Setter
+    private String description;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "location_id")
     @Setter
@@ -47,9 +50,11 @@ public class Catastrophe {
     @ManyToMany(mappedBy = "catastrophes")
     private List<Zone> zones;
 
-    public Catastrophe(String name, GPSCoordinates location, LocalDate startDate , EmergencyLevel emergencyLevel) {
+    public Catastrophe(String name, String description, GPSCoordinates location, LocalDate startDate , EmergencyLevel emergencyLevel) {
         this.zones = new ArrayList<>();
+        this.needs = new ArrayList<>();
         this.name = name;
+        this.description = description;
         this.location = location;
         this.startDate = startDate;
         this.emergencyLevel = emergencyLevel;
