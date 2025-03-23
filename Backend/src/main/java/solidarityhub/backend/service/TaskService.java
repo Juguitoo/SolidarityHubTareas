@@ -12,5 +12,7 @@ public class TaskService {
     public TaskService(TaskRepository taskRepository) {this.taskRepository = taskRepository;}
     public Task saveTask(Task task) {return this.taskRepository.save(task);}
     public List<Task> getAllTasks() {return this.taskRepository.findAll();}
+    public Task getTaskById(Integer id) {return this.taskRepository.findById(id).get();}
+    public void deleteTask(Task task) {this.taskRepository.delete(task);}
 
 }

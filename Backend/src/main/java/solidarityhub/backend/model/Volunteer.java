@@ -29,19 +29,19 @@ public class Volunteer extends Person {
             inverseJoinColumns = @JoinColumn(name = "preference_name"))
     private List<Preference> preferences;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "volunteer_tasks",
             joinColumns = @JoinColumn(name = "volunteer_dni"),
             inverseJoinColumns = @JoinColumn(name = "task_id"))
     private List<Task> tasks;
 
-    @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Donation> donations;
 
-    @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Certificate> certificates;
 
-    @OneToMany(mappedBy = "volunteer")
+    @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
     private List<Notification> notifications;
 
     public Volunteer(String dNI, String firstName, String lastName, String email,
