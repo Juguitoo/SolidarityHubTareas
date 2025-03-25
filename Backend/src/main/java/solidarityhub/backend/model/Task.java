@@ -18,8 +18,8 @@ public class Task {
     private int id;
 
     @Setter
-    @OneToMany(mappedBy = "task")
-    private List<Need> need;
+    @OneToMany(mappedBy = "task", fetch = FetchType.EAGER)
+    private List<Need> needs;
 
     @Setter
     private String taskName;
@@ -45,7 +45,7 @@ public class Task {
     private Status status;
 
     @Setter
-    @ManyToMany(mappedBy = "tasks")
+    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER)
     private List<Volunteer> volunteers;
 
     @Setter
@@ -57,17 +57,16 @@ public class Task {
     private Notification notification;
 
 
-    public Task(Need need, String taskName, String taskDescription, LocalDateTime startTimeDate,
-                LocalDateTime estimatedEndTimeDate, Priority priority, Status status, Volunteer volunteer) {
-        this.need = List.of(need);
+    public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
+                LocalDateTime estimatedEndTimeDate, Priority priority, Status status, List<Volunteer> volunteers) {
+        this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.startTimeDate = startTimeDate;
         this.estimatedEndTimeDate = estimatedEndTimeDate;
         this.priority = priority;
         this.status = status;
-        this.volunteers= List.of(volunteer);
-        volunteer.getTasks().add(this);
-        this.type = need.getNeedType();
+        this.volunteers= volunteers;
+        this.type = needs.getFirst().getNeedType();
     }
 }

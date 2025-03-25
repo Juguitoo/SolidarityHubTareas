@@ -23,7 +23,7 @@ public class Affected extends Person {
     @Column(nullable = false)
     private boolean disability;
 
-    @OneToMany(mappedBy = "affected")
+    @OneToMany(mappedBy = "affected", fetch = FetchType.EAGER)
     private List<Need> needs;
 
     public Affected(String dNI, String firstName, String lastName, String email, int phone,
