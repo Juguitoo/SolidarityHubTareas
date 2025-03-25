@@ -4,9 +4,16 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <!-- Project from https://start.vaadin.com/project/3f974b61-21f3-44cb-8f9d-958949abb5b6 -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.3</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    
     <groupId>com.example.application</groupId>
-    <artifactId>frontend</artifactId>
-    <name>frontend</name>
+    <artifactId>Frontend</artifactId>
+    <name>FrontendTasks</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
