@@ -2,6 +2,7 @@ package com.example.application.views.task;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 import java.time.LocalDateTime;
@@ -21,13 +23,19 @@ import java.time.format.DateTimeFormatter;
 public class TaskView extends VerticalLayout {
 
     public TaskView() {
+        addClassName("tasks-container");
         H1 title = new H1("Tareas");
-
+        title.addClassNames("task-title");
         Button addTask = new Button("Crear tarea");
         addTask.addClickListener(e -> {
             // Add task
         });
-
+        addTask.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addTask.addClassNames(
+                LumoUtility.Margin.Bottom.MEDIUM,
+                LumoUtility.Margin.Left.AUTO,
+                LumoUtility.Margin.Right.AUTO
+        );
         setAlignSelf(Alignment.CENTER, title);
         setAlignSelf(Alignment.START, addTask);
 
@@ -40,7 +48,7 @@ public class TaskView extends VerticalLayout {
     private Component getTasks(){
         HorizontalLayout tasksListsLayout = new HorizontalLayout();
         setAlignSelf(Alignment.CENTER, tasksListsLayout);
-
+        tasksListsLayout.addClassName("tasks-lists");
         tasksListsLayout.add(
             getToDoTasks(),
             getDoingTasks(),
