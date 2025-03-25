@@ -39,6 +39,8 @@ public class TaskView extends VerticalLayout {
 
     private Component getTasks(){
         HorizontalLayout tasksListsLayout = new HorizontalLayout();
+        setAlignSelf(Alignment.CENTER, tasksListsLayout);
+
         tasksListsLayout.add(
             getToDoTasks(),
             getDoingTasks(),
@@ -50,7 +52,7 @@ public class TaskView extends VerticalLayout {
     private Component getToDoTasks(){
         VerticalLayout toDoTasksList = new VerticalLayout();
         H3 todoTitle = new H3("Por hacer");
-        setAlignSelf(Alignment.CENTER, todoTitle);
+        setAlignSelf(Alignment.CENTER, todoTitle, toDoTasksList);
 
         TaskComponent toDoTask;
         toDoTasksList.add(
@@ -64,7 +66,7 @@ public class TaskView extends VerticalLayout {
     private Component getDoingTasks(){
         VerticalLayout doingTasksList = new VerticalLayout();
         H3 doingTitle = new H3("En proceso");
-        setAlignSelf(Alignment.CENTER, doingTitle);
+        setAlignSelf(Alignment.CENTER, doingTitle, doingTasksList);
 
         TaskComponent doingTask;
         doingTasksList.add(
@@ -78,7 +80,7 @@ public class TaskView extends VerticalLayout {
     private Component getDoneTasks(){
         VerticalLayout doneTasksList = new VerticalLayout();
         H3 doneTitle = new H3("Terminadas");
-        setAlignSelf(Alignment.CENTER, doneTitle);
+        setAlignSelf(Alignment.CENTER, doneTitle, doneTasksList);
 
         TaskComponent doneTask;
         doneTasksList.add(
