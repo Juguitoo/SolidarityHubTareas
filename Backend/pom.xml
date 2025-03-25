@@ -11,7 +11,7 @@
 	<groupId>SolidarityHub</groupId>
 	<artifactId>Backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Backend</name>
+	<name>BackendTasks</name>
 	<description>Backend</description>
 	<url/>
 	<licenses>
