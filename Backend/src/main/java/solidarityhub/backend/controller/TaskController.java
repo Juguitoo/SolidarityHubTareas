@@ -3,6 +3,7 @@ package solidarityhub.backend.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.Volunteer;
@@ -32,12 +33,17 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<?> getTasks() {
-        return ResponseEntity.ok(taskService.getAllTasks());
+        List<TaskDTO> taskDTOList = new ArrayList<>();
+        taskService.getAllTasks().forEach(t -> {taskDTOList.add(new TaskDTO(t));});
+        return ResponseEntity.ok(taskDTOList);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getTask(@PathVariable Integer id) {
-        return ResponseEntity.ok(taskService.getTaskById(id));
+        if(taskService.getTaskById(id) == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new TaskDTO(taskService.getTaskById(id)));
     }
 
     @PostMapping

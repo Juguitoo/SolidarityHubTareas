@@ -1,5 +1,7 @@
 package solidarityhub.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
@@ -10,9 +12,12 @@ import lombok.Setter;
 @Getter
 @MappedSuperclass
 @NoArgsConstructor
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "dni")
 public abstract class Person {
     @Id
-    private String dNI;
+    private String dni;
 
     @Setter
     @Column(nullable = false)
@@ -38,9 +43,9 @@ public abstract class Person {
     @Column(nullable = false)
     private String password;
 
-    public Person(String dNI, String firstName, String lastName, String email,
+    public Person(String dni, String firstName, String lastName, String email,
                      int phone, String address, String password) {
-        this.dNI = dNI;
+        this.dni = dni;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;

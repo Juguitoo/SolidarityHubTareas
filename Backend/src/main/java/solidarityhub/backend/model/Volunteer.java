@@ -29,7 +29,7 @@ public class Volunteer extends Person {
             inverseJoinColumns = @JoinColumn(name = "preference_name"))
     private List<Preference> preferences;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(name = "volunteer_tasks",
             joinColumns = @JoinColumn(name = "volunteer_dni"),
             inverseJoinColumns = @JoinColumn(name = "task_id"))
@@ -44,10 +44,10 @@ public class Volunteer extends Person {
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
     private List<Notification> notifications;
 
-    public Volunteer(String dNI, String firstName, String lastName, String email,
+    public Volunteer(String dni, String firstName, String lastName, String email,
                      int phone, String address, String password, List<Skill> skills,
                      List<ScheduleAvailability> scheduleAvailabilities, List<Preference> preferences) {
-        super(dNI, firstName, lastName, email, phone, address, password);
+        super(dni, firstName, lastName, email, phone, address, password);
         this.tasks = new ArrayList<>();
         this.donations = new ArrayList<>();
         this.certificates = new ArrayList<>();

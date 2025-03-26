@@ -4,6 +4,8 @@ import solidarityhub.backend.model.Need;
 import solidarityhub.backend.repository.NeedRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class NeedService {
     private final NeedRepository needRepository;
@@ -15,4 +17,5 @@ public class NeedService {
         return needRepository.findById(id).get();
     }
 
+    public List<Need> getAllNeeds() {return needRepository.findAll();}
 }

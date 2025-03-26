@@ -4,6 +4,8 @@ import solidarityhub.backend.model.Volunteer;
 import solidarityhub.backend.repository.VolunteerRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class VolunteerService {
     private final VolunteerRepository volunteerRepository;
@@ -14,4 +16,5 @@ public class VolunteerService {
     public Volunteer getVolunteer(String volunteerId) {
         return volunteerRepository.findById(volunteerId).get();
     }
+    public List<Volunteer> getAllVolunteers() {return volunteerRepository.findAll();}
 }

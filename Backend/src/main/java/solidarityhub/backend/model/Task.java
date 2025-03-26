@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.enums.*;
+import solidarityhub.backend.model.enums.NeedType;
+import solidarityhub.backend.model.enums.Priority;
+import solidarityhub.backend.model.enums.Status;
 
 import java.time.LocalDateTime;
 import java.util.List;
