@@ -26,10 +26,7 @@ public class TaskComponent extends HorizontalLayout {
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
 
-        getStyle().set("background-color", "#f0f0f0");
-        getStyle().set("padding", "10px");
-        getStyle().set("border-radius", "24px");
-        setAlignItems(Alignment.CENTER);
+        addClassName("task-card");
 
         add(
             getImg(),
@@ -38,42 +35,66 @@ public class TaskComponent extends HorizontalLayout {
             getSettings()
         );
     }
+    public String getTaskName() {
+        return taskName;
+    }
+    public String getTaskDescription() {
+        return taskDescription;
+    }
 
+    public String getStartTimeDate() {
+        return startTimeDate;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+    public String getEmergencyLevel() {
+        return emergencyLevel;
+    }
     private Image getImg() {
         switch (emergencyLevel) {
             case "low":
                 Image imgLow = new Image("images/task_low.png", "Tarea de emergencia baja");
-                imgLow.setWidth(40, Unit.PIXELS);
+                imgLow.addClassName("task-icon");
                 return imgLow;
             case "medium":
                 Image imgMedium = new Image("images/task_medium.png", "Tarea de emergencia media");
-                imgMedium.setWidth(40, Unit.PIXELS);
+                imgMedium.addClassName("task-icon");
                 return imgMedium;
             case "high":
                 Image imgHigh = new Image("images/task_high.png", "Tarea de emergencia alta");
-                imgHigh.setWidth(40, Unit.PIXELS);
+                imgHigh.addClassName("task-icon");
                 return imgHigh;
             case "veryHigh":
                 Image imgVeryHigh = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
-                imgVeryHigh.setWidth(40, Unit.PIXELS);
+                imgVeryHigh.addClassName("task-icon");
                 return imgVeryHigh;
         }
         Image img = new Image("images/task_default.png", "Icono tarea");
-        img.setWidth(40, Unit.PIXELS);
+        img.addClassName("task-icon");
         return img;
     }
 
     private Component getTaskInfo() {
         VerticalLayout textLayout = new VerticalLayout();
+        textLayout.addClassName("task-info");
+
 
         H2 taskNameTitle = new H2(taskName);
-        Span tackDescriptionSpan = new Span(taskDescription);
+        taskNameTitle.addClassName("task-title");
 
-        textLayout.add(taskNameTitle, tackDescriptionSpan);
+        Span taskDescriptionSpan = new Span(taskDescription);
+        taskDescriptionSpan.addClassName("task-description");
+
+        Span taskDate = new Span(startTimeDate);
+        taskDate.addClassName("task-date");
+
+        textLayout.add(taskNameTitle, taskDescriptionSpan, taskDate);
         return textLayout;
     }
 
-    private Component getPriorityLevel() {
+    public Component getPriorityLevel() {
         Span emergencyLevelSpan = new Span(priority);
         setAlignSelf(Alignment.END, emergencyLevelSpan);
         return emergencyLevelSpan;
@@ -83,7 +104,7 @@ public class TaskComponent extends HorizontalLayout {
         VerticalLayout buttonLayout = new VerticalLayout();
 
         Span taskDateSpan = new Span(startTimeDate);
-        Icon icon = VaadinIcon.COG.create();;
+        Icon icon = VaadinIcon.COG.create();
         Button editButton = new Button(icon);
 
         setAlignSelf(Alignment.END, taskDateSpan, editButton);
