@@ -26,12 +26,6 @@ public class TaskComponent extends HorizontalLayout {
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
 
-        /*
-        getStyle().set("background-color", "#f0f0f0");
-        getStyle().set("padding", "10px");
-        getStyle().set("border-radius", "24px");
-        setAlignItems(Alignment.CENTER);
-        */
         addClassName("task-card");
 
         add(
@@ -41,7 +35,23 @@ public class TaskComponent extends HorizontalLayout {
             getSettings()
         );
     }
+    public String getTaskName() {
+        return taskName;
+    }
+    public String getTaskDescription() {
+        return taskDescription;
+    }
 
+    public String getStartTimeDate() {
+        return startTimeDate;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+    public String getEmergencyLevel() {
+        return emergencyLevel;
+    }
     private Image getImg() {
         switch (emergencyLevel) {
             case "low":
@@ -84,7 +94,7 @@ public class TaskComponent extends HorizontalLayout {
         return textLayout;
     }
 
-    private Component getPriorityLevel() {
+    public Component getPriorityLevel() {
         Span emergencyLevelSpan = new Span(priority);
         setAlignSelf(Alignment.END, emergencyLevelSpan);
         return emergencyLevelSpan;

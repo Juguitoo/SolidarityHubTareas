@@ -15,6 +15,8 @@ import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @PageTitle("Tareas")
 @Route("task")
@@ -22,7 +24,10 @@ import java.time.format.DateTimeFormatter;
 
 public class TaskView extends VerticalLayout {
 
+    private final List<TaskComponent> tasks;
+
     public TaskView() {
+        tasks = new ArrayList<>();
         addClassName("tasks-container");
         H1 title = new H1("Tareas");
         title.addClassNames("task-title");
@@ -36,12 +41,17 @@ public class TaskView extends VerticalLayout {
                 LumoUtility.Margin.Left.AUTO,
                 LumoUtility.Margin.Right.AUTO
         );
+
+        Button moreTasks = new Button("Ver todas las tareas");
+        moreTasks.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("moretasks")));
+
         setAlignSelf(Alignment.CENTER, title);
         setAlignSelf(Alignment.START, addTask);
 
         add(title,
             getTasks(),
-            addTask
+            addTask,
+            moreTasks
         );
     }
 
@@ -62,11 +72,9 @@ public class TaskView extends VerticalLayout {
         H3 todoTitle = new H3("Por hacer");
         setAlignSelf(Alignment.CENTER, todoTitle, toDoTasksList);
 
-        TaskComponent toDoTask;
-        toDoTasksList.add(
-            todoTitle,
-            toDoTask = new TaskComponent("Tarea 1", "Tarea por hacer", formatDate(LocalDateTime.now()), "High", "veryHigh")
-        );
+        TaskComponent toDoTask = new TaskComponent("Tarea 1", "Tarea por hacer", formatDate(LocalDateTime.now()), "High", "veryHigh");
+        tasks.add(toDoTask);
+        toDoTasksList.add(todoTitle, toDoTask);
 
         return toDoTasksList;
     }
@@ -76,11 +84,9 @@ public class TaskView extends VerticalLayout {
         H3 doingTitle = new H3("En proceso");
         setAlignSelf(Alignment.CENTER, doingTitle, doingTasksList);
 
-        TaskComponent doingTask;
-        doingTasksList.add(
-                doingTitle,
-                doingTask = new TaskComponent("Tarea 2", "Tara en proceso", formatDate(LocalDateTime.now()), "High", "high")
-        );
+        TaskComponent doingTask = new TaskComponent("Tarea 2", "Tarea en proceso", formatDate(LocalDateTime.now()), "High", "high");
+        tasks.add(doingTask);
+        doingTasksList.add(doingTitle, doingTask);
 
         return doingTasksList;
     }
@@ -90,16 +96,18 @@ public class TaskView extends VerticalLayout {
         H3 doneTitle = new H3("Terminadas");
         setAlignSelf(Alignment.CENTER, doneTitle, doneTasksList);
 
-        TaskComponent doneTask;
-        doneTasksList.add(
-                doneTitle,
-                doneTask = new TaskComponent("Tarea 3", "Tara terminada", formatDate(LocalDateTime.now()), "low", "medium")
-        );
+        TaskComponent doneTask = new TaskComponent("Tarea 3", "Tarea terminada", formatDate(LocalDateTime.now()), "low", "medium");
+        tasks.add(doneTask);
+        doneTasksList.add(doneTitle, doneTask);
 
         return doneTasksList;
     }
 
     private String formatDate(LocalDateTime taskDate){
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
+
+    public List<TaskComponent> getAllTasks() {
+        return tasks;
     }
 }
