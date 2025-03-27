@@ -2,17 +2,19 @@ package com.example.application.dto;
 
 import lombok.Getter;
 import com.example.application.model.Volunteer;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@NoArgsConstructor
 @Getter
 public class VolunteerDTO {
-    private final String dni;
-    private final String firstName;
-    private final String lastName;
-    private final String email;
-    private final List<Integer> tasks;
+    private String dni;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private List<Integer> tasks;
 
     public VolunteerDTO(Volunteer volunteer) {
         this.tasks = new ArrayList<>();

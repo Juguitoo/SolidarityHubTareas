@@ -4,14 +4,16 @@ import lombok.Getter;
 import com.example.application.model.Need;
 import com.example.application.model.enums.NeedType;
 import com.example.application.model.enums.UrgencyLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Getter
 public class NeedDTO {
-    private final int id;
-    private final String description;
-    private final UrgencyLevel urgency;
-    private final NeedType needType;
-    private final int taskId;
+    private int id;
+    private String description;
+    private UrgencyLevel urgency;
+    private NeedType needType;
+    private int taskId;
 
     public NeedDTO(Need need) {
         this.id = need.getId();

@@ -5,23 +5,25 @@ import com.example.application.model.enums.Priority;
 import com.example.application.model.enums.Status;
 import lombok.Getter;
 import com.example.application.model.Task;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@NoArgsConstructor
 @Getter
 public class TaskDTO {
-    private final int id;
-    private final String name;
-    private final String description;
-    private final LocalDateTime startTimeDate;
-    private final LocalDateTime estimatedEndTimeDate;
-    private final NeedType type;
-    private final Priority priority;
-    private final Status status;
-    private final List<NeedDTO> needs;
-    private final List<VolunteerDTO> volunteers;
+    private int id;
+    private String name;
+    private String description;
+    private LocalDateTime startTimeDate;
+    private LocalDateTime estimatedEndTimeDate;
+    private NeedType type;
+    private Priority priority;
+    private Status status;
+    private List<NeedDTO> needs;
+    private List<VolunteerDTO> volunteers;
 
     public TaskDTO(Task task) {
         this.needs = new ArrayList<>();
