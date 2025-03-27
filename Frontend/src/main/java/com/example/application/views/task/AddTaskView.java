@@ -2,6 +2,7 @@ package com.example.application.views.task;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -10,6 +11,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -24,20 +26,32 @@ import java.util.HashSet;
 
 @PageTitle("Añadir tarea")
 @Route("addtask")
-public class addTaskView extends VerticalLayout {
+public class AddTaskView extends VerticalLayout {
 
     MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
 
-    public addTaskView() {
-        H1 title = new H1("Añadir tarea");
+    public AddTaskView() {
+        HorizontalLayout header = new HorizontalLayout();
+        header.addClassName("header");
 
-        setAlignSelf(Alignment.CENTER, title);
+        Button backButton = new Button(new Icon("vaadin", "arrow-left"));
+        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        backButton.addClickListener(event -> {
+            getUI().ifPresent(ui -> ui.navigate("task"));
+        });
+        backButton.addClassName("back-button");
+
+        H1 title = new H1("Añadir tarea");
+        title.addClassName("title");
+
+        setAlignSelf(Alignment.CENTER, title, backButton);
+        header.add(backButton, title);
 
         add(
-                title,
-                getPreview(),
-                getTaskForm(),
-                getButtons());
+            header,
+            getPreview(),
+            getTaskForm(),
+            getButtons());
     }
 
     private Component getPreview(){
@@ -63,27 +77,30 @@ public class addTaskView extends VerticalLayout {
 
         TextField taskName = new TextField("Nombre de la tarea");
         taskName.setRequiredIndicatorVisible(true);
+        taskName.setRequired(true);
 
         TextArea taskDescription = new TextArea("Descripción de la tarea");
         taskDescription.setRequiredIndicatorVisible(true);
+        taskDescription.setRequired(true);
 
         ComboBox<String> taskPriority = new ComboBox<String>("Prioridad");
         taskPriority.setItems("Baja", "Moderada", "Urgente");
         taskPriority.setRequiredIndicatorVisible(true);
+        taskPriority.setRequired(true);
 
         ComboBox<String> taskEmergency = new ComboBox<String>("Nivel de emergencia");
         taskEmergency.setItems("Baja", "Media", "Alta", "Muy alta");
         taskEmergency.setRequiredIndicatorVisible(true);
+        taskEmergency.setRequired(true);
 
         ComboBox<String> taskNeed = new ComboBox<String>("Necesidad");
         taskNeed.setItems("Baja", "Moderada", "Urgente");
         taskNeed.setRequiredIndicatorVisible(true);
+        taskNeed.setRequired(true);
 
         DateTimePicker dateTimePicker = new DateTimePicker();
         dateTimePicker.setLabel("Fecha y hora de la tarea");
         dateTimePicker.setRequiredIndicatorVisible(true);
-
-
 
         addTaskForm.add(taskName, taskDescription, taskPriority, taskEmergency, taskNeed, dateTimePicker, getVolunteersForm());
 
@@ -102,6 +119,7 @@ public class addTaskView extends VerticalLayout {
         volunteerMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
+        volunteerMultiSelectComboBox.setRequired(true);
 
         Dialog selectVolunteersDialog = getDialogContent();
         volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
@@ -142,6 +160,7 @@ public class addTaskView extends VerticalLayout {
             }
             volunteerDialog.close();
         });
+
         Button cancelButton = new Button("Cancelar", e -> volunteerDialog.close());
         volunteerDialog.getFooter().add(cancelButton);
         volunteerDialog.getFooter().add(saveButton);
