@@ -16,11 +16,11 @@ import java.util.List;
 
 @PageTitle(" Ver más tareas")
 @Route("moretasks")
-public class moreTasks extends VerticalLayout {
+public class MoreTasks extends VerticalLayout {
 
     private final ListDataProvider<TaskComponent> dataProvider;
 
-    public moreTasks() {
+    public MoreTasks() {
         List<TaskComponent> tasks = getTasks();
         dataProvider = new ListDataProvider<>(tasks);
 

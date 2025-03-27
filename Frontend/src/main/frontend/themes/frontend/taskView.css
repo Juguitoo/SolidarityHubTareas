@@ -1,0 +1,70 @@
+:host {
+    --background-color: #f5f5f5;
+    --section-spacing: 1.5rem;
+    --high-priority: #ff5252;
+    --medium-priority: #ffab40;
+    --low-priority: #69f0ae;
+    --default-priority: #e0e0e0;
+
+}
+
+/* Contenedor principal */
+.tasks-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--section-spacing);
+    padding: var(--section-spacing);
+    background-color: var(--background-color);
+    min-height: 100vh;
+}
+
+/* Título principal */
+.task-title {
+    color: #424242;
+    font-size: 2rem;
+    text-align: center;
+}
+
+/* Contenedor de listas de tareas */
+.tasks-lists {
+    display: flex;
+    align-items: center;
+    gap: var(--section-spacing);
+    width: 100%;
+    justify-content: center;
+}
+
+/* Secciones de tareas (Por hacer, En proceso, Terminadas) */
+.task-section {
+    flex: 1;
+    background-color: white;
+    border-radius: var(--card-border-radius);
+    padding: 1rem;
+    box-shadow: var(--card-shadow);
+    min-width: 280px;
+    max-width: 400px;
+}
+
+.task-section .section-title {
+    margin-top: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e0e0e0;
+    color: #424242;
+    text-align: center;
+}
+
+.button-hover:hover {
+    background-color: #0056b3; /* Cambia el color de fondo al pasar el ratón */
+    color: red;
+    cursor: pointer;
+}
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .tasks-lists {
+        flex-direction: column;
+        align-items: center;
+    }
+}

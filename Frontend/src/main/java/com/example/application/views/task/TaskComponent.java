@@ -3,6 +3,7 @@ package com.example.application.views.task;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -35,23 +36,7 @@ public class TaskComponent extends HorizontalLayout {
             getSettings()
         );
     }
-    public String getTaskName() {
-        return taskName;
-    }
-    public String getTaskDescription() {
-        return taskDescription;
-    }
 
-    public String getStartTimeDate() {
-        return startTimeDate;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-    public String getEmergencyLevel() {
-        return emergencyLevel;
-    }
     private Image getImg() {
         switch (emergencyLevel) {
             case "low":
@@ -87,29 +72,55 @@ public class TaskComponent extends HorizontalLayout {
         Span taskDescriptionSpan = new Span(taskDescription);
         taskDescriptionSpan.addClassName("task-description");
 
-        Span taskDate = new Span(startTimeDate);
-        taskDate.addClassName("task-date");
-
-        textLayout.add(taskNameTitle, taskDescriptionSpan, taskDate);
+        textLayout.add(taskNameTitle, taskDescriptionSpan);
         return textLayout;
     }
 
     public Component getPriorityLevel() {
         Span emergencyLevelSpan = new Span(priority);
+        emergencyLevelSpan.addClassName("task-priority");
         setAlignSelf(Alignment.END, emergencyLevelSpan);
         return emergencyLevelSpan;
     }
 
     private Component getSettings() {
         VerticalLayout buttonLayout = new VerticalLayout();
+        buttonLayout.addClassName("settings");
 
         Span taskDateSpan = new Span(startTimeDate);
+        taskDateSpan.addClassName("task-date");
+
         Icon icon = VaadinIcon.COG.create();
         Button editButton = new Button(icon);
+        editButton.addClassName("edit-button");
 
-        setAlignSelf(Alignment.END, taskDateSpan, editButton);
+
+
+        editButton.addClickListener(event -> {
+
+        });
 
         buttonLayout.add(taskDateSpan, editButton);
         return buttonLayout;
+    }
+
+
+    //Delete
+    public String getTaskName() {
+        return taskName;
+    }
+    public String getTaskDescription() {
+        return taskDescription;
+    }
+
+    public String getStartTimeDate() {
+        return startTimeDate;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+    public String getEmergencyLevel() {
+        return emergencyLevel;
     }
 }
