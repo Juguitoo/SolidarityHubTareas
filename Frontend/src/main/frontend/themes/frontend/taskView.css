@@ -1,12 +1,11 @@
 :host {
     --background-color: #f5f5f5;
-    --card-border-radius: 24px;
     --section-spacing: 1.5rem;
-    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     --high-priority: #ff5252;
     --medium-priority: #ffab40;
     --low-priority: #69f0ae;
     --default-priority: #e0e0e0;
+
 }
 
 /* Contenedor principal */
@@ -27,23 +26,10 @@
     text-align: center;
 }
 
-/* Botón de añadir tarea */
-.add-task-button {
-    background-color: var(--high-priority);
-    color: white;
-    border-radius: var(--card-border-radius);
-    padding: 10px 20px;
-    font-size: 1rem;
-    transition: background 0.3s ease-in-out;
-}
-
-.add-task-button:hover {
-    background-color: #e53935;
-}
-
 /* Contenedor de listas de tareas */
 .tasks-lists {
     display: flex;
+    align-items: center;
     gap: var(--section-spacing);
     width: 100%;
     justify-content: center;
@@ -68,72 +54,12 @@
     text-align: center;
 }
 
-/* Tarjetas de tareas */
-.task-card {
-    background-color: #f0f0f0;
-    border-radius: 24px ;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: var(--card-shadow);
-    border-left: 6px solid var(--default-priority);
-    transition: transform 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.button-hover:hover {
+    background-color: #0056b3; /* Cambia el color de fondo al pasar el ratón */
+    color: red;
+    cursor: pointer;
 }
 
-.task-card.high {
-    border-left-color: var(--high-priority);
-}
-
-.task-card.medium {
-    border-left-color: var(--medium-priority);
-}
-
-.task-card.low {
-    border-left-color: var(--low-priority);
-}
-
-/* Información de la tarea */
-.task-card .task-title {
-    font-weight: bold;
-    font-size: 1.2rem;
-    color: #212121;
-}
-
-.task-card .task-date {
-    font-size: 0.9rem;
-    color: #757575;
-}
-
-/* Icono de la tarea */
-.task-card img {
-    width: 50px;
-    height: 50px;
-}
-
-/* Configuración de la tarea */
-.task-card .settings {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.task-icon {
-    width: 4px; /* Ajusta el tamaño según sea necesario */
-    height: 4px; /* Mantiene la proporción original */
-    object-fit: contain; /* Evita que se deformen */
-    display: block;
-    max-width: 100%; /* Limita el tamaño máximo */
-    max-height: 100%;
-}
-
-/* Separador */
-.divider {
-    height: 1px;
-    background-color: #e0e0e0;
-    margin: 1rem 0;
-}
 
 /* Responsive design */
 @media (max-width: 768px) {

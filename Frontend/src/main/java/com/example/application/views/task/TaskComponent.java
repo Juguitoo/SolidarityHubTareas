@@ -3,6 +3,7 @@ package com.example.application.views.task;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -77,19 +78,23 @@ public class TaskComponent extends HorizontalLayout {
 
     public Component getPriorityLevel() {
         Span emergencyLevelSpan = new Span(priority);
+        emergencyLevelSpan.addClassName("task-priority");
         setAlignSelf(Alignment.END, emergencyLevelSpan);
         return emergencyLevelSpan;
     }
 
     private Component getSettings() {
         VerticalLayout buttonLayout = new VerticalLayout();
+        buttonLayout.addClassName("settings");
 
         Span taskDateSpan = new Span(startTimeDate);
+        taskDateSpan.addClassName("task-date");
 
         Icon icon = VaadinIcon.COG.create();
         Button editButton = new Button(icon);
+        editButton.addClassName("edit-button");
 
-        setAlignSelf(Alignment.END, taskDateSpan, editButton);
+
 
         editButton.addClickListener(event -> {
 

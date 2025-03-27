@@ -3,6 +3,7 @@ package com.example.application.views.task;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +32,7 @@ public class TaskView extends VerticalLayout {
         addClassName("tasks-container");
         H1 title = new H1("Tareas");
         title.addClassNames("task-title");
+
         Button addTask = new Button("Crear tarea");
         addTask.addClickListener(e -> {
             getUI().ifPresent(ui -> ui.navigate("addtask"));
@@ -39,14 +41,20 @@ public class TaskView extends VerticalLayout {
         addTask.addClassNames(
                 LumoUtility.Margin.Bottom.MEDIUM,
                 LumoUtility.Margin.Left.AUTO,
-                LumoUtility.Margin.Right.AUTO
+                LumoUtility.Margin.Right.AUTO,
+                "button-hover"
         );
 
         Button moreTasks = new Button("Ver todas las tareas");
         moreTasks.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("moretasks")));
+        moreTasks.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        moreTasks.addClassNames(
+                LumoUtility.Margin.Bottom.MEDIUM,
+                LumoUtility.Margin.Left.AUTO,
+                LumoUtility.Margin.Right.AUTO,
+                "button-hover"
+        );
 
-        setAlignSelf(Alignment.CENTER, title);
-        setAlignSelf(Alignment.START, addTask);
 
         add(title,
             getTasks(),
@@ -57,7 +65,6 @@ public class TaskView extends VerticalLayout {
 
     private Component getTasks(){
         HorizontalLayout tasksListsLayout = new HorizontalLayout();
-        setAlignSelf(Alignment.CENTER, tasksListsLayout);
         tasksListsLayout.addClassName("tasks-lists");
         tasksListsLayout.add(
             getToDoTasks(),
@@ -68,9 +75,12 @@ public class TaskView extends VerticalLayout {
     }
 
     private Component getToDoTasks(){
+
         VerticalLayout toDoTasksList = new VerticalLayout();
+        toDoTasksList.addClassName("task-section");
+
         H3 todoTitle = new H3("Por hacer");
-        setAlignSelf(Alignment.CENTER, todoTitle, toDoTasksList);
+        todoTitle.addClassName("section-title");
 
         TaskComponent toDoTask = new TaskComponent("Tarea 1", "Tarea por hacer", formatDate(LocalDateTime.now()), "High", "veryHigh");
         tasks.add(toDoTask);
@@ -81,20 +91,25 @@ public class TaskView extends VerticalLayout {
 
     private Component getDoingTasks(){
         VerticalLayout doingTasksList = new VerticalLayout();
+        doingTasksList.addClassName("task-section");
+
         H3 doingTitle = new H3("En proceso");
-        setAlignSelf(Alignment.CENTER, doingTitle, doingTasksList);
+        doingTitle.addClassName("section-title");
 
         TaskComponent doingTask = new TaskComponent("Tarea 2", "Tarea en proceso", formatDate(LocalDateTime.now()), "High", "high");
         tasks.add(doingTask);
-        doingTasksList.add(doingTitle, doingTask);
+        doingTasksList.add(doingTitle,doingTask);
 
         return doingTasksList;
     }
 
     private Component getDoneTasks(){
         VerticalLayout doneTasksList = new VerticalLayout();
+        doneTasksList.addClassName("task-section");
+
         H3 doneTitle = new H3("Terminadas");
-        setAlignSelf(Alignment.CENTER, doneTitle, doneTasksList);
+        doneTitle.addClassName("section-title");
+
 
         TaskComponent doneTask = new TaskComponent("Tarea 3", "Tarea terminada", formatDate(LocalDateTime.now()), "low", "medium");
         tasks.add(doneTask);
@@ -102,6 +117,7 @@ public class TaskView extends VerticalLayout {
 
         return doneTasksList;
     }
+
 
     private String formatDate(LocalDateTime taskDate){
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
