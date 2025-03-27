@@ -1,13 +1,3 @@
-:host {
-    --background-color: #f5f5f5;
-    --section-spacing: 1.5rem;
-    --high-priority: #ff5252;
-    --medium-priority: #ffab40;
-    --low-priority: #69f0ae;
-    --default-priority: #e0e0e0;
-
-}
-
 /* Contenedor principal */
 .tasks-container {
     display: flex;
@@ -54,10 +44,14 @@
     text-align: center;
 }
 
-.button-hover:hover {
-    background-color: #0056b3; /* Cambia el color de fondo al pasar el ratón */
-    color: red;
+.button{
+    background-color: blue;
+    color: #fff;
     cursor: pointer;
+
+}
+.button:hover {
+    background-color: #0056b3;
 }
 
 
