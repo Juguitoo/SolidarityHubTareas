@@ -33,7 +33,7 @@ public class TaskView extends VerticalLayout {
         title.addClassNames("task-title");
         Button addTask = new Button("Crear tarea");
         addTask.addClickListener(e -> {
-            // Add task
+            getUI().ifPresent(ui -> ui.navigate("addtask"));
         });
         addTask.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addTask.addClassNames(
@@ -107,7 +107,4 @@ public class TaskView extends VerticalLayout {
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
-    public List<TaskComponent> getAllTasks() {
-        return tasks;
-    }
 }

@@ -35,23 +35,7 @@ public class TaskComponent extends HorizontalLayout {
             getSettings()
         );
     }
-    public String getTaskName() {
-        return taskName;
-    }
-    public String getTaskDescription() {
-        return taskDescription;
-    }
 
-    public String getStartTimeDate() {
-        return startTimeDate;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-    public String getEmergencyLevel() {
-        return emergencyLevel;
-    }
     private Image getImg() {
         switch (emergencyLevel) {
             case "low":
@@ -87,10 +71,7 @@ public class TaskComponent extends HorizontalLayout {
         Span taskDescriptionSpan = new Span(taskDescription);
         taskDescriptionSpan.addClassName("task-description");
 
-        Span taskDate = new Span(startTimeDate);
-        taskDate.addClassName("task-date");
-
-        textLayout.add(taskNameTitle, taskDescriptionSpan, taskDate);
+        textLayout.add(taskNameTitle, taskDescriptionSpan);
         return textLayout;
     }
 
@@ -104,12 +85,37 @@ public class TaskComponent extends HorizontalLayout {
         VerticalLayout buttonLayout = new VerticalLayout();
 
         Span taskDateSpan = new Span(startTimeDate);
+
         Icon icon = VaadinIcon.COG.create();
         Button editButton = new Button(icon);
 
         setAlignSelf(Alignment.END, taskDateSpan, editButton);
 
+        editButton.addClickListener(event -> {
+
+        });
+
         buttonLayout.add(taskDateSpan, editButton);
         return buttonLayout;
+    }
+
+
+    //Delete
+    public String getTaskName() {
+        return taskName;
+    }
+    public String getTaskDescription() {
+        return taskDescription;
+    }
+
+    public String getStartTimeDate() {
+        return startTimeDate;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+    public String getEmergencyLevel() {
+        return emergencyLevel;
     }
 }

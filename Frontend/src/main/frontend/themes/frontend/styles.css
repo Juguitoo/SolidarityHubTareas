@@ -1,2 +1,4 @@
 @import url('./main-layout.css');
-@import url('./taskview.css');
+@import url('taskView.css');
+@import url('moreTasks.css');
+@import url('addTaskView.css');

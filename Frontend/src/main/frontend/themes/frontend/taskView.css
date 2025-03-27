@@ -82,10 +82,6 @@
     gap: 1rem;
 }
 
-.task-card:hover {
-    transform: translateY(-3px);
-}
-
 .task-card.high {
     border-left-color: var(--high-priority);
 }
