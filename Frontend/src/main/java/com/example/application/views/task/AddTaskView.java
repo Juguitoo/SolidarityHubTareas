@@ -1,5 +1,7 @@
 package com.example.application.views.task;
 
+import com.example.application.model.enums.EmergencyLevel;
+import com.example.application.model.enums.Priority;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -11,6 +13,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -28,9 +31,16 @@ import java.util.HashSet;
 @Route("addtask")
 public class AddTaskView extends VerticalLayout {
 
-    MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
+    private final TextField taskName = new TextField("Nombre de la tarea");
+    private final TextArea taskDescription = new TextArea("Descripción de la tarea");
+    private final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
+    private final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
+    private final ComboBox<String> taskNeed = new ComboBox<>("Necesidad");
+    private final DateTimePicker dateTimePicker = new DateTimePicker("Fecha y hora de la tarea");
+    private final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
 
     public AddTaskView() {
+        //Header
         HorizontalLayout header = new HorizontalLayout();
         header.addClassName("header");
 
@@ -51,11 +61,13 @@ public class AddTaskView extends VerticalLayout {
             header,
             getPreview(),
             getTaskForm(),
-            getButtons());
+            getButtons()
+        );
     }
 
     private Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
+        preview.addClassName("previewContainer");
 
         H3 previewTitle = new H3("Previsualizción:");
         TaskComponent taskPreview = new TaskComponent(
@@ -75,31 +87,41 @@ public class AddTaskView extends VerticalLayout {
     private Component getTaskForm(){
         FormLayout addTaskForm = new FormLayout();
 
-        TextField taskName = new TextField("Nombre de la tarea");
         taskName.setRequiredIndicatorVisible(true);
         taskName.setRequired(true);
 
-        TextArea taskDescription = new TextArea("Descripción de la tarea");
         taskDescription.setRequiredIndicatorVisible(true);
         taskDescription.setRequired(true);
 
-        ComboBox<String> taskPriority = new ComboBox<String>("Prioridad");
-        taskPriority.setItems("Baja", "Moderada", "Urgente");
+        taskPriority.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
+        taskPriority.setItemLabelGenerator(priority -> {
+            switch (priority) {
+                case LOW: return "Baja";
+                case MODERATE: return "Moderada";
+                case URGENT: return "Urgente";
+                default: return "";
+            }
+        });
         taskPriority.setRequiredIndicatorVisible(true);
         taskPriority.setRequired(true);
 
-        ComboBox<String> taskEmergency = new ComboBox<String>("Nivel de emergencia");
-        taskEmergency.setItems("Baja", "Media", "Alta", "Muy alta");
+        taskEmergency.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
+        taskEmergency.setItemLabelGenerator(emergencyLevel -> {
+            switch (emergencyLevel) {
+                case LOW: return "Bajo";
+                case MEDIUM: return "Medio";
+                case HIGH: return "Alto";
+                case VERYHIGH: return "Muy alto";
+                default: return "";
+            }
+        });
         taskEmergency.setRequiredIndicatorVisible(true);
         taskEmergency.setRequired(true);
 
-        ComboBox<String> taskNeed = new ComboBox<String>("Necesidad");
         taskNeed.setItems("Baja", "Moderada", "Urgente");
         taskNeed.setRequiredIndicatorVisible(true);
         taskNeed.setRequired(true);
 
-        DateTimePicker dateTimePicker = new DateTimePicker();
-        dateTimePicker.setLabel("Fecha y hora de la tarea");
         dateTimePicker.setRequiredIndicatorVisible(true);
 
         addTaskForm.add(taskName, taskDescription, taskPriority, taskEmergency, taskNeed, dateTimePicker, getVolunteersForm());
@@ -161,15 +183,22 @@ public class AddTaskView extends VerticalLayout {
             volunteerDialog.close();
         });
 
-        Button cancelButton = new Button("Cancelar", e -> volunteerDialog.close());
+        Button cancelButton = new Button("Cancelar", e -> {
+
+            volunteersListBox.select(volunteerMultiSelectComboBox.getSelectedItems());
+            volunteersListBox.getSelectedItems().stream()
+                    .filter(item -> !volunteerMultiSelectComboBox.getSelectedItems().contains(item))
+                    .forEach(volunteersListBox::deselect);
+            if (volunteerMultiSelectComboBox.getSelectedItems().contains("Elegir voluntarios automáticamente")) {
+                volunteerCheckbox.setValue(true);
+                volunteersListBox.setEnabled(false);
+            }
+            volunteerDialog.close();
+        });
         volunteerDialog.getFooter().add(cancelButton);
         volunteerDialog.getFooter().add(saveButton);
 
         volunteerDialog.add(dialogContent);
-
-        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
-            volunteerDialog.open();
-        });
 
         return volunteerDialog;
     }
@@ -185,13 +214,38 @@ public class AddTaskView extends VerticalLayout {
 
         Button cancel = new Button("Cancelar");
         cancel.addClickListener(e -> {
-            // Cancel task
+            if (isFormFilled()) {
+                Dialog confirmDialog = new Dialog();
+                confirmDialog.setHeaderTitle("Confirmación");
+
+                VerticalLayout dialogContent = new VerticalLayout();
+                dialogContent.add(new Span("¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."));
+
+                Button confirmButton = new Button("Confirmar", event -> {
+                    confirmDialog.close();
+                    getUI().ifPresent(ui -> ui.navigate("task"));
+                });
+                confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+                Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
+                cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+                confirmDialog.getFooter().add(cancelButton, confirmButton);
+                confirmDialog.add(dialogContent);
+                confirmDialog.open();
+            } else {
+                getUI().ifPresent(ui -> ui.navigate("task"));
+            }
         });
 
         buttons.add(save, cancel);
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;
+    }
+
+    private boolean isFormFilled() {
+        return !taskName.isEmpty() || !taskDescription.isEmpty() || taskPriority.getValue() != null || taskEmergency.getValue() != null || taskNeed.getValue() != null || dateTimePicker.getValue() != null || !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
     }
 
     private String formatDate(LocalDateTime taskDate){

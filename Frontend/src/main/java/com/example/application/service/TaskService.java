@@ -1,6 +1,7 @@
 package com.example.application.service;
 
 import com.example.application.dto.TaskDTO;
+import com.example.application.model.enums.Status;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -24,6 +25,24 @@ public class TaskService {
             return List.of(tasks);
         }
         return new ArrayList<>();
+    }
+
+    public List<TaskDTO> getToDoTasks() {
+        return getTasksByStatus(Status.TO_DO);
+    }
+
+    public List<TaskDTO> getDoingTasks() {
+        return getTasksByStatus(Status.IN_PROGRESS);
+    }
+
+    public List<TaskDTO> getDoneTasks() {
+        return getTasksByStatus(Status.FINISHED);
+    }
+
+    private List<TaskDTO> getTasksByStatus(Status status) {
+        return getTasks().stream()
+                .filter(task -> status.equals(task.getStatus()))
+                .toList();
     }
 
     public TaskDTO getTask(int id) {

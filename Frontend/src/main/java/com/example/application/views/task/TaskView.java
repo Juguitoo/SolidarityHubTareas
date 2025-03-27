@@ -1,11 +1,14 @@
 package com.example.application.views.task;
 
+import com.example.application.model.enums.Status;
+import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
@@ -25,10 +28,9 @@ import java.util.List;
 
 public class TaskView extends VerticalLayout {
 
-    private final List<TaskComponent> tasks;
+    private final TaskService taskService = new TaskService();
 
     public TaskView() {
-        tasks = new ArrayList<>();
         addClassName("tasks-container");
         H1 title = new H1("Tareas");
         title.addClassNames("task-title");
@@ -37,11 +39,23 @@ public class TaskView extends VerticalLayout {
         addTask.addClickListener(e -> {
             getUI().ifPresent(ui -> ui.navigate("addtask"));
         });
-        addTask.addClassName("button");
+        addTask.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addTask.addClassNames(
+                LumoUtility.Margin.Bottom.MEDIUM,
+                LumoUtility.Margin.Left.AUTO,
+                LumoUtility.Margin.Right.AUTO,
+                "button-hover"
+        );
 
         Button moreTasks = new Button("Ver todas las tareas");
         moreTasks.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("moretasks")));
-        moreTasks.addClassName("button");
+        moreTasks.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        moreTasks.addClassNames(
+                LumoUtility.Margin.Bottom.MEDIUM,
+                LumoUtility.Margin.Left.AUTO,
+                LumoUtility.Margin.Right.AUTO,
+                "button-hover"
+        );
 
 
         add(title,
@@ -59,55 +73,82 @@ public class TaskView extends VerticalLayout {
             getDoingTasks(),
             getDoneTasks()
         );
+        tasksListsLayout.setDefaultVerticalComponentAlignment(Alignment.START);
         return tasksListsLayout;
     }
 
-    private Component getToDoTasks(){
-
-        VerticalLayout toDoTasksList = new VerticalLayout();
-        toDoTasksList.addClassName("task-section");
+    private Component getToDoTasks() {
+        VerticalLayout toDoTasksLayout = new VerticalLayout();
+        toDoTasksLayout.addClassName("task-section");
 
         H3 todoTitle = new H3("Por hacer");
         todoTitle.addClassName("section-title");
+        toDoTasksLayout.add(todoTitle);
 
-        TaskComponent toDoTask = new TaskComponent("Tarea 1", "Tarea por hacer", formatDate(LocalDateTime.now()), "High", "veryHigh");
-        tasks.add(toDoTask);
-        toDoTasksList.add(todoTitle, toDoTask);
 
-        return toDoTasksList;
+        List<TaskComponent> toDoTasks = new ArrayList<>();
+        toDoTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "high", "high"));
+        toDoTasks.forEach(toDoTasksLayout::add);
+
+        try {
+            toDoTasks = taskService.getToDoTasks().stream()
+                    .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+                    .toList();
+            toDoTasks.forEach(toDoTasksLayout::add);
+        } catch (Exception e) {
+            toDoTasksLayout.add(new Span("No hay tareas."));
+        }
+
+        return toDoTasksLayout;
     }
 
-    private Component getDoingTasks(){
-        VerticalLayout doingTasksList = new VerticalLayout();
-        doingTasksList.addClassName("task-section");
+    private Component getDoingTasks() {
+        VerticalLayout doingTasksLayout = new VerticalLayout();
+        doingTasksLayout.addClassName("task-section");
 
         H3 doingTitle = new H3("En proceso");
         doingTitle.addClassName("section-title");
+        doingTasksLayout.add(doingTitle);
 
-        TaskComponent doingTask = new TaskComponent("Tarea 2", "Tarea en proceso", formatDate(LocalDateTime.now()), "High", "high");
-        tasks.add(doingTask);
-        doingTasksList.add(doingTitle,doingTask);
+        List<TaskComponent> doingTasks = new ArrayList<>();
+        doingTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "low", "high"));
+        doingTasks.forEach(doingTasksLayout::add);
 
-        return doingTasksList;
+        try {
+            doingTasks = taskService.getDoingTasks().stream()
+                    .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+                    .toList();
+            doingTasks.forEach(doingTasksLayout::add);
+        } catch (Exception e) {
+            doingTasksLayout.add(new Span("No hay tareas."));
+        }
+
+        return doingTasksLayout;
     }
 
-    private Component getDoneTasks(){
-        VerticalLayout doneTasksList = new VerticalLayout();
-        doneTasksList.addClassName("task-section");
+    private Component getDoneTasks() {
+        VerticalLayout doneTasksLayout = new VerticalLayout();
+        doneTasksLayout.addClassName("task-section");
 
         H3 doneTitle = new H3("Terminadas");
         doneTitle.addClassName("section-title");
+        doneTasksLayout.add(doneTitle);
 
+        List<TaskComponent> doneTasks = new ArrayList<>();
+        try {
+            doneTasks = taskService.getDoneTasks().stream()
+                    .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+                    .toList();
+            doneTasks.forEach(doneTasksLayout::add);
+        } catch (Exception e) {
+            doneTasksLayout.add(new Span("No hay tareas."));
+        }
 
-        TaskComponent doneTask = new TaskComponent("Tarea 3", "Tarea terminada", formatDate(LocalDateTime.now()), "low", "medium");
-        tasks.add(doneTask);
-        doneTasksList.add(doneTitle, doneTask);
-
-        return doneTasksList;
+        return doneTasksLayout;
     }
 
 
-    private String formatDate(LocalDateTime taskDate){
+    private String formatDate(LocalDateTime taskDate) {
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
