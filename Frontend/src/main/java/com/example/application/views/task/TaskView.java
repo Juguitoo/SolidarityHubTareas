@@ -39,22 +39,14 @@ public class TaskView extends VerticalLayout {
         addTask.addClickListener(e -> {
             getUI().ifPresent(ui -> ui.navigate("addtask"));
         });
-        addTask.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addTask.addClassNames(
-                LumoUtility.Margin.Bottom.MEDIUM,
-                LumoUtility.Margin.Left.AUTO,
-                LumoUtility.Margin.Right.AUTO,
-                "button-hover"
+        addTask.addClassName(
+                "button"
         );
 
         Button moreTasks = new Button("Ver todas las tareas");
         moreTasks.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("moretasks")));
-        moreTasks.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        moreTasks.addClassNames(
-                LumoUtility.Margin.Bottom.MEDIUM,
-                LumoUtility.Margin.Left.AUTO,
-                LumoUtility.Margin.Right.AUTO,
-                "button-hover"
+        moreTasks.addClassName(
+                "button"
         );
 
 

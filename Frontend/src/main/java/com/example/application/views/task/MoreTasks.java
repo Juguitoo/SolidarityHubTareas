@@ -1,6 +1,7 @@
 package com.example.application.views.task;
 
 
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -16,57 +17,71 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-@PageTitle(" Ver más tareas")
+@PageTitle("Ver más tareas")
 @Route("moretasks")
 public class MoreTasks extends VerticalLayout {
 
     private final ListDataProvider<TaskComponent> dataProvider;
 
-
     public MoreTasks() {
-        List<TaskComponent> tasks = getTasks();
-        dataProvider = new ListDataProvider<>(tasks);
+        this.dataProvider = new ListDataProvider<>(initializeTasks());
 
         H1 title = new H1("Todas las Tareas");
-        MultiSelectComboBox<String> filterComboBox = new MultiSelectComboBox<>("Filtrar por prioridad");
-        filterComboBox.setItems("Baja", "Media", "Alta");
+        MultiSelectComboBox<String> priorityFilter = createPriorityFilter();
+        TextField searchField = createSearchField();
+        Button searchButton = createSearchButton(searchField);
+
+        Grid<TaskComponent> taskGrid = createTaskGrid();
+        HorizontalLayout filterLayout = new HorizontalLayout(priorityFilter, searchField, searchButton);
+        filterLayout.setAlignItems(Alignment.BASELINE);
+        filterLayout.setSpacing(true);
+
+        add(title, filterLayout, taskGrid);
+    }
+
+    private MultiSelectComboBox<String> createPriorityFilter() {
+        MultiSelectComboBox<String> filter = new MultiSelectComboBox<>("Filtrar por prioridad");
+        filter.setItems("Baja", "Media", "Alta");
+        filter.addValueChangeListener(event -> applyPriorityFilter(event.getValue()));
+        return filter;
+    }
+
+    private TextField createSearchField() {
         TextField searchField = new TextField("Buscar tarea");
-        Button searchButton = new Button("Buscar");
+        searchField.addKeyPressListener(Key.ENTER, e -> applySearchFilter(searchField.getValue()));
+        return searchField;
+    }
 
-        HorizontalLayout horizontalLayout = new HorizontalLayout(filterComboBox, searchField, searchButton);
-        horizontalLayout.setAlignItems(Alignment.BASELINE);
-        horizontalLayout.setSpacing(true);
+    private Button createSearchButton(TextField searchField) {
+        Button searchButton = new Button("Buscar", e -> applySearchFilter(searchField.getValue()));
+        searchButton.addClassName("search-button"); // Agregar la clase CSS
+        return searchButton;
+    }
 
-        VerticalLayout verticalLayout = new VerticalLayout(title, horizontalLayout);
-        verticalLayout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-
-
-        filterComboBox.addValueChangeListener(event -> {
-            Set<String> selectedPriorities = event.getValue();
-            dataProvider.clearFilters();
-            if (!selectedPriorities.isEmpty()) {
-                dataProvider.addFilter(task -> selectedPriorities.contains(task.getPriority()));
-            }
-        });
-
-
-        searchButton.addClickListener(e -> {
-            String searchTerm = searchField.getValue().toLowerCase();
-            dataProvider.clearFilters();
-            if (!searchTerm.isEmpty()) {
-                dataProvider.addFilter(task -> task.getTaskName().toLowerCase().contains(searchTerm));
-            }
-        });
-
+    private Grid<TaskComponent> createTaskGrid() {
         Grid<TaskComponent> grid = new Grid<>(TaskComponent.class);
         grid.setDataProvider(dataProvider);
         grid.setColumns("taskName", "taskDescription", "startTimeDate", "priority", "emergencyLevel");
-
-        add(verticalLayout, grid);
-
+        return grid;
     }
 
-    private List<TaskComponent> getTasks() {
+    private void applySearchFilter(String searchTerm) {
+        String term = searchTerm.trim().toLowerCase();
+        dataProvider.clearFilters();
+        if (!term.isEmpty()) {
+            dataProvider.addFilter(task -> task.getTaskName().toLowerCase().contains(term));
+        }
+        dataProvider.refreshAll();
+    }
+
+    private void applyPriorityFilter(Set<String> selectedPriorities) {
+        dataProvider.clearFilters();
+        if (!selectedPriorities.isEmpty()) {
+            dataProvider.addFilter(task -> selectedPriorities.contains(task.getPriority()));
+        }
+    }
+
+    private List<TaskComponent> initializeTasks() {
         List<TaskComponent> tasks = new ArrayList<>();
         tasks.add(new TaskComponent("Limpieza de baños", "Limpiar baños en el auditorio municipal", "01-01-2023 10:00", "Media", "low"));
         tasks.add(new TaskComponent("Abrir puertas", "Tarea en proceso", "04-01-2023 11:00", "Media", "high"));
