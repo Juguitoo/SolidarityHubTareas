@@ -34,13 +34,15 @@ import java.util.Set;
 @Route("moretasks")
 public class MoreTasks extends VerticalLayout {
 
-    private final ListDataProvider<TaskDTO> dataProvider;
     private final TaskService taskService;
+
+    private final ListDataProvider<TaskDTO> dataProvider;
     private final Grid<TaskDTO> taskGrid;
 
     public MoreTasks() {
-        this.taskGrid = new Grid<>(TaskDTO.class);
         this.taskService = new TaskService();
+
+        this.taskGrid = new Grid<>(TaskDTO.class);
         this.dataProvider = new ListDataProvider<>(initializeTasks());
 
         Button goBack = createGoBackButton();
@@ -123,11 +125,7 @@ public class MoreTasks extends VerticalLayout {
     }
 
     private List<TaskDTO> initializeTasks() {
-        try {
-            return taskService.getTasks();
-        } catch (Exception e) {
-            return taskService.getExampleTasks();
-        }
+        return taskService.getTasks();
     }
 
     private String formatDate(LocalDateTime taskDate){

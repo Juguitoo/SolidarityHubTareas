@@ -2,6 +2,7 @@ package com.example.application.views.task;
 
 import com.example.application.model.enums.EmergencyLevel;
 import com.example.application.model.enums.Priority;
+import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -31,6 +32,8 @@ import java.util.HashSet;
 @Route("addtask")
 public class AddTaskView extends VerticalLayout {
 
+    private final TaskService taskService;
+
     private final TextField taskName = new TextField("Nombre de la tarea");
     private final TextArea taskDescription = new TextArea("Descripción de la tarea");
     private final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
@@ -40,14 +43,14 @@ public class AddTaskView extends VerticalLayout {
     private final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
 
     public AddTaskView() {
+        this.taskService = new TaskService();
+
         //Header
         HorizontalLayout header = new HorizontalLayout();
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> {
-            getUI().ifPresent(ui -> ui.navigate("task"));
-        });
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("task")));
         backButton.addClassName("back-button");
 
         H1 title = new H1("Añadir tarea");
@@ -70,11 +73,11 @@ public class AddTaskView extends VerticalLayout {
 
         H3 previewTitle = new H3("Previsualizción:");
         TaskComponent taskPreview = new TaskComponent(
-                "Nombre de la tarea",
-                "Descripccion de la tarea",
-                formatDate(LocalDateTime.now()),
-                "Prioridad",
-                "Nivel de emergencia"
+            "Nombre de la tarea",
+            "Descripccion de la tarea",
+            formatDate(LocalDateTime.now()),
+            "Prioridad",
+            "Nivel de emergencia"
         );
 
         setAlignSelf(Alignment.CENTER, previewTitle, taskPreview);
@@ -93,26 +96,20 @@ public class AddTaskView extends VerticalLayout {
         taskDescription.setRequired(true);
 
         taskPriority.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
-        taskPriority.setItemLabelGenerator(priority -> {
-            switch (priority) {
-                case LOW: return "Baja";
-                case MODERATE: return "Moderada";
-                case URGENT: return "Urgente";
-                default: return "";
-            }
+        taskPriority.setItemLabelGenerator(priority -> switch (priority) {
+            case LOW -> "Baja";
+            case MODERATE -> "Moderada";
+            case URGENT -> "Urgente";
         });
         taskPriority.setRequiredIndicatorVisible(true);
         taskPriority.setRequired(true);
 
         taskEmergency.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
-        taskEmergency.setItemLabelGenerator(emergencyLevel -> {
-            switch (emergencyLevel) {
-                case LOW: return "Bajo";
-                case MEDIUM: return "Medio";
-                case HIGH: return "Alto";
-                case VERYHIGH: return "Muy alto";
-                default: return "";
-            }
+        taskEmergency.setItemLabelGenerator(emergencyLevel -> switch (emergencyLevel) {
+            case LOW -> "Bajo";
+            case MEDIUM -> "Medio";
+            case HIGH -> "Alto";
+            case VERYHIGH -> "Muy alto";
         });
         taskEmergency.setRequiredIndicatorVisible(true);
         taskEmergency.setRequired(true);
@@ -126,9 +123,7 @@ public class AddTaskView extends VerticalLayout {
         addTaskForm.add(taskName, taskDescription, taskPriority, taskEmergency, taskNeed, dateTimePicker, getVolunteersForm());
 
         addTaskForm.setResponsiveSteps(
-                // Use one column by default
                 new FormLayout.ResponsiveStep("0", 1),
-                // Use two columns, if layout's width exceeds 500px
                 new FormLayout.ResponsiveStep("500px", 2),
                 new FormLayout.ResponsiveStep("750px", 3)
         );
@@ -143,12 +138,22 @@ public class AddTaskView extends VerticalLayout {
         volunteerMultiSelectComboBox.setRequired(true);
 
         Dialog selectVolunteersDialog = getDialogContent();
-        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
-            selectVolunteersDialog.open();
-        });
+        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> selectVolunteersDialog.open());
 
         return volunteerMultiSelectComboBox;
     }
+
+//    private Component getNeedsForm(){
+//        volunteerMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
+//        volunteerMultiSelectComboBox.setReadOnly(true);
+//        volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
+//        volunteerMultiSelectComboBox.setRequired(true);
+//
+//        Dialog selectVolunteersDialog = getDialogContent();
+//        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> selectVolunteersDialog.open());
+//
+//        return volunteerMultiSelectComboBox;
+//    }
 
     private Dialog getDialogContent() {
         Dialog volunteerDialog = new Dialog();
@@ -164,9 +169,7 @@ public class AddTaskView extends VerticalLayout {
         MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
         volunteersListBox.setItems("Lorenzo Lopez", "Abel antonino", "Pedro Sanchez");
 
-        volunteerCheckbox.addClickListener(checkboxClickEvent -> {
-            volunteersListBox.setEnabled(!volunteerCheckbox.getValue());
-        });
+        volunteerCheckbox.addClickListener(checkboxClickEvent -> volunteersListBox.setEnabled(!volunteerCheckbox.getValue()));
 
         dialogContent.add(volunteerCheckbox, volunteersListBox);
 
@@ -183,7 +186,6 @@ public class AddTaskView extends VerticalLayout {
         });
 
         Button cancelButton = new Button("Cancelar", e -> {
-
             volunteersListBox.select(volunteerMultiSelectComboBox.getSelectedItems());
             volunteersListBox.getSelectedItems().stream()
                     .filter(item -> !volunteerMultiSelectComboBox.getSelectedItems().contains(item))
