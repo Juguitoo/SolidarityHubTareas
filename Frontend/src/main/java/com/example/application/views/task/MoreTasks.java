@@ -6,6 +6,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -26,19 +27,24 @@ public class MoreTasks extends VerticalLayout {
     public MoreTasks() {
         this.dataProvider = new ListDataProvider<>(initializeTasks());
 
+        Button goBack = createGoBackButton();
         H1 title = new H1("Todas las Tareas");
         MultiSelectComboBox<String> priorityFilter = createPriorityFilter();
         TextField searchField = createSearchField();
         Button searchButton = createSearchButton(searchField);
-
         Grid<TaskComponent> taskGrid = createTaskGrid();
         HorizontalLayout filterLayout = new HorizontalLayout(priorityFilter, searchField, searchButton);
         filterLayout.setAlignItems(Alignment.BASELINE);
         filterLayout.setSpacing(true);
 
-        add(title, filterLayout, taskGrid);
+        add(goBack, title, filterLayout, taskGrid);
     }
-
+    private Button createGoBackButton() {
+        Button goBack = new Button(new Icon("vaadin", "arrow-left"));
+        goBack.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("task")));
+        goBack.addClassName("back-button");
+        return goBack;
+    }
     private MultiSelectComboBox<String> createPriorityFilter() {
         MultiSelectComboBox<String> filter = new MultiSelectComboBox<>("Filtrar por prioridad");
         filter.setItems("Baja", "Media", "Alta");

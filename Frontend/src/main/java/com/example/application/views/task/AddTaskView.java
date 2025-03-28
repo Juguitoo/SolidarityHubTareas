@@ -45,7 +45,6 @@ public class AddTaskView extends VerticalLayout {
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.addClickListener(event -> {
             getUI().ifPresent(ui -> ui.navigate("task"));
         });

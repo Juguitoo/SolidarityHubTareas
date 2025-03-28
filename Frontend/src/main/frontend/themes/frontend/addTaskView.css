@@ -4,7 +4,13 @@
 }
 
 .back-button{
-    display: inline-block;
+    background-color: blue;
+    color: #fff;
+    cursor: pointer;
+
+}
+.back-button:hover {
+    background-color: #0056b3;
 }
 
 .title{

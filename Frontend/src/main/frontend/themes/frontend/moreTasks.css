@@ -7,3 +7,13 @@
 .search-button:hover {
     background-color: #0056b3;
 }
+
+.back-button{
+    background-color: blue;
+    color: #fff;
+    cursor: pointer;
+
+}
+.back-button:hover {
+    background-color: #0056b3;
+}
