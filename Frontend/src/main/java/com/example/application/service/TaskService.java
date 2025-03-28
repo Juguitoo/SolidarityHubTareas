@@ -1,11 +1,18 @@
 package com.example.application.service;
 
 import com.example.application.dto.TaskDTO;
+import com.example.application.model.Need;
+import com.example.application.model.Task;
+import com.example.application.model.Volunteer;
+import com.example.application.model.enums.NeedType;
+import com.example.application.model.enums.Priority;
 import com.example.application.model.enums.Status;
+import com.example.application.model.enums.UrgencyLevel;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -81,5 +88,27 @@ public class TaskService {
 
     public void deleteTask(int id) {
         restTemplate.delete(baseUrl + "/" + id);
+    }
+
+    //Metodo para obtener tareas de ejemplo (No están en la base de datos)
+    public List<TaskDTO> getExampleTasks() {
+        Need exampleNeed = new Need("Descripción de necesidad de ejemplo", UrgencyLevel.LOW, NeedType.BUILDING, null, null);
+
+        // Crear un voluntario de ejemplo
+        Volunteer exampleVolunteer = new Volunteer("33", "Fernando", "Alonso", "astonmartin@gmail.com");
+
+        // Crear una tarea de ejemplo con la necesidad y el voluntario
+        List<Need> needs = new ArrayList<>();
+        needs.add(exampleNeed);
+        List<Volunteer> volunteers = new ArrayList<>();
+        volunteers.add(exampleVolunteer);
+
+        Task exampleTask = new Task(needs, "Ejemplo de tarea", "Descripción de ejemplo", LocalDateTime.now(), LocalDateTime.now(), Priority.LOW, Status.TO_DO, volunteers);
+
+        TaskDTO taskDTO = new TaskDTO(exampleTask);
+        List<TaskDTO> exampleTasks = new ArrayList<>();
+        exampleTasks.add(taskDTO);
+
+        return exampleTasks;
     }
 }

@@ -2,12 +2,20 @@ package com.example.application.views.task;
 
 
 import com.example.application.dto.TaskDTO;
+import com.example.application.model.Need;
+import com.example.application.model.Task;
+import com.example.application.model.Volunteer;
+import com.example.application.model.enums.NeedType;
+import com.example.application.model.enums.Priority;
+import com.example.application.model.enums.Status;
+import com.example.application.model.enums.UrgencyLevel;
 import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -15,6 +23,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -36,16 +48,15 @@ public class MoreTasks extends VerticalLayout {
         H1 title = new H1("Todas las Tareas");
 
         //Filtros
-        MultiSelectComboBox<String> priorityFilter = createPriorityFilter();
+        MultiSelectComboBox<Priority> priorityFilter = createPriorityFilter();
         TextField searchField = createSearchField();
         Button searchButton = createSearchButton(searchField);
         HorizontalLayout filterLayout = new HorizontalLayout(priorityFilter, searchField, searchButton);
         filterLayout.setAlignItems(Alignment.BASELINE);
         filterLayout.setSpacing(true);
 
-        populateTaskGrid();
-
         add(goBack, title, filterLayout, taskGrid);
+        populateTaskGrid();
     }
 
     private Button createGoBackButton() {
@@ -55,9 +66,14 @@ public class MoreTasks extends VerticalLayout {
         return goBack;
     }
 
-    private MultiSelectComboBox<String> createPriorityFilter() {
-        MultiSelectComboBox<String> filter = new MultiSelectComboBox<>("Filtrar por prioridad");
-        filter.setItems("Baja", "Media", "Alta");
+    private MultiSelectComboBox<Priority> createPriorityFilter() {
+        MultiSelectComboBox<Priority> filter = new MultiSelectComboBox<>("Filtrar por prioridad");
+        filter.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
+        filter.setItemLabelGenerator(priority -> switch (priority) {
+            case LOW -> "Baja";
+            case MODERATE -> "Moderada";
+            case URGENT -> "Urgente";
+        });
         filter.addValueChangeListener(event -> applyPriorityFilter(event.getValue()));
         return filter;
     }
@@ -75,10 +91,19 @@ public class MoreTasks extends VerticalLayout {
     }
 
     private void populateTaskGrid() {
-        taskGrid.setDataProvider(dataProvider);
-        taskGrid.setColumns("name", "description", "startTimeDate", "priority");
-        taskGrid.getColumnByKey("startTimeDate").setHeader("Start Time");
-        taskGrid.getColumnByKey("priority").setHeader("Priority");
+        if (dataProvider.getItems().isEmpty()) {
+            taskGrid.setVisible(false);
+            add(new Span("No hay datos disponibles."));
+        } else {
+            taskGrid.setVisible(true);
+            taskGrid.setDataProvider(dataProvider);
+            taskGrid.setColumns("name", "description", "priority");
+            taskGrid.addColumn(task -> formatDate(task.getStartTimeDate())).setHeader("Fecha de creación");
+            taskGrid.addColumn(task -> formatDate(task.getEstimatedEndTimeDate())).setHeader("Fecha estimada de finalización");
+            taskGrid.addColumn(task -> task.getNeeds().size()).setHeader("Cantidad de necesidades cubiertas");
+            taskGrid.addColumn(task -> task.getVolunteers().size()).setHeader("Cantidad de Voluntarios");
+            taskGrid.getColumnByKey("priority").setHeader("Prioridad");
+        }
     }
 
     private void applySearchFilter(String searchTerm) {
@@ -90,7 +115,7 @@ public class MoreTasks extends VerticalLayout {
         dataProvider.refreshAll();
     }
 
-    private void applyPriorityFilter(Set<String> selectedPriorities) {
+    private void applyPriorityFilter(Set<Priority> selectedPriorities) {
         dataProvider.clearFilters();
         if (!selectedPriorities.isEmpty()) {
             dataProvider.addFilter(task -> selectedPriorities.contains(task.getPriority()));
@@ -98,6 +123,14 @@ public class MoreTasks extends VerticalLayout {
     }
 
     private List<TaskDTO> initializeTasks() {
-        return taskService.getTasks();
+        try {
+            return taskService.getTasks();
+        } catch (Exception e) {
+            return taskService.getExampleTasks();
+        }
+    }
+
+    private String formatDate(LocalDateTime taskDate){
+        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 }

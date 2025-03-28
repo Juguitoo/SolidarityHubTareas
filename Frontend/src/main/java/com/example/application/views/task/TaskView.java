@@ -80,11 +80,11 @@ public class TaskView extends VerticalLayout {
 
 
         List<TaskComponent> toDoTasks = new ArrayList<>();
-        toDoTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "high", "high"));
-        toDoTasks.forEach(toDoTasksLayout::add);
+//        toDoTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "high", "high"));
+//        toDoTasks.forEach(toDoTasksLayout::add);
 
         try {
-            toDoTasks = taskService.getToDoTasks().stream()
+            toDoTasks = taskService.getToDoTasks(3).stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
             toDoTasks.forEach(toDoTasksLayout::add);
@@ -104,11 +104,11 @@ public class TaskView extends VerticalLayout {
         doingTasksLayout.add(doingTitle);
 
         List<TaskComponent> doingTasks = new ArrayList<>();
-        doingTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "low", "high"));
-        doingTasks.forEach(doingTasksLayout::add);
+//        doingTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "low", "high"));
+//        doingTasks.forEach(doingTasksLayout::add);
 
         try {
-            doingTasks = taskService.getDoingTasks().stream()
+            doingTasks = taskService.getDoingTasks(3).stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
             doingTasks.forEach(doingTasksLayout::add);
@@ -129,7 +129,7 @@ public class TaskView extends VerticalLayout {
 
         List<TaskComponent> doneTasks = new ArrayList<>();
         try {
-            doneTasks = taskService.getDoneTasks().stream()
+            doneTasks = taskService.getDoneTasks(3).stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
             doneTasks.forEach(doneTasksLayout::add);
