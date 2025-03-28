@@ -1,0 +1,32 @@
+.catastrophe-card {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.catastrophe-card:hover {
+    transform: translateY(-2px);
+}
+
+.catastrophe-title {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.catastrophe-description {
+    font-size: 14px;
+    color: gray;
+}
+
+.catastrophe-date {
+    position: absolute;
+    right: 5px;  /* Cambiado de 15px a 5px para moverlo más a la derecha */
+    top: 10px;
+    font-size: 0.8em;
+    color: gray;
+    font-style: italic;
+}

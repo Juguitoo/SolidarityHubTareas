@@ -20,7 +20,7 @@ import java.util.List;
 
 @PageTitle("Tareas")
 @Route("task")
-@Menu(order = 2, icon = LineAwesomeIconUrl.TASKS_SOLID)
+@Menu(order = 1, icon = LineAwesomeIconUrl.TASKS_SOLID)
 
 public class TaskView extends VerticalLayout {
 

@@ -12,7 +12,7 @@ import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 @PageTitle("Tareas2")
 @Route("tasks")
-@Menu(order = 3, icon = LineAwesomeIconUrl.TASKS_SOLID)
+@Menu(order = 2, icon = LineAwesomeIconUrl.TASKS_SOLID)
 public class pruebaRest extends VerticalLayout {
     private final TaskService taskService;
     private final Grid<TaskDTO> grid;
