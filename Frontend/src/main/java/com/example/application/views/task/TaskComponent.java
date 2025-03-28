@@ -101,24 +101,4 @@ public class TaskComponent extends HorizontalLayout {
         buttonLayout.add(taskDateSpan, editButton);
         return buttonLayout;
     }
-
-
-    //Delete
-    public String getTaskName() {
-        return taskName;
-    }
-    public String getTaskDescription() {
-        return taskDescription;
-    }
-
-    public String getStartTimeDate() {
-        return startTimeDate;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-    public String getEmergencyLevel() {
-        return emergencyLevel;
-    }
 }

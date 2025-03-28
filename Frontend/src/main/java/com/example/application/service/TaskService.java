@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class TaskService {
@@ -31,17 +32,37 @@ public class TaskService {
         return getTasksByStatus(Status.TO_DO);
     }
 
+    public List<TaskDTO> getToDoTasks(int limit) {
+        return getTasksByStatus(Status.TO_DO, limit);
+    }
+
     public List<TaskDTO> getDoingTasks() {
         return getTasksByStatus(Status.IN_PROGRESS);
+    }
+
+    public List<TaskDTO> getDoingTasks(int limit) {
+        return getTasksByStatus(Status.IN_PROGRESS, limit);
     }
 
     public List<TaskDTO> getDoneTasks() {
         return getTasksByStatus(Status.FINISHED);
     }
 
+    public List<TaskDTO> getDoneTasks(int limit) {
+        return getTasksByStatus(Status.FINISHED, limit);
+    }
+
     private List<TaskDTO> getTasksByStatus(Status status) {
         return getTasks().stream()
                 .filter(task -> status.equals(task.getStatus()))
+                .toList();
+    }
+
+    private List<TaskDTO> getTasksByStatus(Status status, int limit) {
+        return getTasks().stream()
+                .filter(task -> status.equals(task.getStatus()))
+                .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
+                .limit(limit)
                 .toList();
     }
 

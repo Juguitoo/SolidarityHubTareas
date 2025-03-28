@@ -1,6 +1,8 @@
 package com.example.application.views.task;
 
 
+import com.example.application.dto.TaskDTO;
+import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -13,8 +15,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -22,29 +22,39 @@ import java.util.Set;
 @Route("moretasks")
 public class MoreTasks extends VerticalLayout {
 
-    private final ListDataProvider<TaskComponent> dataProvider;
+    private final ListDataProvider<TaskDTO> dataProvider;
+    private final TaskService taskService;
+    private final Grid<TaskDTO> taskGrid;
 
     public MoreTasks() {
+        this.taskGrid = new Grid<>(TaskDTO.class);
+        this.taskService = new TaskService();
         this.dataProvider = new ListDataProvider<>(initializeTasks());
 
         Button goBack = createGoBackButton();
+
         H1 title = new H1("Todas las Tareas");
+
+        //Filtros
         MultiSelectComboBox<String> priorityFilter = createPriorityFilter();
         TextField searchField = createSearchField();
         Button searchButton = createSearchButton(searchField);
-        Grid<TaskComponent> taskGrid = createTaskGrid();
         HorizontalLayout filterLayout = new HorizontalLayout(priorityFilter, searchField, searchButton);
         filterLayout.setAlignItems(Alignment.BASELINE);
         filterLayout.setSpacing(true);
 
+        populateTaskGrid();
+
         add(goBack, title, filterLayout, taskGrid);
     }
+
     private Button createGoBackButton() {
         Button goBack = new Button(new Icon("vaadin", "arrow-left"));
         goBack.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("task")));
         goBack.addClassName("back-button");
         return goBack;
     }
+
     private MultiSelectComboBox<String> createPriorityFilter() {
         MultiSelectComboBox<String> filter = new MultiSelectComboBox<>("Filtrar por prioridad");
         filter.setItems("Baja", "Media", "Alta");
@@ -64,18 +74,18 @@ public class MoreTasks extends VerticalLayout {
         return searchButton;
     }
 
-    private Grid<TaskComponent> createTaskGrid() {
-        Grid<TaskComponent> grid = new Grid<>(TaskComponent.class);
-        grid.setDataProvider(dataProvider);
-        grid.setColumns("taskName", "taskDescription", "startTimeDate", "priority", "emergencyLevel");
-        return grid;
+    private void populateTaskGrid() {
+        taskGrid.setDataProvider(dataProvider);
+        taskGrid.setColumns("name", "description", "startTimeDate", "priority");
+        taskGrid.getColumnByKey("startTimeDate").setHeader("Start Time");
+        taskGrid.getColumnByKey("priority").setHeader("Priority");
     }
 
     private void applySearchFilter(String searchTerm) {
         String term = searchTerm.trim().toLowerCase();
         dataProvider.clearFilters();
         if (!term.isEmpty()) {
-            dataProvider.addFilter(task -> task.getTaskName().toLowerCase().contains(term));
+            dataProvider.addFilter(task -> task.getName().toLowerCase().contains(term));
         }
         dataProvider.refreshAll();
     }
@@ -87,11 +97,7 @@ public class MoreTasks extends VerticalLayout {
         }
     }
 
-    private List<TaskComponent> initializeTasks() {
-        List<TaskComponent> tasks = new ArrayList<>();
-        tasks.add(new TaskComponent("Limpieza de baños", "Limpiar baños en el auditorio municipal", "01-01-2023 10:00", "Media", "low"));
-        tasks.add(new TaskComponent("Abrir puertas", "Tarea en proceso", "04-01-2023 11:00", "Media", "high"));
-        tasks.add(new TaskComponent("Tarea 3", "Tarea terminada", "03-01-2023 12:00", "Baja", "medium"));
-        return tasks;
+    private List<TaskDTO> initializeTasks() {
+        return taskService.getTasks();
     }
 }
