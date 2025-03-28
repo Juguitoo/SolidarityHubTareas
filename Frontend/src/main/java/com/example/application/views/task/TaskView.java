@@ -12,10 +12,8 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Tareas")
@@ -33,18 +31,12 @@ public class TaskView extends VerticalLayout {
         title.addClassNames("task-title");
 
         Button addTask = new Button("Crear tarea");
-        addTask.addClickListener(e -> {
-            getUI().ifPresent(ui -> ui.navigate("addtask"));
-        });
-        addTask.addClassName(
-                "button"
-        );
+        addTask.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("addtask")));
+        addTask.addClassName("button");
 
         Button moreTasks = new Button("Ver todas las tareas");
         moreTasks.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("moretasks")));
-        moreTasks.addClassName(
-                "button"
-        );
+        moreTasks.addClassName("button");
 
 
         add(title,
@@ -75,9 +67,7 @@ public class TaskView extends VerticalLayout {
         toDoTasksLayout.add(todoTitle);
 
 
-        List<TaskComponent> toDoTasks = new ArrayList<>();
-//        toDoTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "high", "high"));
-//        toDoTasks.forEach(toDoTasksLayout::add);
+        List<TaskComponent> toDoTasks;
 
         try {
             toDoTasks = taskService.getToDoTasks(3).stream()
@@ -99,9 +89,7 @@ public class TaskView extends VerticalLayout {
         doingTitle.addClassName("section-title");
         doingTasksLayout.add(doingTitle);
 
-        List<TaskComponent> doingTasks = new ArrayList<>();
-//        doingTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "low", "high"));
-//        doingTasks.forEach(doingTasksLayout::add);
+        List<TaskComponent> doingTasks;
 
         try {
             doingTasks = taskService.getDoingTasks(3).stream()
@@ -123,7 +111,7 @@ public class TaskView extends VerticalLayout {
         doneTitle.addClassName("section-title");
         doneTasksLayout.add(doneTitle);
 
-        List<TaskComponent> doneTasks = new ArrayList<>();
+        List<TaskComponent> doneTasks;
         try {
             doneTasks = taskService.getDoneTasks(3).stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
