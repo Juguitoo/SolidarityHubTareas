@@ -1,8 +1,11 @@
 package com.example.application.views.task;
 
+import com.example.application.model.enums.Status;
 import com.example.application.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -11,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 
 import java.time.LocalDateTime;
@@ -33,7 +37,9 @@ public class TaskView extends VerticalLayout {
         title.addClassNames("task-title");
 
         Button addTask = new Button("Crear tarea");
-        addTask.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("addtask")));
+        addTask.addClickListener(e -> {
+            getUI().ifPresent(ui -> ui.navigate("addtask"));
+        });
         addTask.addClassName(
                 "button"
         );
@@ -74,11 +80,11 @@ public class TaskView extends VerticalLayout {
 
 
         List<TaskComponent> toDoTasks = new ArrayList<>();
-//        toDoTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "high", "high"));
-//        toDoTasks.forEach(toDoTasksLayout::add);
+        toDoTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "high", "high"));
+        toDoTasks.forEach(toDoTasksLayout::add);
 
         try {
-            toDoTasks = taskService.getToDoTasks(3).stream()
+            toDoTasks = taskService.getToDoTasks().stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
             toDoTasks.forEach(toDoTasksLayout::add);
@@ -98,11 +104,11 @@ public class TaskView extends VerticalLayout {
         doingTasksLayout.add(doingTitle);
 
         List<TaskComponent> doingTasks = new ArrayList<>();
-//        doingTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "low", "high"));
-//        doingTasks.forEach(doingTasksLayout::add);
+        doingTasks.add(new TaskComponent("Ejemplo", "Ejemplo de tarea", "01-01-2023 12:00", "low", "high"));
+        doingTasks.forEach(doingTasksLayout::add);
 
         try {
-            doingTasks = taskService.getDoingTasks(3).stream()
+            doingTasks = taskService.getDoingTasks().stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
             doingTasks.forEach(doingTasksLayout::add);
@@ -123,7 +129,7 @@ public class TaskView extends VerticalLayout {
 
         List<TaskComponent> doneTasks = new ArrayList<>();
         try {
-            doneTasks = taskService.getDoneTasks(3).stream()
+            doneTasks = taskService.getDoneTasks().stream()
                     .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
             doneTasks.forEach(doneTasksLayout::add);
