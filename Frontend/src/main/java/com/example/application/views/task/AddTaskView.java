@@ -12,6 +12,7 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -46,17 +47,16 @@ public class AddTaskView extends VerticalLayout {
         this.taskService = new TaskService();
 
         //Header
-        HorizontalLayout header = new HorizontalLayout();
+        Div header = new Div();
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("task")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
         backButton.addClassName("back-button");
 
         H1 title = new H1("Añadir tarea");
         title.addClassName("title");
 
-        setAlignSelf(Alignment.CENTER, title, backButton);
         header.add(backButton, title);
 
         add(

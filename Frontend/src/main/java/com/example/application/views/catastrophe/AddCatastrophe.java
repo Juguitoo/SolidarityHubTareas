@@ -3,7 +3,10 @@ package com.example.application.views.catastrophe;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -30,7 +33,18 @@ public class AddCatastrophe extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        H2 title = new H2("Añadir nueva catástrofe");
+        //Header
+        Div header = new Div();
+        header.addClassName("header");
+
+        Button backButton = new Button(new Icon("vaadin", "arrow-left"));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClassName("back-button");
+
+        H1 title = new H1("Añadir Catástrofe");
+        title.addClassName("title");
+
+        header.add(backButton, title);
 
         // Crear campos del formulario
         nameField = new TextField("Nombre de la catástrofe");
@@ -66,7 +80,7 @@ public class AddCatastrophe extends VerticalLayout {
         formLayout.setColspan(descriptionField, 2);
 
         // Añadir componentes al layout principal
-        add(title, formLayout, createButtonLayout());
+        add(header, formLayout, createButtonLayout());
     }
 
     private void guardarCatastrofe() {

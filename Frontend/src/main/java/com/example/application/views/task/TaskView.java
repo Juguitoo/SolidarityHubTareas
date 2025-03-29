@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @PageTitle("Tareas")
-@Route("task")
+@Route("")
 @Menu(order = 1, icon = LineAwesomeIconUrl.TASKS_SOLID)
 
 public class TaskView extends VerticalLayout {

@@ -16,3 +16,27 @@
     --default-priority: #e0e0e0;
 }
 
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    width: 100%;
+}
+
+.back-button{
+    justify-self: start;
+    background-color: blue;
+    color: #fff;
+    cursor: pointer;
+
+}
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+.title{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
