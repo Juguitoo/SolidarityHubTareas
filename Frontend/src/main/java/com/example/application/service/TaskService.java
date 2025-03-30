@@ -91,17 +91,13 @@ public class TaskService {
 
     //Metodo para obtener tareas de ejemplo (Por si la Base de Datos no está disponible)
     private List<TaskDTO> getExampleTasks() {
-        // Obtener necesidades y convertirlas a tipo Need
         List<Need> needs = convertToNeedList(getExampleNeeds());
-
-        // Obtener voluntarios y convertirlos a tipo Volunteer
         List<Volunteer> volunteers = convertToVolunteerList(getExampleVolunteers());
 
-        // Crear tarea con las necesidades y voluntarios convertidos
         Task exampleTask = new Task(
                 needs,
-                "Ejemplo de tarea",
-                "Descripción de ejemplo",
+                "Tarea de ejemplo",
+                "Tarea de ejemplo",
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(3),
                 Priority.LOW,

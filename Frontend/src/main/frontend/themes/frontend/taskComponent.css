@@ -9,7 +9,6 @@
     transition: transform 0.2s;
     display: flex;
     align-items: center;
-    gap: 1rem;
 }
 
 .task-card.high {

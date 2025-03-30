@@ -12,11 +12,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 public class TaskComponent extends HorizontalLayout {
 
-    private final String taskName;
-    private final String taskDescription;
-    private final String startTimeDate;
-    private final String priority;
-    private final String emergencyLevel;
+    private String taskName;
+    private String taskDescription;
+    private String startTimeDate;
+    private String priority;
+    private String emergencyLevel;
+    private Button editButton;
 
     public TaskComponent(String name, String description, String startTimeDate, String priority, String emergencyLevel) {
         this.taskName = name;
@@ -37,19 +38,19 @@ public class TaskComponent extends HorizontalLayout {
 
     private Image getImg() {
         switch (emergencyLevel) {
-            case "low":
+            case "low", "Baja":
                 Image imgLow = new Image("images/task_low.png", "Tarea de emergencia baja");
                 imgLow.addClassName("task-icon");
                 return imgLow;
-            case "medium":
+            case "medium", "Media":
                 Image imgMedium = new Image("images/task_medium.png", "Tarea de emergencia media");
                 imgMedium.addClassName("task-icon");
                 return imgMedium;
-            case "high":
+            case "high", "Alta":
                 Image imgHigh = new Image("images/task_high.png", "Tarea de emergencia alta");
                 imgHigh.addClassName("task-icon");
                 return imgHigh;
-            case "veryHigh":
+            case "veryHigh", "muy alta":
                 Image imgVeryHigh = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
                 imgVeryHigh.addClassName("task-icon");
                 return imgVeryHigh;
@@ -89,10 +90,8 @@ public class TaskComponent extends HorizontalLayout {
         taskDateSpan.addClassName("task-date");
 
         Icon icon = VaadinIcon.COG.create();
-        Button editButton = new Button(icon);
+        editButton = new Button(icon);
         editButton.addClassName("edit-button");
-
-
 
         editButton.addClickListener(event -> {
 
@@ -101,4 +100,46 @@ public class TaskComponent extends HorizontalLayout {
         buttonLayout.add(taskDateSpan, editButton);
         return buttonLayout;
     }
+
+
+    public void enabledEditButton(Boolean enabled) {
+        editButton.setEnabled(enabled);
+    }
+
+    //Update component methods
+    public void updateName(String name) {
+        this.taskName = name;
+        updateComponent();
+    }
+
+    public void updateDescription(String description) {
+        this.taskDescription = description;
+        updateComponent();
+    }
+
+    public void updateDate(String date) {
+        this.startTimeDate = date;
+        updateComponent();
+    }
+
+    public void updatePriority(String priority) {
+        this.priority = priority;
+        updateComponent();
+    }
+
+    public void updateEmergencyLevel(String emergencyLevel) {
+        this.emergencyLevel = emergencyLevel;
+        updateComponent();
+    }
+
+    private void updateComponent() {
+        removeAll();
+        add(
+                getImg(),
+                getTaskInfo(),
+                getPriorityLevel(),
+                getSettings()
+        );
+    }
+
 }

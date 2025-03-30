@@ -1,4 +1,10 @@
 .previewContainer{
     display: flex;
     flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+.addTaskForm{
+    padding: 0 50px;
 }

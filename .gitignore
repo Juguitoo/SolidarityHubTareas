@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+
 ### STS ###
 .apt_generated
 .classpath
@@ -40,6 +41,7 @@ build/
 # The following files are generated/updated by vaadin-maven-plugin
 node_modules/
 src/main/frontend/generated/
+**/frontend/generated/
 pnpmfile.js
 vite.generated.ts
 

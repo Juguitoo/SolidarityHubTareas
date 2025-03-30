@@ -16,6 +16,11 @@
     --default-priority: #e0e0e0;
 }
 
+vaadin-button{
+    cursor: pointer;
+}
+
+
 .header{
     display: flex;
     align-items: center;
@@ -28,9 +33,8 @@
     justify-self: start;
     background-color: blue;
     color: #fff;
-    cursor: pointer;
-
 }
+
 .back-button:hover {
     background-color: #0056b3;
 }
