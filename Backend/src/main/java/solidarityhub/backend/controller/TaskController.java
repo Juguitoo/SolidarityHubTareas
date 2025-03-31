@@ -3,6 +3,7 @@ package solidarityhub.backend.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
@@ -12,6 +13,7 @@ import solidarityhub.backend.model.enums.Status;
 import solidarityhub.backend.service.NeedService;
 import solidarityhub.backend.service.TaskService;
 import solidarityhub.backend.service.VolunteerService;
+import solidarityhub.backend.dto.VolunteerDTO;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,11 +49,11 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addTask(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> addTask(@RequestBody TaskDTO taskDTO) {
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
 
-        List<Integer> needIds = (List<Integer>) payload.get("needs");
+        List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer id : needIds) {
             Need need = needService.findNeed(id);
             if (need != null) {
@@ -59,22 +61,15 @@ public class TaskController {
             }
         }
 
-        List<String> volunteerIDs = (List<String>) payload.get("volunteers");
-        for (String id : volunteerIDs) {
-            Volunteer volunteer = volunteerService.getVolunteer(id);
+        List<String> volunteerDnis = taskDTO.getVolunteers().stream().map(VolunteerDTO::getDni).toList();
+        for (String dni : volunteerDnis) {
+            Volunteer volunteer = volunteerService.getVolunteer(dni);
             if (volunteer != null) {
                 volunteers.add(volunteer);
             }
         }
 
-        String taskName = (String) payload.get("taskName");
-        String taskDescription = (String) payload.get("taskDescription");
-        LocalDateTime startTimeDate = LocalDateTime.parse((String) payload.get("startTimeDate"));
-        LocalDateTime estimatedEndTimeDate = LocalDateTime.parse((String) payload.get("estimatedEndTimeDate"));
-        Priority priority = Priority.valueOf((String) payload.get("priority"));
-        Status status = Status.valueOf((String) payload.get("status"));
-
-        Task task = new Task(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, status, volunteers);
+        Task task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(), taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getStatus(), volunteers);
         taskService.saveTask(task);
 
         for (Need need : needs) {
@@ -84,6 +79,7 @@ public class TaskController {
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
+            volunteer.notifyEmail("Nueva tarea", "Se le ha asignado una nueva tarea: " + task.getTaskName());
             volunteerService.saveVolunteer(volunteer);
         }
 
@@ -144,6 +140,7 @@ public class TaskController {
         for (Volunteer volunteer : volunteers) {
             if(!volunteer.getTasks().contains(task)){
                 volunteer.getTasks().add(task);
+                volunteer.notifyEmail("Tarea actualizada", "Se ha actualizado una tarea que se le había asignado. Nombre de la tarea: " + task.getTaskName());
                 volunteerService.saveVolunteer(volunteer);
             }
         }
