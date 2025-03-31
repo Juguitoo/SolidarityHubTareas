@@ -17,7 +17,7 @@ import java.util.List;
 public class Catastrophe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int iD;
+    private int id;
 
     @Setter
     @Column(nullable = false)

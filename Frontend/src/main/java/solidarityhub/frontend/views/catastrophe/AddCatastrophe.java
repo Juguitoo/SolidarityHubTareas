@@ -1,6 +1,9 @@
 package solidarityhub.frontend.views.catastrophe;
 
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.model.Catastrophe;
+import solidarityhub.frontend.model.GPSCoordinates;
+import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.service.CatastropheService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -29,7 +32,7 @@ public class AddCatastrophe extends VerticalLayout {
     private DatePicker dateField;
     private NumberField locationXField;
     private NumberField locationYField;
-    private ComboBox<String> emergencyLevelComboBox;
+    private ComboBox<EmergencyLevel> emergencyLevelComboBox;
     private Button saveButton;
     private Button cancelButton;
 
@@ -80,8 +83,8 @@ public class AddCatastrophe extends VerticalLayout {
         locationYField.setStepButtonsVisible(true);
 
         emergencyLevelComboBox = new ComboBox<>("Nivel de emergencia");
-        emergencyLevelComboBox.setItems("LOW", "MEDIUM", "HIGH", "CRITICAL");
-        emergencyLevelComboBox.setValue("MEDIUM");
+        emergencyLevelComboBox.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
+        emergencyLevelComboBox.setValue(EmergencyLevel.MEDIUM);
 
         // Crear botones
         saveButton = new Button("Guardar");
@@ -120,14 +123,14 @@ public class AddCatastrophe extends VerticalLayout {
 
         try {
             // Crear el DTO con los datos del formulario
-            CatastropheDTO catastropheDTO = new CatastropheDTO(
+            Catastrophe catastrophe = new Catastrophe(
                     nameField.getValue(),
                     descriptionField.getValue(),
-                    locationXField.getValue(),
-                    locationYField.getValue(),
+                    new GPSCoordinates(locationXField.getValue(), locationYField.getValue()),
                     dateField.getValue(),
                     emergencyLevelComboBox.getValue()
             );
+            CatastropheDTO catastropheDTO = new CatastropheDTO(catastrophe);
 
             // Guardar la catástrofe usando el servicio
             CatastropheDTO savedCatastrophe = catastropheService.saveCatastrophe(catastropheDTO);

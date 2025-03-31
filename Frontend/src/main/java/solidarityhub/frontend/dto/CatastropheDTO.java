@@ -1,7 +1,14 @@
 package solidarityhub.frontend.dto;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import solidarityhub.frontend.model.Catastrophe;
+import solidarityhub.frontend.model.enums.EmergencyLevel;
+
 import java.time.LocalDate;
 
+@Getter
+@NoArgsConstructor
 public class CatastropheDTO {
     private Integer id;
     private String name;
@@ -9,77 +16,16 @@ public class CatastropheDTO {
     private double locationX;
     private double locationY;
     private LocalDate startDate;
-    private String emergencyLevel;
-
-    // Constructor vacío
-    public CatastropheDTO() {
-    }
+    private EmergencyLevel emergencyLevel;
 
     // Constructor completo
-    public CatastropheDTO(String name, String description, double locationX, double locationY,
-                          LocalDate startDate, String emergencyLevel) {
-        this.name = name;
-        this.description = description;
-        this.locationX = locationX;
-        this.locationY = locationY;
-        this.startDate = startDate;
-        this.emergencyLevel = emergencyLevel;
+    public CatastropheDTO(Catastrophe catastrophe) {
+        this.name = catastrophe.getName();
+        this.description = catastrophe.getDescription();
+        this.locationX = catastrophe.getLocation().getLongitude();
+        this.locationY = catastrophe.getLocation().getLatitude();
+        this.startDate = catastrophe.getStartDate();
+        this.emergencyLevel = catastrophe.getEmergencyLevel();
     }
 
-    // Getters y setters
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getLocationX() {
-        return locationX;
-    }
-
-    public void setLocationX(double locationX) {
-        this.locationX = locationX;
-    }
-
-    public double getLocationY() {
-        return locationY;
-    }
-
-    public void setLocationY(double locationY) {
-        this.locationY = locationY;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEmergencyLevel() {
-        return emergencyLevel;
-    }
-
-    public void setEmergencyLevel(String emergencyLevel) {
-        this.emergencyLevel = emergencyLevel;
-    }
 }

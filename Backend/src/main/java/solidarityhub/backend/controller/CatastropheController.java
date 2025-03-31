@@ -2,13 +2,13 @@ package solidarityhub.backend.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import solidarityhub.backend.dto.CatastropheDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.enums.EmergencyLevel;
 import solidarityhub.backend.service.CatastropheService;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/catastrophes")
@@ -34,13 +34,13 @@ public class CatastropheController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCatastrophe(@RequestBody Map<String, String> payload) {
-        String name = payload.get("name");
-        String description = payload.get("description");
-        double locationX = Double.parseDouble(payload.get("locationX"));
-        double locationY = Double.parseDouble(payload.get("locationY"));
-        LocalDate startDate = LocalDate.parse(payload.get("startDate"));
-        EmergencyLevel emergencyLevel = EmergencyLevel.valueOf(payload.get("emergencyLevel"));
+    public ResponseEntity<?> addCatastrophe(@RequestBody CatastropheDTO catastropheDTO) {
+        String name = catastropheDTO.getName();
+        String description = catastropheDTO.getDescription();
+        double locationX = catastropheDTO.getLocationX();
+        double locationY = catastropheDTO.getLocationY();
+        LocalDate startDate = catastropheDTO.getStartDate();
+        EmergencyLevel emergencyLevel = catastropheDTO.getEmergencyLevel();
 
         Catastrophe catastrophe = new Catastrophe(name, description, new GPSCoordinates(locationX, locationY), startDate, emergencyLevel);
 
@@ -48,24 +48,17 @@ public class CatastropheController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCatastrophe(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> updateCatastrophe(@PathVariable Integer id, @RequestBody CatastropheDTO catastropheDTO) {
         Catastrophe catastrophe = catastropheService.getCatastrophe(id);
         if(catastrophe == null) {
             return ResponseEntity.notFound().build();
         }
 
-        String name = payload.get("name");
-        String description = payload.get("description");
-        double locationX = Double.parseDouble(payload.get("locationX"));
-        double locationY = Double.parseDouble(payload.get("locationY"));
-        LocalDate startDate = LocalDate.parse(payload.get("startDate"));
-        EmergencyLevel emergencyLevel = EmergencyLevel.valueOf(payload.get("emergencyLevel"));
-
-        catastrophe.setName(name);
-        catastrophe.setDescription(description);
-        catastrophe.setLocation(new GPSCoordinates(locationX, locationY));
-        catastrophe.setStartDate(startDate);
-        catastrophe.setEmergencyLevel(emergencyLevel);
+        catastrophe.setName(catastropheDTO.getName());
+        catastrophe.setDescription(catastropheDTO.getDescription());
+        catastrophe.setLocation(new GPSCoordinates(catastropheDTO.getLocationX(), catastropheDTO.getLocationY()));
+        catastrophe.setStartDate(catastropheDTO.getStartDate());
+        catastrophe.setEmergencyLevel(catastropheDTO.getEmergencyLevel());
 
         return ResponseEntity.ok(catastropheService.saveCatastrophe(catastrophe));
     }
