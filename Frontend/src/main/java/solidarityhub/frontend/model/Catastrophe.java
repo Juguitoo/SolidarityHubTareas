@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class Catastrophe {
-    private int iD;
+    private int id;
 
     @Setter
     private String name;
