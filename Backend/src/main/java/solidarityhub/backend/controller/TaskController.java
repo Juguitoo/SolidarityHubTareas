@@ -87,7 +87,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateTask(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> updateTask(@PathVariable Integer id, @RequestBody TaskDTO taskDTO) {
         Task task = taskService.getTaskById(id);
         if(task == null) {
             return ResponseEntity.notFound().build();
@@ -96,7 +96,7 @@ public class TaskController {
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
 
-        List<Integer> needIds = (List<Integer>) payload.get("needs");
+        List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer needId : needIds) {
             Need need = needService.findNeed(needId);
             if (need != null && !task.getNeeds().contains(need)) {
@@ -104,27 +104,20 @@ public class TaskController {
             }
         }
 
-        List<String> volunteerIDs = (List<String>) payload.get("volunteers");
-        for (String volunteerID : volunteerIDs) {
+        List<String> volunteerDnis = taskDTO.getVolunteers().stream().map(VolunteerDTO::getDni).toList();
+        for (String volunteerID : volunteerDnis) {
             Volunteer volunteer = volunteerService.getVolunteer(volunteerID);
             if (volunteer != null && !task.getVolunteers().contains(volunteer)) {
                 volunteers.add(volunteer);
             }
         }
 
-        String taskName = (String) payload.get("taskName");
-        String taskDescription = (String) payload.get("taskDescription");
-        LocalDateTime startTimeDate = LocalDateTime.parse((String) payload.get("startTimeDate"));
-        LocalDateTime estimatedEndTimeDate = LocalDateTime.parse((String) payload.get("estimatedEndTimeDate"));
-        Priority priority = Priority.valueOf((String) payload.get("priority"));
-        Status status = Status.valueOf((String) payload.get("status"));
-
-        task.setTaskName(taskName);
-        task.setTaskDescription(taskDescription);
-        task.setStartTimeDate(startTimeDate);
-        task.setEstimatedEndTimeDate(estimatedEndTimeDate);
-        task.setPriority(priority);
-        task.setStatus(status);
+        task.setTaskName(taskDTO.getName());
+        task.setTaskDescription(taskDTO.getDescription());
+        task.setStartTimeDate(taskDTO.getStartTimeDate());
+        task.setEstimatedEndTimeDate(taskDTO.getEstimatedEndTimeDate());
+        task.setPriority(taskDTO.getPriority());
+        task.setStatus(taskDTO.getStatus());
         task.setVolunteers(volunteers);
         task.setNeeds(needs);
 
