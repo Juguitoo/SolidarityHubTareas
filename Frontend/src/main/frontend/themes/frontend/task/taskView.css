@@ -51,10 +51,10 @@
     background-color: #0056b3;
 }
 
-.add-task-button {
+.addTaskButton{
     position: fixed;
     bottom: 20px;
-    left: 300px;
+    left: 20px;
     background-color: blue;
     color: #fff;
     border-radius: 50%;
@@ -63,15 +63,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-.add-task-button:hover {
-    background-color: #0056b3;
-    animation: bounce 0.6s ease-in-out;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+.addTaskButton:hover {
 }
 
 

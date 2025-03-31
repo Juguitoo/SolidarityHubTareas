@@ -19,6 +19,20 @@ public class VolunteerService {
         this.baseUrl = "http://localhost:8082/volunteers";
     }
 
+    //CRUD METHODS
+    public void addVolunteer(VolunteerDTO volunteerDTO) {
+        restTemplate.postForEntity(baseUrl, volunteerDTO, VolunteerDTO.class);
+    }
+
+    public void updateVolunteer(String id, VolunteerDTO volunteerDTO) {
+        restTemplate.put(baseUrl + "/" + id, volunteerDTO);
+    }
+
+    public void deleteVolunteer(String id) {
+        restTemplate.delete(baseUrl + "/" + id);
+    }
+
+    //GET METHODS
     public List<VolunteerDTO> getVolunteers() {
         try {
             ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, VolunteerDTO[].class);
@@ -32,27 +46,17 @@ public class VolunteerService {
         }
     }
 
-    public void addVolunteer(VolunteerDTO volunteerDTO) {
-        restTemplate.postForEntity(baseUrl, volunteerDTO, VolunteerDTO.class);
-    }
-
-    public void updateVolunteer(String id, VolunteerDTO volunteerDTO) {
-        restTemplate.put(baseUrl + "/" + id, volunteerDTO);
-    }
-
-    public void deleteVolunteer(String id) {
-        restTemplate.delete(baseUrl + "/" + id);
-    }
-
-    public VolunteerDTO getVolunteer(String id) {
+    public VolunteerDTO getVolunteerById(String id) {
         ResponseEntity<VolunteerDTO> response = restTemplate.exchange(baseUrl + "/" + id, HttpMethod.GET, null, VolunteerDTO.class);
         return response.getBody();
     }
 
+    //GET EXAMPLE VOLUNTEERS
     public List<VolunteerDTO> getExampleVolunteers() {
         List<VolunteerDTO> volunteerDTOs = new ArrayList<>();
         volunteerDTOs.add(new VolunteerDTO(new Volunteer("33", "Fernando", "Alonso", "alonso@astonmartin.com")));
         volunteerDTOs.add(new VolunteerDTO(new Volunteer("24", "Carlos", "Alvarez", "carlos@levante.com")));
+        volunteerDTOs.add(new VolunteerDTO(new Volunteer("27", "Sydney", "Sweeney", "Sweeney@gmail.com")));
         return volunteerDTOs;
     }
 

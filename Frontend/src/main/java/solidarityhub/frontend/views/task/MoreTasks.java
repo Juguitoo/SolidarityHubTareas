@@ -34,22 +34,22 @@ public class MoreTasks extends VerticalLayout {
     private final Grid<TaskDTO> taskGrid;
 
     public MoreTasks() {
+        addClassName("moreTasks_Container");
         this.taskService = new TaskService();
 
         this.taskGrid = new Grid<>(TaskDTO.class);
+        taskGrid.addClassName("moreTasks_grid");
+
         this.dataProvider = new ListDataProvider<>(initializeTasks());
 
         //Header
         Div header = new Div();
         header.addClassName("header");
-
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
         backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
         backButton.addClassName("back-button");
-
         H1 title = new H1("Todas las Tareas");
         title.addClassName("title");
-
         header.add(backButton, title);
 
         //Filtros

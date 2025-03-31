@@ -21,6 +21,20 @@ public class NeedService {
         this.baseUrl = "http://localhost:8082/needs";
     }
 
+    //CRUD METHODS
+    public void addNeed(NeedDTO needDTO) {
+        restTemplate.postForEntity(baseUrl, needDTO, NeedDTO.class);
+    }
+
+    public void updateNeed(int id, NeedDTO needDTO) {
+        restTemplate.put(baseUrl + "/" + id, needDTO);
+    }
+
+    public void deleteNeed(int id) {
+        restTemplate.delete(baseUrl + "/" + id);
+    }
+
+    //GET METHODS
     public List<NeedDTO> getNeeds() {
         try {
             ResponseEntity<NeedDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, NeedDTO[].class);
@@ -34,23 +48,21 @@ public class NeedService {
         }
     }
 
-    public void addNeed(NeedDTO needDTO) {
-        restTemplate.postForEntity(baseUrl, needDTO, NeedDTO.class);
-    }
-
-    public void updateNeed(int id, NeedDTO needDTO) {
-        restTemplate.put(baseUrl + "/" + id, needDTO);
-    }
-
-    public void deleteNeed(int id) {
-        restTemplate.delete(baseUrl + "/" + id);
-    }
-
-    public NeedDTO getNeed(int id) {
+    public NeedDTO getNeedById(int id) {
         ResponseEntity<NeedDTO> response = restTemplate.exchange(baseUrl + "/" + id, HttpMethod.GET, null, NeedDTO.class);
         return response.getBody();
     }
 
+    public List<NeedDTO> getNeedsByType(NeedType needType) {
+        List<NeedDTO> allNeeds = getNeeds();
+        List<NeedDTO> filteredNeeds = allNeeds.stream()
+                .filter(needDTO -> needType.equals(needDTO.getNeedType()))
+                .collect(java.util.stream.Collectors.toList());
+
+        return filteredNeeds;
+    }
+
+    //GET EXAMPLE NEEDS
     public List<NeedDTO> getExampleNeeds() {
         List<NeedDTO> needDTOs = new ArrayList<>();
         needDTOs.add(new NeedDTO(new Need("Material de construcción", UrgencyLevel.MODERATE, NeedType.BUILDING, null, null)));

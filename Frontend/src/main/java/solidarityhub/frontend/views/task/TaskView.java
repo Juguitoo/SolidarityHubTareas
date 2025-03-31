@@ -1,5 +1,6 @@
 package solidarityhub.frontend.views.task;
 
+import com.vaadin.flow.component.icon.Icon;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -30,19 +31,18 @@ public class TaskView extends VerticalLayout {
         H1 title = new H1("Tareas");
         title.addClassNames("task-title");
 
-        Button addTask = new Button("Crear tarea");
+        Button addTask = new Button(new Icon("vaadin", "plus"));
         addTask.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("addtask")));
-        addTask.addClassName("button");
+        addTask.addClassNames("button", "addTaskButton");
 
         Button moreTasks = new Button("Ver todas las tareas");
         moreTasks.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("moretasks")));
         moreTasks.addClassName("button");
 
-
         add(title,
             getTasks(),
-            addTask,
-            moreTasks
+            moreTasks,
+            addTask
         );
     }
 
@@ -65,7 +65,6 @@ public class TaskView extends VerticalLayout {
         H3 todoTitle = new H3("Por hacer");
         todoTitle.addClassName("section-title");
         toDoTasksLayout.add(todoTitle);
-
 
         List<TaskComponent> toDoTasks;
 

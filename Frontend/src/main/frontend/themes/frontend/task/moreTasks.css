@@ -1,3 +1,15 @@
+.moreTasks_Container{
+    display: flex;
+    height: 90vh;
+}
+
+.moreTasks_grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    flex-grow: 1;
+}
+
 .search-button{
     background-color: blue;
     color: #fff;
