@@ -177,6 +177,7 @@ public class AddTaskView extends VerticalLayout {
         taskEmergency.setRequired(true);
 
         starDateTimePicker.setRequiredIndicatorVisible(true);
+        endDateTimePicker.setRequiredIndicatorVisible(true);
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getVolunteersForm(), endDateTimePicker, taskEmergency, getNeedsForm());
 
