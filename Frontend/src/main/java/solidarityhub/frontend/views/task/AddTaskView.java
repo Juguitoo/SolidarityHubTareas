@@ -1,10 +1,12 @@
 package solidarityhub.frontend.views.task;
 
+import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.Need;
 import solidarityhub.frontend.model.Task;
 import solidarityhub.frontend.model.Volunteer;
 import solidarityhub.frontend.model.enums.*;
+import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -30,18 +32,18 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import solidarityhub.frontend.dto.VolunteerDTO;
+import solidarityhub.frontend.service.VolunteerService;
 
 @PageTitle("Añadir tarea")
 @Route("addtask")
 public class AddTaskView extends VerticalLayout {
 
     private final TaskService taskService;
+    private final VolunteerService volunteerService;
+    private final NeedService needService;
 
     private final TaskComponent taskPreview;
 
@@ -56,6 +58,8 @@ public class AddTaskView extends VerticalLayout {
 
     public AddTaskView() {
         this.taskService = new TaskService();
+        this.volunteerService = new VolunteerService();
+        this.needService = new NeedService();
 
         this.taskPreview = new TaskComponent(
                 "Nombre de la tarea",
@@ -90,39 +94,34 @@ public class AddTaskView extends VerticalLayout {
     private void saveNewTask(){
         if (validateForm()) {
             try {
-                List<Need> selectdNeeds = needsMultiSelectComboBox.getSelectedItems().stream()
-                        .map(this::stringToNeedType)
-                        .map(needType -> new Need("", UrgencyLevel.MODERATE, needType, null, null))
-                        .collect(Collectors.toList());
+                List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+                List<NeedDTO> needs = new ArrayList<>();
+                for (String need : selectedNeeds) {
+                    NeedDTO needDTO = needService.getNeeds().stream()
+                            .filter(n -> n.getDescription().equals(need))
+                            .findFirst()
+                            .orElse(null);
+                    if (needDTO != null) {
+                        needs.add(needDTO);
+                    }
+                }
 
-                List<Volunteer> selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
+                List<VolunteerDTO> selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
                         .map(name -> {
                             if (name.equals("Elegir voluntarios automáticamente")) {
                                 //Por hacer(Aplicar patron)
-                                return new Volunteer("1234", "Automático", "", "");
+                                return new VolunteerDTO();
                             }
-                            return taskService.getVolunteers().stream()
+                            return volunteerService.getVolunteers().stream()
                                     .filter(v -> v.getFirstName().equals(name))
                                     .findFirst()
-                                    .map(dto -> new Volunteer(dto.getDni(), dto.getFirstName(), dto.getLastName(), dto.getEmail()))
                                     .orElse(null);
                         })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
-                // Crear el objeto TaskDTO
-                Task newTask = new Task(
-                        selectdNeeds,
-                        taskName.getValue(),
-                        taskDescription.getValue(),
-                        starDateTimePicker.getValue(),
-                        endDateTimePicker.getValue(),
-                        taskPriority.getValue(),
-                        Status.TO_DO,
-                        selectedVolunteers
-                );
-
-                TaskDTO newTaskDTO = new TaskDTO(newTask);
+                TaskDTO newTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
+                        needs.getFirst().getNeedType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
                 taskService.addTask(newTaskDTO);
 
                 getConfirmationDialog().open();
@@ -213,7 +212,7 @@ public class AddTaskView extends VerticalLayout {
         volunteerCheckbox.setLabel("Elegir voluntarios automaticamente");
 
         MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
-        volunteersListBox.setItems(taskService.getVolunteers().stream().map(VolunteerDTO::getFirstName).collect(Collectors.toList()));
+        volunteersListBox.setItems(volunteerService.getVolunteers().stream().map(VolunteerDTO::getFirstName).collect(Collectors.toList()));
 
         volunteerCheckbox.addClickListener(checkboxClickEvent -> volunteersListBox.setEnabled(!volunteerCheckbox.getValue()));
 
@@ -269,22 +268,20 @@ public class AddTaskView extends VerticalLayout {
 
         VerticalLayout dialogContent = new VerticalLayout();
 
-        MultiSelectListBox<NeedType> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(NeedType.values());
+        MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
+        needsListBox.setItems(needService.getNeeds().stream().map(NeedDTO::getDescription).collect(Collectors.toList()));
 
         // Usar el formatNeedType para mostrar los valores como strings legibles
-        needsListBox.setItemLabelGenerator(this::formatNeedType);
+        //needsListBox.setItemLabelGenerator(this::formatNeedType);
 
         dialogContent.add(needsListBox);
 
         // Footer
         Button saveButton = new Button("Guardar", e -> {
             needsMultiSelectComboBox.clear();
-            Set<String> selectedNeedsFormatted = needsListBox.getSelectedItems().stream()
-                    .map(this::formatNeedType)
-                    .collect(Collectors.toSet());
-            needsMultiSelectComboBox.setItems(selectedNeedsFormatted);
-            needsMultiSelectComboBox.select(selectedNeedsFormatted);
+            Set<String> selectedNeeds = needsListBox.getSelectedItems();
+            needsMultiSelectComboBox.setItems(selectedNeeds);
+            needsMultiSelectComboBox.select(selectedNeeds);
             needsDialog.close();
         });
 

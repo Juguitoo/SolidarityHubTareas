@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import solidarityhub.backend.model.enums.EmergencyLevel;
 import solidarityhub.backend.model.enums.NeedType;
 import solidarityhub.backend.model.enums.Priority;
 import solidarityhub.backend.model.enums.Status;
@@ -44,6 +45,10 @@ public class Task {
 
     @Setter
     @Enumerated(EnumType.STRING)
+    private EmergencyLevel emergencyLevel;
+
+    @Setter
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @Setter
@@ -60,13 +65,14 @@ public class Task {
 
 
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
-                LocalDateTime estimatedEndTimeDate, Priority priority, Status status, List<Volunteer> volunteers) {
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers) {
         this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.startTimeDate = startTimeDate;
         this.estimatedEndTimeDate = estimatedEndTimeDate;
         this.priority = priority;
+        this.emergencyLevel = emergencyLevel;
         this.status = status;
         this.volunteers= volunteers;
         this.type = needs.getFirst().getNeedType();

@@ -69,7 +69,7 @@ public class TaskController {
             }
         }
 
-        Task task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(), taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getStatus(), volunteers);
+        Task task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(), taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(), taskDTO.getStatus(), volunteers);
         taskService.saveTask(task);
 
         for (Need need : needs) {
@@ -79,7 +79,7 @@ public class TaskController {
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
-            volunteer.notifyEmail("Nueva tarea", "Se le ha asignado una nueva tarea: " + task.getTaskName());
+            //volunteer.notifyEmail("Nueva tarea", "Se le ha asignado una nueva tarea: " + task.getTaskName());
             volunteerService.saveVolunteer(volunteer);
         }
 
@@ -133,7 +133,7 @@ public class TaskController {
         for (Volunteer volunteer : volunteers) {
             if(!volunteer.getTasks().contains(task)){
                 volunteer.getTasks().add(task);
-                volunteer.notifyEmail("Tarea actualizada", "Se ha actualizado una tarea que se le había asignado. Nombre de la tarea: " + task.getTaskName());
+                //volunteer.notifyEmail("Tarea actualizada", "Se ha actualizado una tarea que se le había asignado. Nombre de la tarea: " + task.getTaskName());
                 volunteerService.saveVolunteer(volunteer);
             }
         }

@@ -1,17 +1,19 @@
 package solidarityhub.backend.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.enums.NeedType;
 import solidarityhub.backend.model.enums.UrgencyLevel;
 
+@NoArgsConstructor
 @Getter
 public class NeedDTO {
-    private final int id;
-    private final String description;
-    private final UrgencyLevel urgency;
-    private final NeedType needType;
-    private final int taskId;
+    private int id;
+    private String description;
+    private UrgencyLevel urgency;
+    private NeedType needType;
+    private int taskId;
 
     public NeedDTO(Need need) {
         this.id = need.getId();

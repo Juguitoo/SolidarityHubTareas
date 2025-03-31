@@ -48,9 +48,6 @@ public class Volunteer extends Person {
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
     private List<Notification> notifications;
 
-    private String solidarityEmail = "solidarityEmail@gmail.com"; //por ejemplo. Sujeto a cambios
-    private String emailPassword = "examplePassword"; //por ejemplo. Sujeto a cambios
-
     public Volunteer(String dni, String firstName, String lastName, String email,
                      int phone, String address, String password, List<Skill> skills,
                      List<ScheduleAvailability> scheduleAvailabilities, List<Preference> preferences) {
@@ -69,8 +66,8 @@ public class Volunteer extends Person {
     public void notifyEmail(String subject, String message) {
         // Configuración del servidor de correo
         String host = "smtp.example.com";
-        final String user = solidarityEmail;
-        final String password = emailPassword;
+        final String user = getEmail();
+        final String password = "";
 
         // Propiedades del correo
         Properties properties = new Properties();

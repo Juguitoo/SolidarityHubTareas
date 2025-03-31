@@ -1,18 +1,20 @@
 package solidarityhub.backend.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import solidarityhub.backend.model.Volunteer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@NoArgsConstructor
 @Getter
 public class VolunteerDTO {
-    private final String dni;
-    private final String firstName;
-    private final String lastName;
-    private final String email;
-    private final List<Integer> tasks;
+    private String dni;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private List<Integer> tasks;
 
     public VolunteerDTO(Volunteer volunteer) {
         this.tasks = new ArrayList<>();
