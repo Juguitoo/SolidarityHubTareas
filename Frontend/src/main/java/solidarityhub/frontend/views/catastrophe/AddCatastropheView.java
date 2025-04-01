@@ -25,7 +25,7 @@ import java.time.LocalDate;
 
 @Route("add-catastrophe")
 @PageTitle("Añadir Catástrofe")
-public class AddCatastrophe extends VerticalLayout {
+public class AddCatastropheView extends VerticalLayout {
 
     private TextField nameField;
     private TextArea descriptionField;
@@ -38,7 +38,7 @@ public class AddCatastrophe extends VerticalLayout {
 
     private final CatastropheService catastropheService;
 
-    public AddCatastrophe(CatastropheService catastropheService) {
+    public AddCatastropheView(CatastropheService catastropheService) {
         this.catastropheService = catastropheService;
         addClassName("add-catastrophe-view");
 
