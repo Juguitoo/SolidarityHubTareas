@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.SvgIcon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
@@ -15,6 +16,9 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import solidarityhub.frontend.views.catastrophe.CatastropheView;
+import solidarityhub.frontend.views.task.TaskView;
+
 import java.util.List;
 
 /**
@@ -52,18 +56,24 @@ public class MainLayout extends AppLayout {
         addToDrawer(header, scroller, createFooter());
     }
 
-    private SideNav createNavigation() {
+
+    public static SideNav createNavigation() {
         SideNav nav = new SideNav();
 
-        List<MenuEntry> menuEntries = MenuConfiguration.getMenuEntries();
-        menuEntries.forEach(entry -> {
-            if (entry.icon() != null) {
-                nav.addItem(new SideNavItem(entry.title(), entry.path(), new SvgIcon(entry.icon())));
-            } else {
-                nav.addItem(new SideNavItem(entry.title(), entry.path()));
-            }
-        });
+        SideNavItem homeLink = new SideNavItem("Catástrofes",
+                CatastropheView.class, VaadinIcon.CLOUD.create());
+        SideNavItem mapLink = new SideNavItem("Mapa",
+                "http://localhost:8080/map", VaadinIcon.MAP_MARKER.create());
+        SideNavItem taskLink = new SideNavItem("Tareas",
+                TaskView.class, VaadinIcon.TASKS.create());
+        SideNavItem dashboardLink = new SideNavItem("Dashboard",
+                "http://localhost:8080/dashboar", VaadinIcon.DASHBOARD.create());
+        SideNavItem resourcesLink = new SideNavItem("Recursos",
+                "http://localhost:8083/recursos", VaadinIcon.TOOLBOX.create());
+        SideNavItem contactLink = new SideNavItem("Contacto",
+                "http://localhost:8080/contact", VaadinIcon.PHONE.create());
 
+        nav.addItem(homeLink,taskLink,mapLink,resourcesLink,dashboardLink, contactLink);
         return nav;
     }
 
