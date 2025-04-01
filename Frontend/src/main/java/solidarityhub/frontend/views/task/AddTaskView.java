@@ -418,7 +418,8 @@ public class AddTaskView extends VerticalLayout {
         // Listener para el nombre de la tarea
         taskName.addValueChangeListener(e ->
                 updatePreview(e.getValue(), taskDescription.getValue(),
-                        taskPriority.getValue(), taskEmergency.getValue()));
+                        taskPriority.getValue(), taskEmergency.getValue())
+        );
 
         // Listener para la descripción
         taskDescription.addValueChangeListener(e ->
