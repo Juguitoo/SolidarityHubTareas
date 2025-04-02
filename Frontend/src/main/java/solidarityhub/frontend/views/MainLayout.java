@@ -19,10 +19,12 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import solidarityhub.frontend.views.catastrophe.CatastropheView;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 import solidarityhub.frontend.views.task.TaskView;
 
 import java.util.List;
@@ -40,11 +42,16 @@ public class MainLayout extends AppLayout {
     private VerticalLayout drawerContent;
     private Span appName;
     private Button logoButton;
+    private Div selectedCatastropheInfo;
 
     public MainLayout() {
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("class", "main-layout");
         addDrawerContent();
+
+        // Configurar un listener para actualizar el indicador de catástrofe seleccionada
+        // cuando cambia de ruta o se refresca la página
+        UI.getCurrent().addAfterNavigationListener(event -> updateSelectedCatastropheInfo());
     }
 
     private void addDrawerContent() {
@@ -74,7 +81,10 @@ public class MainLayout extends AppLayout {
         logoLayout.add(logoButton, appName);
         header.add(logoLayout);
 
-
+        // Div para mostrar la catástrofe seleccionada
+        selectedCatastropheInfo = new Div();
+        selectedCatastropheInfo.addClassName("selected-catastrophe-info");
+        updateSelectedCatastropheInfo(); // Inicializar con la información actual
 
         sideNav = createNavigation();
         Scroller scroller = new Scroller(sideNav);
@@ -86,8 +96,46 @@ public class MainLayout extends AppLayout {
         version.getElement().setAttribute("class", "version-info");
         footer.add(version);
 
-        drawerContent.add(header, scroller, footer);
+        drawerContent.add(header, selectedCatastropheInfo, scroller, footer);
         addToDrawer(drawerContent);
+    }
+
+    private void updateSelectedCatastropheInfo() {
+        CatastropheDTO selectedCatastrophe =
+                (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+
+        selectedCatastropheInfo.removeAll();
+
+        if (selectedCatastrophe != null) {
+            VerticalLayout infoLayout = new VerticalLayout();
+            infoLayout.setSpacing(false);
+            infoLayout.setPadding(false);
+
+            // Título "Catástrofe seleccionada:"
+            H4 title = new H4("Catástrofe seleccionada:");
+            title.addClassName("selected-catastrophe-title");
+
+            // Nombre de la catástrofe
+            Paragraph catastropheName = new Paragraph(selectedCatastrophe.getName());
+            catastropheName.addClassName("selected-catastrophe-name");
+
+            // Botón para cambiar de catástrofe
+            Button changeButton = new Button("Cambiar", VaadinIcon.EXCHANGE.create());
+            changeButton.addClassName("change-catastrophe-button");
+            changeButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheSelectionView.class));
+
+            infoLayout.add(title, catastropheName, changeButton);
+            selectedCatastropheInfo.add(infoLayout);
+            selectedCatastropheInfo.setVisible(true);
+        } else {
+            // Si no hay catástrofe seleccionada, mostrar un mensaje o redirigir
+            Button selectButton = new Button("Seleccionar catástrofe", VaadinIcon.PLUS.create());
+            selectButton.addClassName("select-catastrophe-button");
+            selectButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheSelectionView.class));
+
+            selectedCatastropheInfo.add(new H4("No hay catástrofe seleccionada"), selectButton);
+            selectedCatastropheInfo.setVisible(true);
+        }
     }
 
     private void toggleDrawerMinimized() {
@@ -106,6 +154,9 @@ public class MainLayout extends AppLayout {
             // Ocultar nombre de la app
             appName.setVisible(false);
 
+            // Ocultar info de catástrofe seleccionada
+            selectedCatastropheInfo.setVisible(false);
+
             // Vaciar las etiquetas para evitar que ocupen espacio
             UI.getCurrent().access(() -> {
                 sideNav.getItems().forEach(item -> item.setLabel(""));
@@ -119,6 +170,9 @@ public class MainLayout extends AppLayout {
             // Mostrar nombre de la app
             appName.setVisible(true);
 
+            // Mostrar info de catástrofe seleccionada
+            selectedCatastropheInfo.setVisible(true);
+
             // Restaurar las etiquetas
             updateNavigationTexts();
         }
@@ -130,7 +184,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void updateNavigationTexts() {
-        String[] labels = {"Catástrofes", "Tareas", "Mapa", "Recursos", "Dashboard", "Contacto"};
+        String[] labels = {"Tareas", "Mapa", "Recursos", "Dashboard", "Contacto"};
         int index = 0;
         for (SideNavItem item : sideNav.getItems()) {
             item.setLabel(labels[index++]);
@@ -142,7 +196,6 @@ public class MainLayout extends AppLayout {
         nav.getElement().setAttribute("class", "side-nav");
 
         nav.addItem(
-                createNavItem("Catástrofes", VaadinIcon.CLOUD, CatastropheView.class),
                 createNavItem("Tareas", VaadinIcon.TASKS, TaskView.class),
                 createNavItem("Mapa", VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
                 createNavItem("Recursos", VaadinIcon.TOOLBOX, "http://localhost:8083/recursos"),

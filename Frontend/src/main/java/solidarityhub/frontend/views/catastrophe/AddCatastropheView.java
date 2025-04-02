@@ -23,6 +23,16 @@ import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
 
+/**
+ * Vista para añadir una nueva catástrofe
+ * Adaptada para trabajar con las columnas de la base de datos:
+ * - id (int auto increment)
+ * - name (varchar 255)
+ * - description (varchar 255)
+ * - emergency_level (enum)
+ * - start_date (date)
+ * - location_id (int)
+ */
 @Route("add-catastrophe")
 @PageTitle("Añadir Catástrofe")
 public class AddCatastropheView extends VerticalLayout {
@@ -46,13 +56,12 @@ public class AddCatastropheView extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        // [El resto de la configuración del formulario sigue igual]
-        //Header
+        // Header
         Div header = new Div();
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("catastrophe")));
         backButton.addClassName("back-button");
 
         H1 title = new H1("Añadir Catástrofe");
@@ -60,31 +69,40 @@ public class AddCatastropheView extends VerticalLayout {
 
         header.add(backButton, title);
 
-        // Crear campos del formulario
+        // Crear campos del formulario alineados con la estructura de la base de datos
         nameField = new TextField("Nombre de la catástrofe");
         nameField.setRequired(true);
         nameField.setPlaceholder("Terremoto en...");
+        nameField.setMaxLength(255);
+        nameField.setHelperText("Máximo 255 caracteres");
 
         descriptionField = new TextArea("Descripción");
         descriptionField.setPlaceholder("Información detallada sobre la catástrofe...");
         descriptionField.setHeight("150px");
+        descriptionField.setMaxLength(255);
+        descriptionField.setHelperText("Máximo 255 caracteres");
 
         dateField = new DatePicker("Fecha de inicio");
         dateField.setValue(LocalDate.now());
+        dateField.setRequired(true);
 
         locationXField = new NumberField("Coordenada X (Longitud)");
         locationXField.setValue(0.0);
         locationXField.setStep(0.000001);
         locationXField.setStepButtonsVisible(true);
+        locationXField.setHelperText("Para la ubicación geográfica");
 
         locationYField = new NumberField("Coordenada Y (Latitud)");
         locationYField.setValue(0.0);
         locationYField.setStep(0.000001);
         locationYField.setStepButtonsVisible(true);
+        locationYField.setHelperText("Para la ubicación geográfica");
 
         emergencyLevelComboBox = new ComboBox<>("Nivel de emergencia");
         emergencyLevelComboBox.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
         emergencyLevelComboBox.setValue(EmergencyLevel.MEDIUM);
+        emergencyLevelComboBox.setRequired(true);
+        emergencyLevelComboBox.setItemLabelGenerator(this::formatEmergencyLevel);
 
         // Crear botones
         saveButton = new Button("Guardar");
@@ -112,31 +130,46 @@ public class AddCatastropheView extends VerticalLayout {
         add(header, formLayout, createButtonLayout());
     }
 
+    private String formatEmergencyLevel(EmergencyLevel level) {
+        return switch (level) {
+            case LOW -> "Bajo";
+            case MEDIUM -> "Medio";
+            case HIGH -> "Alto";
+            case VERYHIGH -> "Muy Alto";
+            default -> level.toString();
+        };
+    }
+
     private void guardarCatastrofe() {
         // Validar campos requeridos
-        if (nameField.isEmpty()) {
-            Notification.show("El nombre de la catástrofe es obligatorio",
+        if (nameField.isEmpty() || emergencyLevelComboBox.isEmpty() || dateField.isEmpty()) {
+            Notification.show("Complete todos los campos obligatorios",
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             return;
         }
 
         try {
-            // Crear el DTO con los datos del formulario
+            // Crear las coordenadas para la ubicación
+            GPSCoordinates location = new GPSCoordinates(locationYField.getValue(), locationXField.getValue());
+
+            // Crear el objeto Catastrophe directamente
             Catastrophe catastrophe = new Catastrophe(
                     nameField.getValue(),
                     descriptionField.getValue(),
-                    new GPSCoordinates(locationXField.getValue(), locationYField.getValue()),
+                    location,
                     dateField.getValue(),
                     emergencyLevelComboBox.getValue()
             );
+
+            // Crear el DTO a partir del objeto Catastrophe
             CatastropheDTO catastropheDTO = new CatastropheDTO(catastrophe);
 
             // Guardar la catástrofe usando el servicio
             CatastropheDTO savedCatastrophe = catastropheService.saveCatastrophe(catastropheDTO);
 
             // Mostrar notificación de éxito
-            Notification.show("Catástrofe '" + savedCatastrophe.getName() +
+            Notification.show("Catástrofe '" + nameField.getValue() +
                                     "' guardada correctamente",
                             3000, Notification.Position.BOTTOM_START)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

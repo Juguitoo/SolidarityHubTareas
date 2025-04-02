@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -69,7 +70,51 @@ public class TaskService {
         return taskCache;
     }
 
-    public List<TaskDTO> getToDoTasks(int limit) {return getTasksByStatus(Status.TO_DO, limit);}
+    // Métodos para obtener tareas filtradas por catástrofe
+    public List<TaskDTO> getTasksByCatastrophe(int catastropheId) {
+        return getTasks().stream()
+                .filter(task -> task.getNeeds().stream()
+                        .anyMatch(need -> need.getCatastropheId() == catastropheId))
+                .collect(Collectors.toList());
+    }
+
+    public List<TaskDTO> getToDoTasksByCatastrophe(int catastropheId, int limit) {
+        return getTasksByStatusAndCatastrophe(Status.TO_DO, catastropheId, limit);
+    }
+
+    public List<TaskDTO> getDoingTasksByCatastrophe(int catastropheId, int limit) {
+        return getTasksByStatusAndCatastrophe(Status.IN_PROGRESS, catastropheId, limit);
+    }
+
+    public List<TaskDTO> getDoneTasksByCatastrophe(int catastropheId, int limit) {
+        return getTasksByStatusAndCatastrophe(Status.FINISHED, catastropheId, limit);
+    }
+
+    private List<TaskDTO> getTasksByStatusAndCatastrophe(Status status, int catastropheId, int limit) {
+        if(limit <= 0) {
+            return getTasksByStatusAndCatastrophe(status, catastropheId);
+        }
+        return getTasks().stream()
+                .filter(task -> status.equals(task.getStatus()))
+                .filter(task -> task.getNeeds().stream()
+                        .anyMatch(need -> need.getCatastropheId() == catastropheId))
+                .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
+                .limit(limit)
+                .toList();
+    }
+
+    private List<TaskDTO> getTasksByStatusAndCatastrophe(Status status, int catastropheId) {
+        return getTasks().stream()
+                .filter(task -> status.equals(task.getStatus()))
+                .filter(task -> task.getNeeds().stream()
+                        .anyMatch(need -> need.getCatastropheId() == catastropheId))
+                .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
+                .toList();
+    }
+
+    public List<TaskDTO> getToDoTasks(int limit) {
+        return getTasksByStatus(Status.TO_DO, limit);
+    }
 
     public List<TaskDTO> getDoingTasks(int limit) {
         return getTasksByStatus(Status.IN_PROGRESS, limit);
@@ -81,7 +126,7 @@ public class TaskService {
 
     private List<TaskDTO> getTasksByStatus(Status status) {
         return getTasks().stream()
-                .filter(task -> task.getStatus().equals(status))
+                .filter(task -> status.equals(task.getStatus()))
                 .toList();
     }
 
@@ -159,6 +204,4 @@ public class TaskService {
 
         return exampleTasks;
     }
-
-
 }
