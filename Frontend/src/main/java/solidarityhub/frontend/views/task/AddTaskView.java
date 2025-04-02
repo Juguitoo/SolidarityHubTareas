@@ -1,5 +1,11 @@
 package solidarityhub.frontend.views.task;
 
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import solidarityhub.frontend.dto.NeedDTO;
+import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.service.NeedService;
+import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -23,17 +29,12 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
-import solidarityhub.frontend.dto.NeedDTO;
-import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
-import solidarityhub.frontend.service.NeedService;
-import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.service.VolunteerService;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -89,7 +90,7 @@ public class AddTaskView extends VerticalLayout {
         add(
             header,
             getPreview(),
-            getTaskForm(),
+            getAddTaskForms(),
             getButtons()
         );
     }
@@ -100,13 +101,9 @@ public class AddTaskView extends VerticalLayout {
                 List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
                 List<NeedDTO> needs = new ArrayList<>();
                 for (String need : selectedNeeds) {
-                    NeedDTO needDTO = needService.getNeeds().stream()
+                    needService.getNeeds().stream()
                             .filter(n -> n.getDescription().equals(need))
-                            .findFirst()
-                            .orElse(null);
-                    if (needDTO != null) {
-                        needs.add(needDTO);
-                    }
+                            .findFirst().ifPresent(needs::add);
                 }
 
                 List<VolunteerDTO> selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
@@ -154,7 +151,7 @@ public class AddTaskView extends VerticalLayout {
         return preview;
     }
 
-    private Component getTaskForm(){
+    private Component getAddTaskForms(){
         FormLayout addTaskForm = new FormLayout();
         addTaskForm.addClassName("addTaskForm");
 
@@ -181,7 +178,7 @@ public class AddTaskView extends VerticalLayout {
         starDateTimePicker.setRequiredIndicatorVisible(true);
         endDateTimePicker.setRequiredIndicatorVisible(true);
 
-        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getVolunteersForm(), endDateTimePicker, taskEmergency, getNeedsForm());
+        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
 
         addTaskForm.setColspan(taskDescription, 2);
         addTaskForm.setResponsiveSteps(
@@ -212,14 +209,47 @@ public class AddTaskView extends VerticalLayout {
         VerticalLayout dialogContent = new VerticalLayout();
 
         Checkbox volunteerCheckbox = new Checkbox();
-        volunteerCheckbox.setLabel("Elegir voluntarios automaticamente");
+        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
+
+        // Obtener los nombres de voluntarios
+        List<String> volunteerNames = volunteerService.getVolunteers().stream()
+                .map(VolunteerDTO::getFirstName)
+                .collect(Collectors.toList());
+
 
         MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
-        volunteersListBox.setItems(volunteerService.getVolunteers().stream().map(VolunteerDTO::getFirstName).collect(Collectors.toList()));
+        volunteersListBox.setItems(volunteerNames);
+
+        Tabs tabs = new Tabs(
+                new Tab("Todos"),
+                new Tab("Distancia"),
+                new Tab("Disponibilidad"),
+                new Tab("Habilidades")
+        );
+
+        // Listener para el cambio de pestañas
+        tabs.addSelectedChangeListener(event -> {
+            String selectedTabName = tabs.getSelectedTab().getLabel();
+            switch (selectedTabName) {
+                case "Todos":
+                    volunteersListBox.setItems(volunteerNames);
+                    break;
+                case "Distancia":
+                    volunteersListBox.setItems(volunteerNames);
+                    break;
+                case "Disponibilidad":
+                    volunteersListBox.setItems(volunteerNames);
+                    break;
+                case "Habilidades":
+                    volunteersListBox.setItems(volunteerNames);
+                    break;
+            }
+        });
 
         volunteerCheckbox.addClickListener(checkboxClickEvent -> volunteersListBox.setEnabled(!volunteerCheckbox.getValue()));
 
-        dialogContent.add(volunteerCheckbox, volunteersListBox);
+        // Añadir todos los componentes
+        dialogContent.add(volunteerCheckbox, tabs, volunteersListBox);
 
         //Footer
         Button saveButton = new Button("Guardar", e -> {
@@ -241,11 +271,15 @@ public class AddTaskView extends VerticalLayout {
             if (volunteerMultiSelectComboBox.getSelectedItems().contains("Elegir voluntarios automáticamente")) {
                 volunteerCheckbox.setValue(true);
                 volunteersListBox.setEnabled(false);
+            } else {
+                volunteerCheckbox.setValue(false);
+                volunteersListBox.setEnabled(true);
             }
+
             volunteerDialog.close();
         });
-        volunteerDialog.getFooter().add(cancelButton);
-        volunteerDialog.getFooter().add(saveButton);
+
+        volunteerDialog.getFooter().add(saveButton, cancelButton);
 
         volunteerDialog.add(dialogContent);
 
