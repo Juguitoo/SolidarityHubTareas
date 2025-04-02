@@ -7,7 +7,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import solidarityhub.backend.model.enums.DayMoment;
+import solidarityhub.backend.model.enums.TaskType;
+import solidarityhub.backend.model.enums.WeekDay;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -18,20 +22,12 @@ import java.util.Properties;
 @NoArgsConstructor
 public class Volunteer extends Person {
 
-    @ManyToMany
-    @JoinTable(name = "volunteer_skills",
-            joinColumns = @JoinColumn(name = "volunteer_dni"),
-            inverseJoinColumns = @JoinColumn(name = "skill_name"))
-    private List<Skill> skills;
-
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL)
     private List<ScheduleAvailability> scheduleAvailabilities;
 
-    @ManyToMany
-    @JoinTable(name = "volunteer_preferences",
-            joinColumns = @JoinColumn(name = "volunteer_dni"),
-            inverseJoinColumns = @JoinColumn(name = "preference_name"))
-    private List<Preference> preferences;
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    private List<TaskType> taskTypes;
 
     @ManyToMany
     @JoinTable(name = "volunteer_tasks",
@@ -48,16 +44,18 @@ public class Volunteer extends Person {
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
     private List<Notification> notifications;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private GPSCoordinates location;
+
     public Volunteer(String dni, String firstName, String lastName, String email,
-                     int phone, String address, String password, List<Skill> skills,
-                     List<ScheduleAvailability> scheduleAvailabilities, List<Preference> preferences) {
+                     int phone, String address, String password, List<TaskType> taskTypes,
+                     List<ScheduleAvailability> scheduleAvailabilities) {
         super(dni, firstName, lastName, email, phone, address, password);
         this.tasks = new ArrayList<>();
         this.donations = new ArrayList<>();
         this.certificates = new ArrayList<>();
-        this.skills = skills;
         this.scheduleAvailabilities = scheduleAvailabilities;
-        this.preferences = preferences;
+        this.taskTypes = taskTypes;
         for (ScheduleAvailability s : this.scheduleAvailabilities) {
             s.setVolunteer(this);
         }
@@ -99,5 +97,43 @@ public class Volunteer extends Person {
             e.printStackTrace();
         }
 
+    }
+
+    public int isAvailable(LocalDateTime startTimeTask, LocalDateTime endTimeTask) {
+        int available = 0;
+        WeekDay startWeekDay = WeekDay.valueOf(String.valueOf(startTimeTask.getDayOfWeek()));
+        WeekDay endWeekDay = WeekDay.valueOf(String.valueOf(endTimeTask.getDayOfWeek()));
+        for (ScheduleAvailability schedule : this.scheduleAvailabilities) {
+            if (ScheduleAvailability.weekDayToInt(schedule.getWeekDay()) >= ScheduleAvailability.weekDayToInt(startWeekDay) &&
+            ScheduleAvailability.weekDayToInt(schedule.getWeekDay()) <= ScheduleAvailability.weekDayToInt(endWeekDay)) {
+                if (schedule.getDayMoment() == DayMoment.MORNING) {
+                    if (startTimeTask.getHour() >= 8 && endTimeTask.getHour() <= 12) {
+                        available++;
+                    }
+                } else if (schedule.getDayMoment() == DayMoment.AFTERNOON) {
+                    if (startTimeTask.getHour() >= 12 && endTimeTask.getHour() <= 18) {
+                        available++;
+                    }
+                } else
+                    available++;
+                }
+
+            }
+            return available;
+        }
+
+    public double getDistance(Task task) {
+        if (task.getNeeds().isEmpty()) {return 0.0;};
+        double totalLatitude = 0.0;
+        double totalLongitude = 0.0;
+        for (Need need : task.getNeeds()) {
+            totalLongitude += need.getLocation().getLongitude();
+            totalLatitude += need.getLocation().getLatitude();
+        }
+        double averageLatitude = totalLatitude / task.getNeeds().size();
+        double averageLongitude = totalLongitude / task.getNeeds().size();
+
+        return Math.sqrt(Math.pow(this.getLocation().getLatitude() - averageLatitude, 2) +
+                Math.pow(this.getLocation().getLongitude() - averageLongitude, 2));
     }
 }
