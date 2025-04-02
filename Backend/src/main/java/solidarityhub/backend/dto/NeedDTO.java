@@ -2,6 +2,7 @@ package solidarityhub.backend.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.backend.model.enums.UrgencyLevel;
@@ -13,6 +14,7 @@ public class NeedDTO {
     private String description;
     private UrgencyLevel urgency;
     private TaskType needType;
+    private GPSCoordinates location;
     private int taskId;
 
     public NeedDTO(Need need) {
@@ -20,6 +22,7 @@ public class NeedDTO {
         this.description = need.getDescription();
         this.urgency = need.getUrgency();
         this.needType = need.getTaskType();
+        this.location = need.getLocation();
         if(need.getTask() != null) {
             this.taskId = need.getTask().getId();
         } else {

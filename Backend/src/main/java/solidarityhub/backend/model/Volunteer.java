@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import solidarityhub.backend.dto.NeedDTO;
+import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.enums.DayMoment;
 import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.backend.model.enums.WeekDay;
@@ -122,16 +124,16 @@ public class Volunteer extends Person {
             return available;
         }
 
-    public double getDistance(Task task) {
-        if (task.getNeeds().isEmpty()) {return 0.0;};
+    public double getDistance(TaskDTO taskDTO) {
+        if (taskDTO.getNeeds().isEmpty()) {return 0.0;};
         double totalLatitude = 0.0;
         double totalLongitude = 0.0;
-        for (Need need : task.getNeeds()) {
+        for (NeedDTO need : taskDTO.getNeeds()) {
             totalLongitude += need.getLocation().getLongitude();
             totalLatitude += need.getLocation().getLatitude();
         }
-        double averageLatitude = totalLatitude / task.getNeeds().size();
-        double averageLongitude = totalLongitude / task.getNeeds().size();
+        double averageLatitude = totalLatitude / taskDTO.getNeeds().size();
+        double averageLongitude = totalLongitude / taskDTO.getNeeds().size();
 
         return Math.sqrt(Math.pow(this.getLocation().getLatitude() - averageLatitude, 2) +
                 Math.pow(this.getLocation().getLongitude() - averageLongitude, 2));
