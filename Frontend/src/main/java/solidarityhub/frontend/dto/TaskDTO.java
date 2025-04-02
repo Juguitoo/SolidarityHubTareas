@@ -24,6 +24,7 @@ public class TaskDTO {
     private Status status;
     private List<NeedDTO> needs;
     private List<VolunteerDTO> volunteers;
+    private Integer catastropheId;
 
     public TaskDTO(String name , String description, LocalDateTime startTimeDate, LocalDateTime estimatedEndTimeDate, TaskType type, Priority priority, EmergencyLevel emergencyLevel,
                    Status status, List<NeedDTO> needs, List<VolunteerDTO> volunteers) {
@@ -37,5 +38,20 @@ public class TaskDTO {
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
         this.status = status;
+        this.catastropheId = null;
+    }
+
+    public TaskDTO(String name, String description, LocalDateTime startTimeDate,
+                   LocalDateTime estimatedEndTimeDate, TaskType type, Priority priority,
+                   EmergencyLevel emergencyLevel, Status status, List<NeedDTO> needs,
+                   List<VolunteerDTO> volunteers, Integer catastropheId) {
+        this(name, description, startTimeDate, estimatedEndTimeDate, type, priority,
+                emergencyLevel, status, needs, volunteers);
+        this.catastropheId = catastropheId;
+    }
+
+    // Setter específico para el ID de catástrofe
+    public void setCatastropheId(Integer catastropheId) {
+        this.catastropheId = catastropheId;
     }
 }

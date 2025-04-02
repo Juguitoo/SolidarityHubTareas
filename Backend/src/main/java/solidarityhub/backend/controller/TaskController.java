@@ -5,11 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
+import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.Volunteer;
 import solidarityhub.backend.model.enums.Priority;
 import solidarityhub.backend.model.enums.Status;
+import solidarityhub.backend.service.CatastropheService;
 import solidarityhub.backend.service.NeedService;
 import solidarityhub.backend.service.TaskService;
 import solidarityhub.backend.service.VolunteerService;
@@ -26,17 +28,26 @@ public class TaskController {
     private final TaskService taskService;
     private final VolunteerService volunteerService;
     private final NeedService needService;
+    private final CatastropheService catastropheService;
 
-    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService) {
+    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, CatastropheService catastropheService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
         this.needService = needService;
+        this.catastropheService = catastropheService;
     }
 
     @GetMapping
     public ResponseEntity<?> getTasks() {
         List<TaskDTO> taskDTOList = new ArrayList<>();
         taskService.getAllTasks().forEach(t -> {taskDTOList.add(new TaskDTO(t));});
+        return ResponseEntity.ok(taskDTOList);
+    }
+
+    @GetMapping("/catastrophe/{catastropheId}")
+    public ResponseEntity<?> getTasksByCatastrophe(@PathVariable Integer catastropheId) {
+        List<TaskDTO> taskDTOList = new ArrayList<>();
+        taskService.getTasksByCatastrophe(catastropheId).forEach(t -> {taskDTOList.add(new TaskDTO(t));});
         return ResponseEntity.ok(taskDTOList);
     }
 
@@ -52,6 +63,16 @@ public class TaskController {
     public ResponseEntity<?> addTask(@RequestBody TaskDTO taskDTO) {
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
+        Catastrophe catastrophe = null;
+
+        // Obtener la catástrofe si se ha especificado
+        if (taskDTO.getCatastropheId() != null) {
+            catastrophe = catastropheService.getCatastrophe(taskDTO.getCatastropheId());
+            if (catastrophe == null) {
+                return ResponseEntity.badRequest().body("La catástrofe especificada no existe");
+            }
+        }
+
 
         List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer id : needIds) {
@@ -59,6 +80,10 @@ public class TaskController {
             if (need != null) {
                 needs.add(need);
             }
+        }
+
+        if (needs.isEmpty()) {
+            return ResponseEntity.badRequest().body("Se debe seleccionar al menos una necesidad");
         }
 
         List<String> volunteerDnis = taskDTO.getVolunteers().stream().map(VolunteerDTO::getDni).toList();
@@ -69,7 +94,24 @@ public class TaskController {
             }
         }
 
-        Task task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(), taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(), taskDTO.getStatus(), volunteers);
+        // Crear la tarea
+        Task task;
+        if (catastrophe != null) {
+            task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(),
+                    taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(),
+                    taskDTO.getStatus(), volunteers, catastrophe);
+        } else {
+            task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(),
+                    taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(),
+                    taskDTO.getStatus(), volunteers);
+
+            // Si no se especificó una catástrofe, utilizar la de la primera necesidad
+            if (!needs.isEmpty() && needs.get(0).getCatastrophe() != null) {
+                task.setCatastrophe(needs.get(0).getCatastrophe());
+            }
+        }
+
+
         taskService.saveTask(task);
 
         for (Need need : needs) {
@@ -95,6 +137,14 @@ public class TaskController {
 
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
+        Catastrophe catastrophe = null;
+        if (taskDTO.getCatastropheId() != null) {
+            catastrophe = catastropheService.getCatastrophe(taskDTO.getCatastropheId());
+            if (catastrophe == null) {
+                return ResponseEntity.badRequest().body("La catástrofe especificada no existe");
+            }
+            task.setCatastrophe(catastrophe);
+        }
 
         List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer needId : needIds) {

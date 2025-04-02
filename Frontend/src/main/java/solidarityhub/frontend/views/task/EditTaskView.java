@@ -7,10 +7,14 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.VaadinSession;
+import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.TaskService;
 
 import java.util.*;
@@ -20,9 +24,14 @@ import java.util.*;
 public class EditTaskView extends AddTaskView implements HasUrlParameter<String> {
 
     private int taskId;
+    // Referencia al servicio de tareas
+    private final TaskService taskServiceRef;
 
-    public EditTaskView(TaskService taskService) {
-        super(taskService);
+    // Constructor actualizado para aceptar los dos parámetros necesarios
+    public EditTaskView(TaskService taskService, CatastropheService catastropheService) {
+        // Llamar al constructor de la clase padre con ambos servicios
+        super(taskService, catastropheService);
+        this.taskServiceRef = taskService;
 
         // Cambiar el título de la vista
         getElement().getChildren()
@@ -35,6 +44,16 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String parameter) {
+        // También verifica si hay una catástrofe seleccionada como en la clase padre
+        CatastropheDTO selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        if (selectedCatastrophe == null) {
+            Notification.show("Por favor, selecciona una catástrofe primero",
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+            beforeEvent.forwardTo(""); // Redirige a la página de selección de catástrofes
+            return;
+        }
+
         // Obtener el parámetro ID de la URL
         QueryParameters queryParameters = beforeEvent.getLocation().getQueryParameters();
         Map<String, List<String>> parameterMap = queryParameters.getParameters();
@@ -55,7 +74,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private void loadTaskData(int taskId) {
         try {
-            TaskDTO task = getTaskService().getTaskById(taskId);
+            TaskDTO task = taskServiceRef.getTaskById(taskId);
             if (task != null) {
                 // Usar métodos protegidos/públicos para acceder a los componentes
                 setFormValues(task);
@@ -71,10 +90,22 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     }
 
     private void setFormValues(TaskDTO task) {
+        // Implementa este método para establecer los valores del formulario
+        // Esto dependerá de cómo hayas implementado tus campos en AddTaskView
+        // Por ejemplo:
+        /*
+        taskName.setValue(task.getName());
+        taskDescription.setValue(task.getDescription());
+        starDateTimePicker.setValue(task.getStartTimeDate());
+        endDateTimePicker.setValue(task.getEstimatedEndTimeDate());
+        taskPriority.setValue(task.getPriority());
+        taskEmergency.setValue(task.getEmergencyLevel());
 
+        // Para las necesidades y voluntarios, necesitarás establecer las selecciones en tus componentes
+        */
     }
 
-    @Override
+
     protected Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
 
@@ -95,35 +126,42 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     }
 
     private void updateTask() {
-//        if (validateForm()) {
-//            try {
-//                TaskDTO existingTask = taskService.getTaskById(taskId);
-//                if (existingTask != null) {
-//                    // Actualizar con los valores del formulario
-//                    existingTask.setName(taskName.getValue());
-//                    existingTask.setDescription(taskDescription.getValue());
-//                    existingTask.setStartTimeDate(starDateTimePicker.getValue());
-//                    existingTask.setEndDate(endDateTimePicker.getValue());
-//                    existingTask.setPriority(taskPriority.getValue());
-//                    existingTask.setEmergencyLevel(taskEmergency.getValue());
-//
-//                    // Actualizar las necesidades y los voluntarios
-//                    // Esto dependerá de cómo obtengas los valores seleccionados
-//
-//                    // Guardar los cambios
-//                    taskService.updateTask(taskId, existingTask);
-//
-//                    Notification.show("Tarea actualizada correctamente");
-//                    UI.getCurrent().navigate("tasks");
-//                }
-//            } catch (Exception e) {
-//                Notification.show("Error al actualizar la tarea: " + e.getMessage(),
-//                        5000, Notification.Position.MIDDLE);
-//            }
-//        } else {
-//            Notification.show("Por favor, complete todos los campos obligatorios",
-//                    3000, Notification.Position.MIDDLE);
-//        }
+        // Implementa la lógica para actualizar la tarea
+        // Deberás obtener los valores del formulario y llamar al servicio
+        /*
+        if (validateForm()) {
+            try {
+                TaskDTO taskToUpdate = new TaskDTO(
+                    taskName.getValue(),
+                    taskDescription.getValue(),
+                    starDateTimePicker.getValue(),
+                    endDateTimePicker.getValue(),
+                    // obtener type
+                    taskPriority.getValue(),
+                    taskEmergency.getValue(),
+                    // obtener status
+                    getSelectedNeeds(),
+                    getSelectedVolunteers()
+                );
+
+                // Establecer el ID de la catástrofe si es necesario
+                CatastropheDTO selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+                if (selectedCatastrophe != null) {
+                    taskToUpdate.setCatastropheId(selectedCatastrophe.getId());
+                }
+
+                taskServiceRef.updateTask(taskId, taskToUpdate);
+                Notification.show("Tarea actualizada correctamente");
+                UI.getCurrent().navigate("tasks");
+            } catch (Exception e) {
+                Notification.show("Error al actualizar la tarea: " + e.getMessage(),
+                        5000, Notification.Position.MIDDLE);
+            }
+        } else {
+            Notification.show("Por favor, complete todos los campos obligatorios",
+                    3000, Notification.Position.MIDDLE);
+        }
+        */
     }
 
     private void confirmDelete() {
@@ -135,7 +173,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
         Button confirmButton = new Button("Eliminar", event -> {
             try {
-                getTaskService().deleteTask(taskId);
+                taskServiceRef.deleteTask(taskId);
                 confirmDialog.close();
                 Notification.show("Tarea eliminada correctamente");
                 UI.getCurrent().navigate("tasks");
@@ -150,10 +188,5 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         confirmDialog.getFooter().add(cancelButton, confirmButton);
         confirmDialog.add(dialogContent);
         confirmDialog.open();
-    }
-
-    // Método para acceder al TaskService
-    protected TaskService getTaskService() {
-        return super.taskService;
     }
 }

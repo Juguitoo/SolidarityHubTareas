@@ -62,6 +62,11 @@ public class Task {
     @OneToOne(cascade = CascadeType.ALL)
     private Notification notification;
 
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "catastrophe_id")
+    private Catastrophe catastrophe;
+
     private LocalDate creationDate;
 
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
@@ -77,5 +82,11 @@ public class Task {
         this.volunteers= volunteers;
         this.type = needs.getFirst().getTaskType();
         this.creationDate = LocalDate.now();
+    }
+    public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel,
+                Status status, List<Volunteer> volunteers, Catastrophe catastrophe) {
+        this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers);
+        this.catastrophe = catastrophe;
     }
 }

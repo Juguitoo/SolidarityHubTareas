@@ -1,12 +1,7 @@
 package solidarityhub.frontend.views.task;
 
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
-import solidarityhub.frontend.dto.NeedDTO;
-import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.service.NeedService;
-import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -22,19 +17,31 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.dto.NeedDTO;
+import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
+import solidarityhub.frontend.service.CatastropheService;
+import solidarityhub.frontend.service.NeedService;
+import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.service.VolunteerService;
+import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -42,69 +49,98 @@ import java.util.stream.Collectors;
 
 @PageTitle("Añadir tarea")
 @Route("addtask")
-public class AddTaskView extends VerticalLayout {
+public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
-    protected final TaskService taskService;
-    protected final VolunteerService volunteerService;
-    protected final NeedService needService;
+    private final TaskService taskService;
+    private final VolunteerService volunteerService;
+    private final NeedService needService;
+    private final CatastropheService catastropheService;
+    private CatastropheDTO selectedCatastrophe;
 
-    protected final TaskComponent taskPreview;
+    private final TaskComponent taskPreview;
 
-    protected final TextField taskName = new TextField("Nombre de la tarea");
-    protected final TextArea taskDescription = new TextArea("Descripción de la tarea");
-    protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
-    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
-    protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
-    protected final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
-    protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
-    protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
+    private final TextField taskName = new TextField("Nombre de la tarea");
+    private final TextArea taskDescription = new TextArea("Descripción de la tarea");
+    private final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
+    private final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
+    private final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
+    private final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
+    private final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
+    private final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
+    private final ComboBox<CatastropheDTO> catastropheComboBox = new ComboBox<>("Catástrofe");
 
     @Autowired
-    public AddTaskView(TaskService taskService) {
+    public AddTaskView(TaskService taskService, CatastropheService catastropheService) {
         this.taskService = taskService;
+        this.catastropheService = catastropheService;
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
 
         this.taskPreview = new TaskComponent(
-                0,
-                "Nombre de la tarea",
+                1,"Nombre de la tarea",
                 "Descripccion de la tarea",
                 formatDate(LocalDateTime.now()),
                 "Prioridad",
                 "Nivel de emergencia"
         );
         taskPreview.enabledEditButton(false);
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        // Verificar si hay una catástrofe seleccionada
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+
+        // Si no hay catástrofe seleccionada, redireccionar a la pantalla de selección
+        if (selectedCatastrophe == null) {
+            Notification.show("Por favor, selecciona una catástrofe primero",
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+            event.forwardTo(CatastropheSelectionView.class);
+            return;
+        }
+
+        // Construir la vista con la catástrofe seleccionada
+        buildView();
+    }
+
+    private void buildView() {
+        removeAll();
 
         //Header
         Div header = new Div();
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("tasks")));
         backButton.addClassName("back-button");
 
-        H1 title = new H1("Añadir tarea");
+        H1 title = new H1("Añadir tarea para: " + selectedCatastrophe.getName());
         title.addClassName("title");
 
         header.add(backButton, title);
 
         add(
-            header,
-            getPreview(),
-            getAddTaskForms(),
-            getButtons()
+                header,
+                getPreview(),
+                getTaskForm(),
+                getButtons()
         );
     }
 
-    private void saveNewTask(){
+    private void saveNewTask() {
         if (validateForm()) {
             try {
                 List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
                 List<NeedDTO> needs = new ArrayList<>();
                 for (String need : selectedNeeds) {
-                    needService.getNeeds().stream()
+                    NeedDTO needDTO = needService.getNeeds().stream()
                             .filter(n -> n.getDescription().equals(need))
-                            .findFirst().ifPresent(needs::add);
+                            .findFirst()
+                            .orElse(null);
+                    if (needDTO != null) {
+                        needs.add(needDTO);
+                    }
                 }
 
                 List<VolunteerDTO> selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
@@ -121,15 +157,29 @@ public class AddTaskView extends VerticalLayout {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
-                TaskDTO newTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
-                taskService.addTask(newTaskDTO);
+                // Crear la tarea con la catástrofe seleccionada
+                TaskDTO newTaskDTO = new TaskDTO(
+                        taskName.getValue(),
+                        taskDescription.getValue(),
+                        starDateTimePicker.getValue(),
+                        endDateTimePicker.getValue(),
+                        needs.isEmpty() ? TaskType.OTHER : needs.get(0).getTaskType(),
+                        taskPriority.getValue(),
+                        taskEmergency.getValue(),
+                        Status.TO_DO,
+                        needs,
+                        selectedVolunteers,
+                        selectedCatastrophe.getId()  // Usar el ID de la catástrofe seleccionada
+                );
 
+                taskService.addTask(newTaskDTO);
                 getConfirmationDialog().open();
 
             } catch (Exception ex) {
-                Notification.show("Error al guardar la tarea: " + ex.getMessage(),
+                String errorMessage = ex.getMessage() != null ? ex.getMessage() : "Error desconocido";
+                Notification.show("Error al guardar la tarea: " + errorMessage,
                         5000, Notification.Position.MIDDLE);
+                ex.printStackTrace();
             }
         } else {
             Notification.show("Por favor, complete todos los campos obligatorios",
@@ -138,7 +188,7 @@ public class AddTaskView extends VerticalLayout {
     }
 
     //===============================Get Components=========================================
-    private Component getPreview(){
+    private Component getPreview() {
         VerticalLayout preview = new VerticalLayout();
         preview.addClassName("previewContainer");
 
@@ -152,7 +202,7 @@ public class AddTaskView extends VerticalLayout {
         return preview;
     }
 
-    private Component getAddTaskForms(){
+    private Component getTaskForm() {
         FormLayout addTaskForm = new FormLayout();
         addTaskForm.addClassName("addTaskForm");
 
@@ -179,7 +229,24 @@ public class AddTaskView extends VerticalLayout {
         starDateTimePicker.setRequiredIndicatorVisible(true);
         endDateTimePicker.setRequiredIndicatorVisible(true);
 
-        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
+        // Configurar campo de catástrofe
+        catastropheComboBox.setItems(Collections.singletonList(selectedCatastrophe));
+        catastropheComboBox.setValue(selectedCatastrophe);
+        catastropheComboBox.setItemLabelGenerator(CatastropheDTO::getName);
+        catastropheComboBox.setReadOnly(true); // No permitir cambiar la catástrofe
+        catastropheComboBox.setHelperText("Catástrofe seleccionada");
+
+        addTaskForm.add(
+                taskName,
+                taskDescription,
+                catastropheComboBox,
+                starDateTimePicker,
+                taskPriority,
+                getVolunteersForm(),
+                endDateTimePicker,
+                taskEmergency,
+                getNeedsForm()
+        );
 
         addTaskForm.setColspan(taskDescription, 2);
         addTaskForm.setResponsiveSteps(
@@ -191,7 +258,7 @@ public class AddTaskView extends VerticalLayout {
         return addTaskForm;
     }
 
-    private Component getVolunteersForm(){
+    private Component getVolunteersForm() {
         volunteerMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
@@ -210,47 +277,14 @@ public class AddTaskView extends VerticalLayout {
         VerticalLayout dialogContent = new VerticalLayout();
 
         Checkbox volunteerCheckbox = new Checkbox();
-        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
-
-        // Obtener los nombres de voluntarios
-        List<String> volunteerNames = volunteerService.getVolunteers().stream()
-                .map(VolunteerDTO::getFirstName)
-                .collect(Collectors.toList());
-
+        volunteerCheckbox.setLabel("Elegir voluntarios automaticamente");
 
         MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
-        volunteersListBox.setItems(volunteerNames);
-
-        Tabs tabs = new Tabs(
-                new Tab("Todos"),
-                new Tab("Distancia"),
-                new Tab("Disponibilidad"),
-                new Tab("Habilidades")
-        );
-
-        // Listener para el cambio de pestañas
-        tabs.addSelectedChangeListener(event -> {
-            String selectedTabName = tabs.getSelectedTab().getLabel();
-            switch (selectedTabName) {
-                case "Todos":
-                    volunteersListBox.setItems(volunteerNames);
-                    break;
-                case "Distancia":
-                    volunteersListBox.setItems(volunteerNames);
-                    break;
-                case "Disponibilidad":
-                    volunteersListBox.setItems(volunteerNames);
-                    break;
-                case "Habilidades":
-                    volunteersListBox.setItems(volunteerNames);
-                    break;
-            }
-        });
+        volunteersListBox.setItems(volunteerService.getVolunteers().stream().map(VolunteerDTO::getFirstName).collect(Collectors.toList()));
 
         volunteerCheckbox.addClickListener(checkboxClickEvent -> volunteersListBox.setEnabled(!volunteerCheckbox.getValue()));
 
-        // Añadir todos los componentes
-        dialogContent.add(volunteerCheckbox, tabs, volunteersListBox);
+        dialogContent.add(volunteerCheckbox, volunteersListBox);
 
         //Footer
         Button saveButton = new Button("Guardar", e -> {
@@ -272,15 +306,11 @@ public class AddTaskView extends VerticalLayout {
             if (volunteerMultiSelectComboBox.getSelectedItems().contains("Elegir voluntarios automáticamente")) {
                 volunteerCheckbox.setValue(true);
                 volunteersListBox.setEnabled(false);
-            } else {
-                volunteerCheckbox.setValue(false);
-                volunteersListBox.setEnabled(true);
             }
-
             volunteerDialog.close();
         });
-
-        volunteerDialog.getFooter().add(saveButton, cancelButton);
+        volunteerDialog.getFooter().add(cancelButton);
+        volunteerDialog.getFooter().add(saveButton);
 
         volunteerDialog.add(dialogContent);
 
@@ -306,11 +336,21 @@ public class AddTaskView extends VerticalLayout {
 
         VerticalLayout dialogContent = new VerticalLayout();
 
-        MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().map(NeedDTO::getDescription).collect(Collectors.toList()));
+        // Filtrar necesidades por la catástrofe seleccionada
+        List<NeedDTO> filteredNeeds = needService.getNeeds().stream()
+                .filter(n -> n.getTaskId() == -1) // Solo necesidades sin tarea asignada
+                .filter(n -> n.getCatastropheId() == selectedCatastrophe.getId()) // Solo de la catástrofe seleccionada
+                .collect(Collectors.toList());
 
-        // Usar el formatTaskType para mostrar los valores como strings legibles
-        //needsListBox.setItemLabelGenerator(this::formatTaskType);
+        MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
+        if (filteredNeeds.isEmpty()) {
+            needsListBox.setItems("No hay necesidades disponibles para esta catástrofe");
+            needsListBox.setEnabled(false);
+        } else {
+            needsListBox.setItems(filteredNeeds.stream()
+                    .map(NeedDTO::getDescription)
+                    .collect(Collectors.toList()));
+        }
 
         dialogContent.add(needsListBox);
 
@@ -331,7 +371,7 @@ public class AddTaskView extends VerticalLayout {
         return needsDialog;
     }
 
-    protected Component getButtons(){
+    private Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
 
         Button saveTaskButton = new Button("Guardar");
@@ -348,7 +388,7 @@ public class AddTaskView extends VerticalLayout {
 
                 Button confirmButton = new Button("Confirmar", event -> {
                     confirmDialog.close();
-                    getUI().ifPresent(ui -> ui.navigate(""));
+                    getUI().ifPresent(ui -> ui.navigate("tasks"));
                 });
                 confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
@@ -359,7 +399,7 @@ public class AddTaskView extends VerticalLayout {
                 confirmDialog.add(dialogContent);
                 confirmDialog.open();
             } else {
-                getUI().ifPresent(ui -> ui.navigate(""));
+                getUI().ifPresent(ui -> ui.navigate("tasks"));
             }
         });
 
@@ -374,7 +414,7 @@ public class AddTaskView extends VerticalLayout {
         confirmDialog.setHeaderTitle("Tarea creada con éxito");
 
         confirmDialog.add(
-                new Span("La tarea " + taskName.getValue() + " ha sido creada correctamente.\n" + "¿Que deasea hacer?")
+                new Span("La tarea " + taskName.getValue() + " ha sido creada correctamente.\n" + "¿Qué desea hacer?")
         );
 
         Button addNewTaskButton = new Button("Crear otra tarea", e -> {
@@ -382,59 +422,13 @@ public class AddTaskView extends VerticalLayout {
             getUI().ifPresent(ui -> ui.navigate("addtask"));
         });
 
-        Button closeButton = new Button("Salir", e -> {
+        Button closeButton = new Button("Volver a tareas", e -> {
             confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate(""));
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
         });
 
         confirmDialog.getFooter().add(addNewTaskButton, closeButton);
         return confirmDialog;
-    }
-
-
-    private String formatTaskType(TaskType TaskType) {
-        return switch (TaskType) {
-            case MEDICAL -> "Medica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            default -> "Otro";
-        };
-    }
-
-    private TaskType stringToTaskType(String formattedNeed) {
-        return switch (formattedNeed) {
-            case "Medica" -> TaskType.MEDICAL;
-            case "Policía" -> TaskType.POLICE;
-            case "Bomberos" -> TaskType.FIREFIGHTERS;
-            case "Limpieza" -> TaskType.CLEANING;
-            case "Alimentación" -> TaskType.FEED;
-            case "Psicológica" -> TaskType.PSYCHOLOGICAL;
-            case "Construcción" -> TaskType.BUILDING;
-            case "Ropa" -> TaskType.CLOTHING;
-            case "Refugio" -> TaskType.REFUGE;
-            case "Búsqueda" -> TaskType.SEARCH;
-            case "Logística" -> TaskType.LOGISTICS;
-            case "Comunicación" -> TaskType.COMMUNICATION;
-            case "Movilidad" -> TaskType.MOBILITY;
-            case "Gestión de personas" -> TaskType.PEOPLEMANAGEMENT;
-            default -> TaskType.OTHER;
-        };
-    }
-
-    private String formatDate(LocalDateTime taskDate){
-        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
     private String getEmergencyLevelString(EmergencyLevel level) {
@@ -447,7 +441,7 @@ public class AddTaskView extends VerticalLayout {
     }
 
     //===============================Validate Form=========================================
-    protected boolean validateForm() {
+    private boolean validateForm() {
         return !taskName.isEmpty() &&
                 !taskDescription.isEmpty() &&
                 starDateTimePicker.getValue() != null &&
@@ -458,7 +452,7 @@ public class AddTaskView extends VerticalLayout {
                 !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
     }
 
-    protected boolean isFormFilled() {
+    private boolean isFormFilled() {
         return !taskName.isEmpty() || !taskDescription.isEmpty() || taskPriority.getValue() != null || taskEmergency.getValue() != null || needsMultiSelectComboBox.getValue() != null || starDateTimePicker.getValue() != null || !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
     }
 
@@ -516,4 +510,7 @@ public class AddTaskView extends VerticalLayout {
         taskPreview.updateDate(formatDate(date));
     }
 
+    private String formatDate(LocalDateTime taskDate){
+        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
 }
