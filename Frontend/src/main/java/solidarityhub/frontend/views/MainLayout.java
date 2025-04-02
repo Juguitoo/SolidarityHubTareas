@@ -45,146 +45,95 @@ public class MainLayout extends AppLayout {
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("class", "main-layout");
         addDrawerContent();
-
     }
 
-
-
     private void addDrawerContent() {
-        // Contenedor principal del drawer
         drawerContent = new VerticalLayout();
         drawerContent.setPadding(false);
         drawerContent.setSpacing(false);
         drawerContent.setSizeFull();
         drawerContent.getElement().setAttribute("class", "drawer-content");
 
-        // Logo y nombre de la aplicación
         Header header = new Header();
         header.getElement().setAttribute("class", "drawer-header");
 
-        // Crear el diseño del botón logo
         HorizontalLayout logoLayout = new HorizontalLayout();
         logoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         logoLayout.setSpacing(true);
         logoLayout.getElement().setAttribute("class", "logo-layout");
 
-        // Botón de menú hamburguesa
         Image logoImage = new Image("icons/logo.png", "Logo");
         logoImage.getElement().setAttribute("class", "logo-principal");
         logoButton = new Button(logoImage);
         logoButton.getElement().setAttribute("class", "logo-button");
         logoButton.addClickListener(e -> toggleDrawerMinimized());
 
-        // Nombre de la aplicación
         appName = new Span("SolidarityHub");
         appName.getElement().setAttribute("class", "app-name");
 
         logoLayout.add(logoButton, appName);
         header.add(logoLayout);
 
-        // Crear contenedor perfil simplificado
-        Div profileDiv = new Div();
-        profileDiv.getElement().setAttribute("class", "profile-section");
 
-        // Información usuario (simplificada sin Avatar)
-        // Quitamos "Voluntario" como solicitado por el usuario
-        profileDiv.getElement().setAttribute("class", "profile-section");
 
-        // Crear navegación
         sideNav = createNavigation();
         Scroller scroller = new Scroller(sideNav);
         scroller.getElement().setAttribute("class", "nav-scroller");
 
-        // Añadir sección de footer simplificada
         Footer footer = new Footer();
         footer.getElement().setAttribute("class", "drawer-footer");
-
         Span version = new Span("v1.0");
         version.getElement().setAttribute("class", "version-info");
         footer.add(version);
 
-        // Añadir todo al contenedor principal
-        drawerContent.add(header, profileDiv, scroller, footer);
+        drawerContent.add(header, scroller, footer);
         addToDrawer(drawerContent);
     }
 
     private void toggleDrawerMinimized() {
         minimized = !minimized;
+
         if (minimized) {
-            // Colapsar el menú
+            // Primero guardar los tooltips
+            sideNav.getItems().forEach(item -> {
+                item.getElement().setAttribute("title", item.getLabel());
+            });
+
+            // Luego colapsar el drawer
             drawerContent.getElement().setAttribute("class", "drawer-content drawer-minimized");
+            getElement().executeJs("document.documentElement.style.setProperty('--drawer-width', '55px');");
 
-            // Ajustar el ancho del drawer y forzar recalculo del layout
-            getElement().executeJs(
-                    "document.documentElement.style.setProperty('--drawer-width', '50px');" +
-                            "this.shadowRoot.querySelector('[part=\"drawer\"]').style.width = '50px';" +
-                            "this.shadowRoot.querySelector('[part=\"drawer\"]').style.minWidth = '50px';" +
-                            "this.shadowRoot.querySelector('[part=\"drawer\"]').style.maxWidth = '50px';"
-            );
-
+            // Ocultar nombre de la app
             appName.setVisible(false);
 
-            // Ocultar texto de los items de navegación
-            sideNav.getItems().forEach(item -> {
-                item.getElement().executeJs("this.shadowRoot.querySelector('[part=\"item\"]').style.justifyContent = 'center';");
-                item.setLabel("");
+            // Vaciar las etiquetas para evitar que ocupen espacio
+            UI.getCurrent().access(() -> {
+                sideNav.getItems().forEach(item -> item.setLabel(""));
             });
+
         } else {
-            // Expandir el menú
+            // Expandir el drawer
             drawerContent.getElement().setAttribute("class", "drawer-content");
+            getElement().executeJs("document.documentElement.style.setProperty('--drawer-width', '260px');");
 
-            // Restaurar el ancho del drawer y forzar recalculo del layout
-            getElement().executeJs(
-                    "document.documentElement.style.setProperty('--drawer-width', '260px');" +
-                            "this.shadowRoot.querySelector('[part=\"drawer\"]').style.width = '260px';" +
-                            "this.shadowRoot.querySelector('[part=\"drawer\"]').style.minWidth = '260px';" +
-                            "this.shadowRoot.querySelector('[part=\"drawer\"]').style.maxWidth = '260px';"
-            );
-
+            // Mostrar nombre de la app
             appName.setVisible(true);
 
-            // Restaurar estilo y texto
-            sideNav.getItems().forEach(item -> {
-                item.getElement().executeJs("this.shadowRoot.querySelector('[part=\"item\"]').style.justifyContent = 'flex-start';");
-            });
+            // Restaurar las etiquetas
             updateNavigationTexts();
         }
 
-        // Forzar el redimensionamiento del contenido principal
+        // Notificar al navegador para recalcular tamaños
         UI.getCurrent().getPage().executeJs(
                 "setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 100);"
         );
     }
 
     private void updateNavigationTexts() {
-        // Hay que identificar los items por su posición ya que getIcon() no está disponible
+        String[] labels = {"Catástrofes", "Tareas", "Mapa", "Recursos", "Dashboard", "Contacto"};
         int index = 0;
         for (SideNavItem item : sideNav.getItems()) {
-            String text;
-            switch (index) {
-                case 0:
-                    text = "Catástrofes";
-                    break;
-                case 1:
-                    text = "Tareas";
-                    break;
-                case 2:
-                    text = "Mapa";
-                    break;
-                case 3:
-                    text = "Recursos";
-                    break;
-                case 4:
-                    text = "Dashboard";
-                    break;
-                case 5:
-                    text = "Contacto";
-                    break;
-                default:
-                    text = "";
-            }
-            item.setLabel(text);
-            index++;
+            item.setLabel(labels[index++]);
         }
     }
 
@@ -192,33 +141,40 @@ public class MainLayout extends AppLayout {
         SideNav nav = new SideNav();
         nav.getElement().setAttribute("class", "side-nav");
 
-        SideNavItem homeLink = new SideNavItem("Catástrofes", CatastropheView.class);
-        homeLink.setPrefixComponent(new Icon(VaadinIcon.CLOUD));
-        homeLink.getElement().setAttribute("class", "nav-item");
-
-        SideNavItem taskLink = new SideNavItem("Tareas", TaskView.class);
-        taskLink.setPrefixComponent(new Icon(VaadinIcon.TASKS));
-        taskLink.getElement().setAttribute("class", "nav-item");
-
-        SideNavItem mapLink = new SideNavItem("Mapa", "http://localhost:8080/map");
-        mapLink.setPrefixComponent(new Icon(VaadinIcon.MAP_MARKER));
-        mapLink.getElement().setAttribute("class", "nav-item");
-
-        SideNavItem resourcesLink = new SideNavItem("Recursos", "http://localhost:8083/recursos");
-        resourcesLink.setPrefixComponent(new Icon(VaadinIcon.TOOLBOX));
-        resourcesLink.getElement().setAttribute("class", "nav-item");
-
-        SideNavItem dashboardLink = new SideNavItem("Dashboard", "http://localhost:8080/dashboard");
-        dashboardLink.setPrefixComponent(new Icon(VaadinIcon.DASHBOARD));
-        dashboardLink.getElement().setAttribute("class", "nav-item");
-
-        SideNavItem contactLink = new SideNavItem("Contacto", "http://localhost:8080/contact");
-        contactLink.setPrefixComponent(new Icon(VaadinIcon.PHONE));
-        contactLink.getElement().setAttribute("class", "nav-item");
-
-        nav.addItem(homeLink, taskLink, mapLink, resourcesLink, dashboardLink, contactLink);
+        nav.addItem(
+                createNavItem("Catástrofes", VaadinIcon.CLOUD, CatastropheView.class),
+                createNavItem("Tareas", VaadinIcon.TASKS, TaskView.class),
+                createNavItem("Mapa", VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
+                createNavItem("Recursos", VaadinIcon.TOOLBOX, "http://localhost:8083/recursos"),
+                createNavItem("Dashboard", VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
+                createNavItem("Contacto", VaadinIcon.PHONE, "http://localhost:8080/contact")
+        );
 
         return nav;
     }
 
+    private SideNavItem createNavItem(String label, VaadinIcon icon, Class<? extends Component> view) {
+        SideNavItem item = new SideNavItem(label, view);
+        item.setPrefixComponent(new Icon(icon));
+        item.getElement().setAttribute("class", "nav-item");
+
+        // Añadir tooltip usando el atributo title
+        item.getElement().setAttribute("title", label);
+
+        // Configurar el texto del elemento
+        item.setLabel(label);
+        return item;
+    }
+
+    private SideNavItem createNavItem(String label, VaadinIcon icon, String url) {
+        SideNavItem item = new SideNavItem(label, url);
+        item.setPrefixComponent(new Icon(icon));
+        item.getElement().setAttribute("class", "nav-item");
+        // Añadir tooltip usando el atributo title
+        item.getElement().setAttribute("title", label);
+
+        // Configurar el texto del elemento
+        item.setLabel(label);
+        return item;
+    }
 }
