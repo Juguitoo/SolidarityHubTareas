@@ -26,7 +26,7 @@ public class VolunteerController {
         return ResponseEntity.ok(volunteerDTOList);
     }
 
-    @GetMapping
+    @GetMapping("/{strategy}")
     public ResponseEntity<?> getVolunteersByStrategy(@PathVariable String strategy, @RequestBody TaskDTO taskDTO) {
         List<VolunteerDTO> volunteerDTOList = new ArrayList<>();
         volunteerService.getVolunteersByStrategy(strategy, taskDTO).forEach(v -> {volunteerDTOList.add(new VolunteerDTO(v));});
