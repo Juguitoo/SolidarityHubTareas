@@ -374,7 +374,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     private Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button saveTaskButton = new Button("Guardar");
+        Button saveTaskButton = new Button("Añadir");
         saveTaskButton.addClickListener(e -> saveNewTask());
 
         Button cancel = new Button("Cancelar");
