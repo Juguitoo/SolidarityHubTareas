@@ -20,7 +20,7 @@ import java.util.List;
 
 
 @PageTitle("Catastrofes")
-@Route("catastrophe")
+@Route("")
 @Menu(order = 0, icon = LineAwesomeIconUrl.CLOUD_RAIN_SOLID)
 public class CatastropheSelectionView extends VerticalLayout {
 

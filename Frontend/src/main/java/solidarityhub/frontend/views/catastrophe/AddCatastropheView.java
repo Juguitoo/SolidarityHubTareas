@@ -190,7 +190,7 @@ public class AddCatastropheView extends VerticalLayout {
 
     private void volver() {
         // Navegar de vuelta a la vista principal de catástrofes
-        getUI().ifPresent(ui -> ui.navigate("catastrophe"));
+        getUI().ifPresent(ui -> ui.navigate(""));
     }
 
     private VerticalLayout createButtonLayout() {
