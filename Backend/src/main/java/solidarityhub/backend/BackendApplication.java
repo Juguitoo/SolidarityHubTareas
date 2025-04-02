@@ -3,9 +3,7 @@ package solidarityhub.backend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import solidarityhub.backend.model.Preference;
 import solidarityhub.backend.model.ScheduleAvailability;
-import solidarityhub.backend.model.Skill;
 import solidarityhub.backend.model.enums.DayMoment;
 import solidarityhub.backend.model.enums.WeekDay;
 import solidarityhub.backend.service.*;
@@ -40,23 +38,10 @@ public class BackendApplication {
  */
 	}
 
-	private static List<Preference> getPreferenceList() {
-		Preference preference1 = new Preference("Safety");
-		Preference preference2 = new Preference("Cooking");
-		Preference preference3 = new Preference("People_managing");
-		return List.of(preference1, preference2, preference3);
-	}
-
 	private static List<ScheduleAvailability> getScheduleAvailabilities() {
 		ScheduleAvailability scheduleAvailability1 = new ScheduleAvailability(DayMoment.MORNING, WeekDay.WEDNESDAY);
 		ScheduleAvailability scheduleAvailability2 = new ScheduleAvailability(DayMoment.AFTERNOON, WeekDay.SUNDAY);
 		return List.of(scheduleAvailability1, scheduleAvailability2);
 	}
 
-	private static List<Skill> getSkillList() {
-		Skill skill1 = new Skill("Teamwork");
-		Skill skill2 = new Skill("Leadership");
-		Skill skill3 = new Skill("Improvisation");
-		return List.of(skill1, skill2, skill3);
-	}
 }

@@ -6,7 +6,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.model.Need;
-import solidarityhub.frontend.model.enums.NeedType;
+import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.model.enums.UrgencyLevel;
 
 import java.util.ArrayList;
@@ -53,10 +53,10 @@ public class NeedService {
         return response.getBody();
     }
 
-    public List<NeedDTO> getNeedsByType(NeedType needType) {
+    public List<NeedDTO> getNeedsByType(TaskType needType) {
         List<NeedDTO> allNeeds = getNeeds();
         List<NeedDTO> filteredNeeds = allNeeds.stream()
-                .filter(needDTO -> needType.equals(needDTO.getNeedType()))
+                .filter(needDTO -> needType.equals(needDTO.getTaskType()))
                 .collect(java.util.stream.Collectors.toList());
 
         return filteredNeeds;
@@ -65,8 +65,8 @@ public class NeedService {
     //GET EXAMPLE NEEDS
     public List<NeedDTO> getExampleNeeds() {
         List<NeedDTO> needDTOs = new ArrayList<>();
-        needDTOs.add(new NeedDTO(new Need("Material de construcción", UrgencyLevel.MODERATE, NeedType.BUILDING, null, null)));
-        needDTOs.add(new NeedDTO(new Need("Alimentos no perecederos", UrgencyLevel.URGENT, NeedType.FEED, null, null)));
+        needDTOs.add(new NeedDTO(new Need("Material de construcción", UrgencyLevel.MODERATE, TaskType.LOGISTICS, null, null)));
+        needDTOs.add(new NeedDTO(new Need("Alimentos no perecederos", UrgencyLevel.URGENT, TaskType.FEED, null, null)));
         return needDTOs;
     }
 
@@ -77,7 +77,7 @@ public class NeedService {
             needs.add(new Need(
                     dto.getDescription(),
                     dto.getUrgency(),
-                    dto.getNeedType(),
+                    dto.getTaskType(),
                     null,
                     null
             ));

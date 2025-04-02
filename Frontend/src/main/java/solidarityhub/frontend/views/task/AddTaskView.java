@@ -1,13 +1,5 @@
 package solidarityhub.frontend.views.task;
 
-import solidarityhub.frontend.dto.NeedDTO;
-import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.Need;
-import solidarityhub.frontend.model.Task;
-import solidarityhub.frontend.model.Volunteer;
-import solidarityhub.frontend.model.enums.*;
-import solidarityhub.frontend.service.NeedService;
-import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -30,12 +22,22 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.springframework.beans.factory.annotation.Autowired;
+import solidarityhub.frontend.dto.NeedDTO;
+import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.dto.VolunteerDTO;
+import solidarityhub.frontend.model.enums.EmergencyLevel;
+import solidarityhub.frontend.model.enums.Priority;
+import solidarityhub.frontend.model.enums.Status;
+import solidarityhub.frontend.model.enums.TaskType;
+import solidarityhub.frontend.service.NeedService;
+import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.service.VolunteerService;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-import solidarityhub.frontend.dto.VolunteerDTO;
-import solidarityhub.frontend.service.VolunteerService;
 
 @PageTitle("Añadir tarea")
 @Route("addtask")
@@ -56,8 +58,9 @@ public class AddTaskView extends VerticalLayout {
     private final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     private final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
-    public AddTaskView() {
-        this.taskService = new TaskService();
+    @Autowired
+    public AddTaskView(TaskService taskService) {
+        this.taskService = taskService;
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
 
@@ -121,7 +124,7 @@ public class AddTaskView extends VerticalLayout {
                         .collect(Collectors.toList());
 
                 TaskDTO newTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                        needs.getFirst().getNeedType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
+                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
                 taskService.addTask(newTaskDTO);
 
                 getConfirmationDialog().open();
@@ -269,10 +272,10 @@ public class AddTaskView extends VerticalLayout {
         VerticalLayout dialogContent = new VerticalLayout();
 
         MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().map(NeedDTO::getDescription).collect(Collectors.toList()));
+        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getTaskId()==-1).map(NeedDTO::getDescription).collect(Collectors.toList()));
 
-        // Usar el formatNeedType para mostrar los valores como strings legibles
-        //needsListBox.setItemLabelGenerator(this::formatNeedType);
+        // Usar el formatTaskType para mostrar los valores como strings legibles
+        //needsListBox.setItemLabelGenerator(this::formatTaskType);
 
         dialogContent.add(needsListBox);
 
@@ -354,8 +357,8 @@ public class AddTaskView extends VerticalLayout {
     }
 
 
-    private String formatNeedType(NeedType needType) {
-        return switch (needType) {
+    private String formatTaskType(TaskType TaskType) {
+        return switch (TaskType) {
             case MEDICAL -> "Medica";
             case POLICE -> "Policía";
             case FIREFIGHTERS -> "Bomberos";
@@ -366,21 +369,32 @@ public class AddTaskView extends VerticalLayout {
             case CLOTHING -> "Ropa";
             case REFUGE -> "Refugio";
             case OTHER -> "Otra";
+            case SEARCH -> "Búsqueda";
+            case LOGISTICS -> "Logística";
+            case COMMUNICATION -> "Comunicación";
+            case MOBILITY -> "Movilidad";
+            case PEOPLEMANAGEMENT -> "Gestión de personas";
+            default -> "Otro";
         };
     }
 
-    private NeedType stringToNeedType(String formattedNeed) {
+    private TaskType stringToTaskType(String formattedNeed) {
         return switch (formattedNeed) {
-            case "Medica" -> NeedType.MEDICAL;
-            case "Policía" -> NeedType.POLICE;
-            case "Bomberos" -> NeedType.FIREFIGHTERS;
-            case "Limpieza" -> NeedType.CLEANING;
-            case "Alimentación" -> NeedType.FEED;
-            case "Psicológica" -> NeedType.PSYCHOLOGICAL;
-            case "Construcción" -> NeedType.BUILDING;
-            case "Ropa" -> NeedType.CLOTHING;
-            case "Refugio" -> NeedType.REFUGE;
-            default -> NeedType.OTHER;
+            case "Medica" -> TaskType.MEDICAL;
+            case "Policía" -> TaskType.POLICE;
+            case "Bomberos" -> TaskType.FIREFIGHTERS;
+            case "Limpieza" -> TaskType.CLEANING;
+            case "Alimentación" -> TaskType.FEED;
+            case "Psicológica" -> TaskType.PSYCHOLOGICAL;
+            case "Construcción" -> TaskType.BUILDING;
+            case "Ropa" -> TaskType.CLOTHING;
+            case "Refugio" -> TaskType.REFUGE;
+            case "Búsqueda" -> TaskType.SEARCH;
+            case "Logística" -> TaskType.LOGISTICS;
+            case "Comunicación" -> TaskType.COMMUNICATION;
+            case "Movilidad" -> TaskType.MOBILITY;
+            case "Gestión de personas" -> TaskType.PEOPLEMANAGEMENT;
+            default -> TaskType.OTHER;
         };
     }
 

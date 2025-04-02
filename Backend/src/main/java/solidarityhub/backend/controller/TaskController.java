@@ -79,7 +79,7 @@ public class TaskController {
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
-            //volunteer.notifyEmail("Nueva tarea", "Se le ha asignado una nueva tarea: " + task.getTaskName());
+            //notificationService.notifyEmail(volunteer.getEmail(), "Nueva tarea", "Se le ha asignado una nueva tarea: " + task.getTaskName());
             volunteerService.saveVolunteer(volunteer);
         }
 

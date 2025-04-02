@@ -3,10 +3,7 @@ package solidarityhub.backend.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solidarityhub.backend.model.Task;
-import solidarityhub.backend.model.enums.EmergencyLevel;
-import solidarityhub.backend.model.enums.NeedType;
-import solidarityhub.backend.model.enums.Priority;
-import solidarityhub.backend.model.enums.Status;
+import solidarityhub.backend.model.enums.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,7 +17,7 @@ public class TaskDTO {
     private String description;
     private LocalDateTime startTimeDate;
     private LocalDateTime estimatedEndTimeDate;
-    private NeedType type;
+    private TaskType type;
     private Priority priority;
     private EmergencyLevel emergencyLevel;
     private Status status;

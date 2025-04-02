@@ -1,65 +1,75 @@
 package solidarityhub.frontend.service;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
-import solidarityhub.frontend.model.enums.NeedType;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
+import solidarityhub.frontend.model.enums.TaskType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+@Service
 public class TaskService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
     private final VolunteerService volunteerService;
     private final NeedService needService;
+    private List<TaskDTO> taskCache;
 
     public TaskService() {
         this.restTemplate = new RestTemplate();
         this.baseUrl = "http://localhost:8082/tasks";
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
+        this.taskCache = new ArrayList<>();
     }
 
     //CRUD METHODS
     public void addTask(TaskDTO taskDTO) {
         restTemplate.postForEntity(baseUrl, taskDTO, TaskDTO.class);
+        taskCache.add(taskDTO);
     }
 
     public void updateTask(int id, TaskDTO taskDTO) {
         restTemplate.put(baseUrl + "/" + id, taskDTO);
+        taskCache = null;
     }
 
     public void deleteTask(int id) {
         restTemplate.delete(baseUrl + "/" + id);
+        taskCache.removeIf(task -> task.getId() == id);
     }
 
     //GET METHODS
     public List<TaskDTO> getTasks() {
-        try {
-            ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, TaskDTO[].class);
-            TaskDTO[] tasks = response.getBody();
-            if (tasks != null) {
-                return List.of(tasks);
+        if(taskCache == null || taskCache.isEmpty()) {
+            try {
+                ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, TaskDTO[].class);
+                TaskDTO[] tasks = response.getBody();
+                if (tasks != null) {
+                    taskCache = List.of(tasks);
+                } else {
+                    taskCache = new ArrayList<>();
+                }
+            } catch (RestClientException e) {
+                return getExampleTasks(5);
             }
-            return new ArrayList<>();
-        } catch (RestClientException e) {
-            return getExampleTasks(5);
         }
+        return taskCache;
     }
 
-    public List<TaskDTO> getToDoTasks(int limit) {
-        return getTasksByStatus(Status.TO_DO, limit);
-    }
+    public List<TaskDTO> getToDoTasks(int limit) {return getTasksByStatus(Status.TO_DO, limit);}
 
     public List<TaskDTO> getDoingTasks(int limit) {
         return getTasksByStatus(Status.IN_PROGRESS, limit);
@@ -71,7 +81,7 @@ public class TaskService {
 
     private List<TaskDTO> getTasksByStatus(Status status) {
         return getTasks().stream()
-                .filter(task -> status.equals(task.getStatus()))
+                .filter(task -> task.getStatus().equals(status))
                 .toList();
     }
 
@@ -105,7 +115,7 @@ public class TaskService {
                     "Descripcion de ejemplo " + i,
                     LocalDateTime.now().plusHours(i),
                     LocalDateTime.now().plusDays(3),
-                    NeedType.OTHER,
+                    TaskType.OTHER,
                     Priority.LOW,
                     EmergencyLevel.HIGH,
                     Status.IN_PROGRESS,
@@ -121,7 +131,7 @@ public class TaskService {
                     "Descripcion de ejemplo " + i,
                     LocalDateTime.now().plusHours(i),
                     LocalDateTime.now().plusDays(3),
-                    NeedType.OTHER,
+                    TaskType.OTHER,
                     Priority.LOW,
                     EmergencyLevel.HIGH,
                     Status.TO_DO,
@@ -137,7 +147,7 @@ public class TaskService {
                     "Descripcion de ejemplo " + i,
                     LocalDateTime.now().plusHours(i),
                     LocalDateTime.now().plusDays(3),
-                    NeedType.OTHER,
+                    TaskType.OTHER,
                     Priority.LOW,
                     EmergencyLevel.HIGH,
                     Status.FINISHED,
