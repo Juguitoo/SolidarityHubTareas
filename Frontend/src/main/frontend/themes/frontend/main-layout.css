@@ -1,21 +1,291 @@
-vaadin-scroller[slot="drawer"] {
-  padding: var(--lumo-space-s);
+/* Variables globales */
+:root {
+  --drawer-width: 260px;
+  --drawer-minimized-width: 50px; /* Reducido de 70px a 50px para eliminar el espacio extra */
+  --transition-duration: 0.3s;
+  --sidebar-bg-color: var(--lumo-base-color);
+  --sidebar-text-color: var(--lumo-primary-text-color);
+  --sidebar-item-hover-bg: var(--lumo-primary-color-10pct);
+  --sidebar-item-active-bg: var(--lumo-primary-color-50pct);
+  --sidebar-item-active-color: var(--lumo-base-color);
+  --logo-size: 28px;
+  --nav-icon-size: 20px;
 }
 
-vaadin-side-nav-item vaadin-icon {
-  padding: 0;
+/* Ocultar el toggle del drawer */
+[part="navbar"] [slot="navbar"] vaadin-drawer-toggle,
+.drawer-toggle {
+  display: none !important;
 }
 
+/* Personalización del AppLayout */
+.main-layout {
+  --_vaadin-app-layout-drawer-width: var(--drawer-width);
+}
 
-[slot="drawer"]:is(header, footer) {
+/* Drawer y sus componentes */
+.drawer-content {
+  background-color: var(--sidebar-bg-color);
+  transition: all var(--transition-duration) ease;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.drawer-header {
+  padding: var(--lumo-space-m);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  min-height: 60px;
+  transition: all var(--transition-duration) ease;
+}
+
+.logo-layout {
   display: flex;
   align-items: center;
-  gap: var(--lumo-space-s);
-  padding: var(--lumo-space-s) var(--lumo-space-m);
-  min-height: var(--lumo-size-xl);
-  box-sizing: border-box;
+  transition: all var(--transition-duration) ease;
 }
 
-[slot="drawer"]:is(header, footer):is(:empty) {
-  display: none;
+
+
+.logo-principal {
+  width: 32px;
+  height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+}
+
+.logo-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;  /* Reducí un poco el padding para compensar el logo más grande */
+  margin: 0;
+  color: var(--lumo-primary-color);
+  transition: transform var(--transition-duration) ease, color var(--transition-duration) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-button:hover {
+  transform: scale(1.1);
+  color: var(--lumo-primary-color-50pct);
+  background-color: transparent;
+}
+
+.app-name {
+  font-size: var(--lumo-font-size-l);
+  font-weight: 600;
+  margin-left: var(--lumo-space-s);
+  color: var(--lumo-primary-color);
+  transition: opacity var(--transition-duration) ease;
+}
+
+/* Perfil de usuario simplificado */
+.profile-section {
+  padding: var(--lumo-space-m);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  display: flex;
+  align-items: center;
+  transition: opacity var(--transition-duration) ease, max-height var(--transition-duration) ease;
+}
+
+.user-name {
+  font-size: var(--lumo-font-size-s);
+  font-weight: 500;
+  color: var(--lumo-secondary-text-color);
+}
+
+/* Navegación */
+.nav-scroller {
+  border-top: none;
+  padding: var(--lumo-space-s);
+  flex: 1;
+}
+
+.side-nav {
+  width: 100%;
+}
+
+/* Estilizando los items del navegador */
+.nav-item {
+  margin-bottom: var(--lumo-space-xs);
+  border-radius: var(--lumo-border-radius-m);
+  transition: background-color var(--transition-duration) ease;
+  overflow: hidden;
+}
+
+/* Estilos para estados hover y activo */
+.nav-item:hover {
+  background-color: var(--sidebar-item-hover-bg);
+}
+
+.nav-item[active] {
+  background-color: var(--sidebar-item-active-bg);
+  color: var(--sidebar-item-active-color);
+  font-weight: 600;
+}
+
+/* Simplificar los selectores de navegación */
+/* Íconos dentro de los items */
+.side-nav .nav-item .nav-icon,
+.side-nav .nav-item [slot="prefix"] {
+  margin-right: var(--lumo-space-s);
+  font-size: var(--nav-icon-size);
+  transition: margin var(--transition-duration) ease, font-size var(--transition-duration) ease;
+}
+
+/* Footer */
+.drawer-footer {
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  border-top: 1px solid var(--lumo-contrast-10pct);
+  color: var(--lumo-tertiary-text-color);
+  font-size: var(--lumo-font-size-xs);
+  display: flex;
+  justify-content: center;
+  transition: all var(--transition-duration) ease;
+}
+
+.version-info {
+  opacity: 0.7;
+}
+
+/* Barra de navegación */
+.drawer-toggle {
+  margin-right: var(--lumo-space-m);
+}
+
+.view-title {
+  font-weight: 600;
+}
+
+.theme-toggle {
+  color: var(--lumo-contrast-60pct);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color var(--transition-duration) ease, color var(--transition-duration) ease;
+}
+
+.theme-toggle:hover {
+  color: var(--lumo-primary-color);
+  background-color: var(--lumo-contrast-5pct);
+}
+
+/* Animaciones */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.side-nav .nav-item {
+  animation: slideInLeft 0.5s ease forwards;
+}
+
+/* Estado minimizado */
+.drawer-minimized {
+  --_vaadin-app-layout-drawer-width: var(--drawer-minimized-width);
+}
+
+.drawer-minimized .profile-section {
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Ocultar texto de los elementos de navegación cuando está colapsado */
+.drawer-minimized .side-nav span,
+.drawer-minimized .side-nav [slot="content"],
+.drawer-minimized .side-nav [slot="suffix"] {
+  display: none !important;
+  max-width: 0;
+  opacity: 0;
+}
+
+.drawer-minimized vaadin-side-nav-item::part(item) {
+  justify-content: center;
+  padding: var(--lumo-space-s) 0;
+}
+
+.drawer-minimized vaadin-side-nav-item vaadin-icon {
+  margin-right: 0;
+  font-size: calc(var(--nav-icon-size) * 1.2);
+}
+
+/* Indicador lateral para elementos activos */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 0;
+  top: 50%;
+  left: 0;
+  background-color: var(--lumo-primary-color);
+  transform: translateY(-50%);
+  border-radius: 0 var(--lumo-border-radius-s) var(--lumo-border-radius-s) 0;
+  transition: height var(--transition-duration) ease;
+  z-index: 1;
+}
+
+.nav-item:hover::before {
+  height: 60%;
+}
+
+.nav-item[active]::before {
+  height: 90%;
+}
+
+/* Mejoras para temas oscuros */
+html[theme~="dark"] .drawer-content {
+  background-color: var(--lumo-base-color);
+}
+
+html[theme~="dark"] vaadin-icon,
+html[theme~="dark"] .app-name {
+  color: var(--lumo-primary-color);
+}
+
+
+/* Responsividad */
+@media (max-width: 800px) {
+  .drawer-content:not(.drawer-minimized) {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* Estado minimizado con solo iconos visibles */
+.drawer-minimized .nav-item span,
+.drawer-minimized .nav-item [slot="content"],
+.drawer-minimized .side-nav [slot="suffix"] {
+  display: none !important;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+/* Forzar el centrado de los iconos en estado minimizado */
+.drawer-minimized .nav-item [slot="prefix"],
+.drawer-minimized .nav-icon {
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+
+/* Asegurar que no haya padding extra que desplace los iconos */
+.drawer-minimized .nav-item [part="item"],
+.drawer-minimized .nav-item {
+  padding: var(--lumo-space-xs) 0 !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  display: flex;
+  align-items: center;
 }
