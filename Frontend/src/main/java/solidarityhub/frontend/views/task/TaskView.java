@@ -74,10 +74,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         moreTasks.addClassName("more-tasks-button");
 
         add(
-                title,
-                getTasks(),
-                moreTasks,
-                addTask
+            title,
+            getTasks(),
+            moreTasks,
+            addTask
         );
     }
 
@@ -105,7 +105,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
         try {
             // Obtener las tareas filtradas por la catástrofe seleccionada
-            toDoTasks = taskService.getToDoTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
+            toDoTasks = taskService.getToDoTasks(3).stream()
                     .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
 
@@ -133,7 +133,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
         try {
             // Obtener las tareas filtradas por la catástrofe seleccionada
-            doingTasks = taskService.getDoingTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
+            doingTasks = taskService.getDoingTasks(3).stream()
                     .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
 
@@ -160,7 +160,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         List<TaskComponent> doneTasks;
         try {
             // Obtener las tareas filtradas por la catástrofe seleccionada
-            doneTasks = taskService.getDoneTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
+            doneTasks = taskService.getDoneTasks(3).stream()
                     .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
 

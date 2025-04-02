@@ -1,6 +1,8 @@
 package solidarityhub.frontend.views.task;
 
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.router.QueryParameters;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.service.TaskService;
@@ -21,6 +23,7 @@ import com.vaadin.flow.router.Route;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -37,16 +40,22 @@ public class MoreTasks extends VerticalLayout {
         addClassName("moreTasks_Container");
         this.taskService = new TaskService();
 
+        this.dataProvider = new ListDataProvider<>(initializeTasks());
+
         this.taskGrid = new Grid<>(TaskDTO.class);
         taskGrid.addClassName("moreTasks_grid");
-
-        this.dataProvider = new ListDataProvider<>(initializeTasks());
+        taskGrid.addItemClickListener(event -> {
+            if (event.getClickCount() == 2) { // Doble clic
+                TaskDTO selectedTask = event.getItem();
+                navigateToEditTask(selectedTask.getId());
+            }
+        });
 
         //Header
         Div header = new Div();
         header.addClassName("header");
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("tasks")));
         backButton.addClassName("back-button");
         H1 title = new H1("Todas las Tareas");
         title.addClassName("title");
@@ -62,6 +71,11 @@ public class MoreTasks extends VerticalLayout {
 
         add(header, filterLayout, taskGrid);
         populateTaskGrid();
+    }
+
+    private void navigateToEditTask(int taskId) {
+        UI.getCurrent().navigate("editTask",
+                QueryParameters.simple(Collections.singletonMap("id", String.valueOf(taskId))));
     }
 
     private MultiSelectComboBox<Priority> createPriorityFilter() {

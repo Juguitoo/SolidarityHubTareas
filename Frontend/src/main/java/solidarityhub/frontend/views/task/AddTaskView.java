@@ -28,7 +28,6 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
@@ -59,9 +58,8 @@ public class AddTaskView extends VerticalLayout {
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
-    @Autowired
-    public AddTaskView(TaskService taskService) {
-        this.taskService = taskService;
+    public AddTaskView() {
+        this.taskService = new TaskService();
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
 
@@ -80,7 +78,7 @@ public class AddTaskView extends VerticalLayout {
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("tasks")));
         backButton.addClassName("back-button");
 
         H1 title = new H1("Añadir tarea");
@@ -433,11 +431,11 @@ public class AddTaskView extends VerticalLayout {
         };
     }
 
-    private String formatDate(LocalDateTime taskDate){
+    protected String formatDate(LocalDateTime taskDate){
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
-    private String getEmergencyLevelString(EmergencyLevel level) {
+    protected String getEmergencyLevelString(EmergencyLevel level) {
         return switch (level) {
             case LOW -> "Baja";
             case MEDIUM -> "Media";
@@ -463,7 +461,7 @@ public class AddTaskView extends VerticalLayout {
     }
 
     //===============================Modify Preview=========================================
-    private void setupFormListeners() {
+    protected void setupFormListeners() {
         // Listener para el nombre de la tarea
         taskName.addValueChangeListener(e ->
                 updatePreview(e.getValue(), taskDescription.getValue(),
@@ -493,7 +491,7 @@ public class AddTaskView extends VerticalLayout {
         });
     }
 
-    private void updatePreview(String name, String description, Priority priority, EmergencyLevel emergencyLevel) {
+    protected void updatePreview(String name, String description, Priority priority, EmergencyLevel emergencyLevel) {
 
         if (name != null && !name.trim().isEmpty()) {
             taskPreview.updateName(name);
@@ -512,7 +510,7 @@ public class AddTaskView extends VerticalLayout {
         }
     }
 
-    private void updatePreviewDate(LocalDateTime date) {
+    protected void updatePreviewDate(LocalDateTime date) {
         taskPreview.updateDate(formatDate(date));
     }
 

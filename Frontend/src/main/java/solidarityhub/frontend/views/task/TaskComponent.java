@@ -16,7 +16,7 @@ import java.util.Collections;
 
 public class TaskComponent extends HorizontalLayout {
 
-    private int taskId;
+    private final int taskId;
     private String taskName;
     private String taskDescription;
     private String startTimeDate;
