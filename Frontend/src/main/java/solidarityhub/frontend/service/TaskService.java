@@ -1,6 +1,5 @@
 package solidarityhub.frontend.service;
 
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,6 @@ import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;

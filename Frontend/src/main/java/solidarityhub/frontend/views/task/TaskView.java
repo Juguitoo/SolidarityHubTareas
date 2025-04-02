@@ -106,7 +106,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         try {
             // Obtener las tareas filtradas por la catástrofe seleccionada
             toDoTasks = taskService.getToDoTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
 
             if (toDoTasks.isEmpty()) {
@@ -134,7 +134,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         try {
             // Obtener las tareas filtradas por la catástrofe seleccionada
             doingTasks = taskService.getDoingTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
 
             if (doingTasks.isEmpty()) {
@@ -161,7 +161,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         try {
             // Obtener las tareas filtradas por la catástrofe seleccionada
             doneTasks = taskService.getDoneTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> new TaskComponent(task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
                     .toList();
 
             if (doneTasks.isEmpty()) {

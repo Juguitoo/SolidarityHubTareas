@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
@@ -9,9 +10,13 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.QueryParameters;
+
+import java.util.Collections;
 
 public class TaskComponent extends HorizontalLayout {
 
+    private int taskId;
     private String taskName;
     private String taskDescription;
     private String startTimeDate;
@@ -19,7 +24,8 @@ public class TaskComponent extends HorizontalLayout {
     private String emergencyLevel;
     private Button editButton;
 
-    public TaskComponent(String name, String description, String startTimeDate, String priority, String emergencyLevel) {
+    public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel) {
+        this.taskId = taskId;
         this.taskName = name;
         this.taskDescription = description;
         this.startTimeDate = startTimeDate;
@@ -94,7 +100,8 @@ public class TaskComponent extends HorizontalLayout {
         editButton.addClassName("edit-button");
 
         editButton.addClickListener(event -> {
-
+            UI.getCurrent().navigate("editTask", QueryParameters.simple(
+                    Collections.singletonMap("id", String.valueOf(taskId))));
         });
 
         buttonLayout.add(taskDateSpan, editButton);

@@ -44,20 +44,20 @@ import java.util.stream.Collectors;
 @Route("addtask")
 public class AddTaskView extends VerticalLayout {
 
-    private final TaskService taskService;
-    private final VolunteerService volunteerService;
-    private final NeedService needService;
+    protected final TaskService taskService;
+    protected final VolunteerService volunteerService;
+    protected final NeedService needService;
 
-    private final TaskComponent taskPreview;
+    protected final TaskComponent taskPreview;
 
-    private final TextField taskName = new TextField("Nombre de la tarea");
-    private final TextArea taskDescription = new TextArea("Descripción de la tarea");
-    private final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
-    private final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
-    private final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
-    private final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
-    private final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
-    private final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
+    protected final TextField taskName = new TextField("Nombre de la tarea");
+    protected final TextArea taskDescription = new TextArea("Descripción de la tarea");
+    protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
+    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
+    protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
+    protected final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
+    protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
+    protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
     @Autowired
     public AddTaskView(TaskService taskService) {
@@ -66,6 +66,7 @@ public class AddTaskView extends VerticalLayout {
         this.needService = new NeedService();
 
         this.taskPreview = new TaskComponent(
+                0,
                 "Nombre de la tarea",
                 "Descripccion de la tarea",
                 formatDate(LocalDateTime.now()),
@@ -306,7 +307,7 @@ public class AddTaskView extends VerticalLayout {
         VerticalLayout dialogContent = new VerticalLayout();
 
         MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getTaskId()==-1).map(NeedDTO::getDescription).collect(Collectors.toList()));
+        needsListBox.setItems(needService.getNeeds().stream().map(NeedDTO::getDescription).collect(Collectors.toList()));
 
         // Usar el formatTaskType para mostrar los valores como strings legibles
         //needsListBox.setItemLabelGenerator(this::formatTaskType);
@@ -330,7 +331,7 @@ public class AddTaskView extends VerticalLayout {
         return needsDialog;
     }
 
-    private Component getButtons(){
+    protected Component getButtons(){
         HorizontalLayout buttons = new HorizontalLayout();
 
         Button saveTaskButton = new Button("Guardar");
@@ -446,7 +447,7 @@ public class AddTaskView extends VerticalLayout {
     }
 
     //===============================Validate Form=========================================
-    private boolean validateForm() {
+    protected boolean validateForm() {
         return !taskName.isEmpty() &&
                 !taskDescription.isEmpty() &&
                 starDateTimePicker.getValue() != null &&
@@ -457,7 +458,7 @@ public class AddTaskView extends VerticalLayout {
                 !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
     }
 
-    private boolean isFormFilled() {
+    protected boolean isFormFilled() {
         return !taskName.isEmpty() || !taskDescription.isEmpty() || taskPriority.getValue() != null || taskEmergency.getValue() != null || needsMultiSelectComboBox.getValue() != null || starDateTimePicker.getValue() != null || !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
     }
 
