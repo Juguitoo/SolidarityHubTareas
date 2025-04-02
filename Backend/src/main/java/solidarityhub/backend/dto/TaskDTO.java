@@ -23,6 +23,7 @@ public class TaskDTO {
     private Status status;
     private List<NeedDTO> needs;
     private List<VolunteerDTO> volunteers;
+    private Integer catastropheId;
 
     public TaskDTO(Task task) {
         this.needs = new ArrayList<>();
@@ -38,5 +39,9 @@ public class TaskDTO {
         this.status = task.getStatus();
         task.getNeeds().forEach(n -> {needs.add(new NeedDTO(n));});
         task.getVolunteers().forEach(v -> {volunteers.add(new VolunteerDTO(v));});
+
+        if (task.getCatastrophe() != null) {
+            this.catastropheId = task.getCatastrophe().getId();
+        }
     }
 }

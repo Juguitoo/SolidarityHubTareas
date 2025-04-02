@@ -16,6 +16,7 @@ public class NeedDTO {
     private TaskType needType;
     private GPSCoordinates location;
     private int taskId;
+    private int catastropheId;
 
     public NeedDTO(Need need) {
         this.id = need.getId();
@@ -27,6 +28,11 @@ public class NeedDTO {
             this.taskId = need.getTask().getId();
         } else {
             this.taskId = -1;
+        }
+        if(need.getCatastrophe() != null) {
+            this.catastropheId = need.getCatastrophe().getId();
+        } else {
+            this.catastropheId = -1;
         }
     }
 }
