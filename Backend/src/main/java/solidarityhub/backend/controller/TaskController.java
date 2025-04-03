@@ -171,6 +171,7 @@ public class TaskController {
         task.setStartTimeDate(taskDTO.getStartTimeDate());
         task.setEstimatedEndTimeDate(taskDTO.getEstimatedEndTimeDate());
         task.setPriority(taskDTO.getPriority());
+        task.setEmergencyLevel(taskDTO.getEmergencyLevel());
         task.setStatus(taskDTO.getStatus());
         task.setVolunteers(volunteers);
         task.setNeeds(needs);
@@ -209,6 +210,15 @@ public class TaskController {
         Task task = taskService.getTaskById(id);
         if(task == null) {
             return ResponseEntity.notFound().build();
+        }
+        // Desasociar la tarea de las necesidades y voluntarios
+        for (Need need : task.getNeeds()) {
+            need.setTask(null);
+            needService.saveNeed(need);
+        }
+        for (Volunteer volunteer : task.getVolunteers()) {
+            volunteer.getTasks().remove(task);
+            volunteerService.saveVolunteer(volunteer);
         }
         taskService.deleteTask(task);
         return ResponseEntity.ok().build();

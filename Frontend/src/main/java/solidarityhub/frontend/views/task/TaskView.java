@@ -37,6 +37,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     public TaskView(TaskService taskService) {
         this.taskService = taskService;
         addClassName("tasks-container");
+        beforeEnter(null);
     }
 
     @Override
