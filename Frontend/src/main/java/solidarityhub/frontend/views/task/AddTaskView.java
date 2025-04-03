@@ -332,7 +332,7 @@ public class AddTaskView extends VerticalLayout {
     protected Component getButtons(){
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button saveTaskButton = new Button("Guardar");
+        Button saveTaskButton = new Button("Añadir");
         saveTaskButton.addClickListener(e -> saveNewTask());
 
         Button cancel = new Button("Cancelar");
