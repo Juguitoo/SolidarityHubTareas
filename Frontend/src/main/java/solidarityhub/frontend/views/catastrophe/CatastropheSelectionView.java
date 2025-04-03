@@ -18,6 +18,7 @@ import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.TaskService;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -35,19 +36,25 @@ public class CatastropheSelectionView extends VerticalLayout {
         this.catastropheService = catastropheService;
         this.taskService = taskService;
 
+        // Configuración de la vista
         addClassName("catastrophe-selection-view");
         setSizeFull();
+        setPadding(true);
+        setSpacing(true);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-        setJustifyContentMode(JustifyContentMode.CENTER);
 
+        // Crear componentes de encabezado
         H1 title = new H1("Selecciona una Catástrofe");
         title.addClassName("selection-title");
+        title.getStyle().set("margin-top", "20px");
 
         Paragraph subtitle = new Paragraph("Elige la catástrofe en la que quieres trabajar");
         subtitle.addClassName("selection-subtitle");
 
+        // Contenedor para las tarjetas de catástrofes
         FlexLayout cardsContainer = new FlexLayout();
         cardsContainer.addClassName("catastrophes-container");
+        cardsContainer.getStyle().set("margin-top", "10px");
 
         try {
             List<CatastropheDTO> catastrophes = catastropheService.getAllCatastrophes();
@@ -60,11 +67,20 @@ public class CatastropheSelectionView extends VerticalLayout {
                 addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
                 add(addCatastropheButton);
             } else {
+                // Añadir primero los componentes de título y subtítulo
+                add(title, subtitle);
+
+                // Ordenar las catástrofes por nivel de emergencia (MUY ALTO primero)
+                catastrophes.sort(Comparator.comparing((CatastropheDTO c) -> {
+                    // Ordenar de mayor a menor nivel de emergencia
+                    return getEmergencyLevelWeight(c.getEmergencyLevel());
+                }).reversed());
+
+                // Luego agregar las tarjetas de catástrofes ordenadas
                 for (CatastropheDTO catastrophe : catastrophes) {
                     cardsContainer.add(createCatastropheCard(catastrophe));
                 }
-
-                add(title, subtitle, cardsContainer);
+                add(cardsContainer);
 
                 Button addCatastropheButton = new Button("+ Añadir Nueva Catástrofe");
                 addCatastropheButton.addClassName("add-catastrophe-button");
@@ -75,6 +91,22 @@ public class CatastropheSelectionView extends VerticalLayout {
             Notification.show("Error al cargar las catástrofes: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Asigna un peso numérico a cada nivel de emergencia para ordenarlos
+     * @param level Nivel de emergencia
+     * @return Peso numérico (mayor número = mayor prioridad)
+     */
+    private int getEmergencyLevelWeight(EmergencyLevel level) {
+        if (level == null) return 0;
+
+        return switch (level) {
+            case VERYHIGH -> 4;
+            case HIGH -> 3;
+            case MEDIUM -> 2;
+            case LOW -> 1;
+        };
     }
 
     private VerticalLayout createCatastropheCard(CatastropheDTO catastrophe) {
@@ -101,6 +133,8 @@ public class CatastropheSelectionView extends VerticalLayout {
         level.addClassName(emergencyClass + "-text");
 
         card.add(name, description, date, level);
+        card.setPadding(true);
+        card.setSpacing(false);
 
         // Al hacer clic, se selecciona esta catástrofe
         card.addClickListener(e -> {
