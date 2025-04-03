@@ -190,7 +190,7 @@ public class TaskController {
                 notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
                         "Se ha actualizado una tarea que se le había asignado. " + "\n" +
                                 "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                                "Nombre de la tarea: " + task.getTaskName() +
+                                "Nombre de la tarea: " + task.getTaskName() + "\n" +
                                 "Descripción: " + task.getTaskDescription() + "\n" +
                                 "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
                                 "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
