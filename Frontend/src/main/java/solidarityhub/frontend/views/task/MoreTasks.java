@@ -1,8 +1,10 @@
 package solidarityhub.frontend.views.task;
 
+
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.QueryParameters;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.service.TaskService;
@@ -42,9 +44,10 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     private ListDataProvider<TaskDTO> dataProvider;
     private Grid<TaskDTO> taskGrid;
 
-    public MoreTasks() {
+    @Autowired
+    public MoreTasks(TaskService taskService) {
         addClassName("moreTasks_Container");
-        this.taskService = new TaskService();
+        this.taskService = taskService;
 
         // Inicializamos el grid pero no el dataProvider aún
         this.taskGrid = new Grid<>(TaskDTO.class);

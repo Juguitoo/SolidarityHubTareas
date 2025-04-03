@@ -139,7 +139,6 @@ public class CatastropheSelectionView extends VerticalLayout {
         // Al hacer clic, se selecciona esta catástrofe
         card.addClickListener(e -> {
             taskService.taskCache = null; // Limpiar caché de tareas
-            System.out.println("Cache de tareas limpiada");
             selectCatastrophe(catastrophe);
             UI.getCurrent().navigate("tasks");
         });

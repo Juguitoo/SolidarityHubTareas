@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.service.TaskService;
@@ -35,6 +36,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private final TaskService taskService;
     private CatastropheDTO selectedCatastrophe;
 
+    @Autowired
     public TaskView(TaskService taskService) {
         this.taskService = taskService;
         addClassName("tasks-container");
