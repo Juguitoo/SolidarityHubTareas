@@ -5,22 +5,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
+import solidarityhub.backend.dto.VolunteerDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.Volunteer;
-import solidarityhub.backend.model.enums.Priority;
-import solidarityhub.backend.model.enums.Status;
-import solidarityhub.backend.service.CatastropheService;
-import solidarityhub.backend.service.NeedService;
-import solidarityhub.backend.service.TaskService;
-import solidarityhub.backend.service.VolunteerService;
-import solidarityhub.backend.dto.VolunteerDTO;
+import solidarityhub.backend.service.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/tasks")
@@ -28,13 +21,16 @@ public class TaskController {
     private final TaskService taskService;
     private final VolunteerService volunteerService;
     private final NeedService needService;
+    private final NotificationService notificationService;
     private final CatastropheService catastropheService;
 
-    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, CatastropheService catastropheService) {
+
+    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
         this.needService = needService;
         this.catastropheService = catastropheService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -121,7 +117,15 @@ public class TaskController {
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
-            //notificationService.notifyEmail(volunteer.getEmail(), "Nueva tarea", "Se le ha asignado una nueva tarea: " + task.getTaskName());
+            notificationService.notifyEmail(volunteer.getEmail(),"Nueva tarea",
+            "Se le ha asignado una nueva tarea: " + task.getTaskName() +
+                    "Referente a la catástrofe" + task.getCatastrophe().getName() + "\n" +
+                    "Descripción: " + task.getTaskDescription() + "\n" +
+                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                    "Prioridad: " + task.getPriority() + "\n" +
+                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                    "Estado: " + task.getStatus());
             volunteerService.saveVolunteer(volunteer);
         }
 
@@ -181,11 +185,20 @@ public class TaskController {
         }
 
         for (Volunteer volunteer : volunteers) {
-            if(!volunteer.getTasks().contains(task)){
+            //if(!volunteer.getTasks().contains(task)) {
                 volunteer.getTasks().add(task);
-                //volunteer.notifyEmail("Tarea actualizada", "Se ha actualizado una tarea que se le había asignado. Nombre de la tarea: " + task.getTaskName());
+                notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada",
+                        "Se ha actualizado una tarea que se le había asignado. " +
+                                " Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                                "Nombre de la tarea: " + task.getTaskName() +
+                                "Descripción: " + task.getTaskDescription() + "\n" +
+                                "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                                "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                                "Prioridad: " + task.getPriority() + "\n" +
+                                "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                                "Estado: " + task.getStatus());
                 volunteerService.saveVolunteer(volunteer);
-            }
+            //}
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();

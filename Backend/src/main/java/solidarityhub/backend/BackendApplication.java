@@ -19,7 +19,10 @@ public class BackendApplication {
 
 	@Autowired
 	public BackendApplication(TaskService taskService, NeedService needService, VolunteerService volunteerService,
-							  CatastropheService catastropheService, AffectedService affectedService) {
+							  CatastropheService catastropheService, AffectedService affectedService, NotificationService notificationService) {
+
+
+		//notificationService.notifyEmail("javiupv10@gmail.com", "TestNotify", "Test");
 /*
 		Affected affected = affectedService.getAffectedById("12345678A");
 		Catastrophe catastrophe = catastropheService.getCatastrophe(9);
