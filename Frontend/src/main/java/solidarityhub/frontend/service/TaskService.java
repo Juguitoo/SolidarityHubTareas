@@ -42,12 +42,16 @@ public class TaskService {
 
     public void updateTask(int id, TaskDTO taskDTO) {
         restTemplate.put(baseUrl + "/" + id, taskDTO);
-        taskCache = null;
+        clearCache();
     }
 
     public void deleteTask(int id) {
         restTemplate.delete(baseUrl + "/" + id);
-        taskCache.removeIf(task -> task.getId() == id);
+        clearCache();
+    }
+
+    public void clearCache() {
+        taskCache.clear();
     }
 
     //GET METHODS

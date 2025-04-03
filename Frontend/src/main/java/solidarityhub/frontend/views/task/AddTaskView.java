@@ -2,6 +2,8 @@ package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.server.VaadinSession;
+import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.service.NeedService;
@@ -46,6 +48,7 @@ public class AddTaskView extends VerticalLayout {
     protected final TaskService taskService;
     protected final VolunteerService volunteerService;
     protected final NeedService needService;
+    protected final CatastropheDTO selectedCatastrophe;
 
     protected final TaskComponent taskPreview;
 
@@ -62,6 +65,7 @@ public class AddTaskView extends VerticalLayout {
         this.taskService = new TaskService();
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         this.taskPreview = new TaskComponent(
                 0,
@@ -120,7 +124,7 @@ public class AddTaskView extends VerticalLayout {
                         .collect(Collectors.toList());
 
                 TaskDTO newTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
+                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
                 taskService.addTask(newTaskDTO);
 
                 getConfirmationDialog().open();
@@ -305,7 +309,7 @@ public class AddTaskView extends VerticalLayout {
         VerticalLayout dialogContent = new VerticalLayout();
 
         MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().map(NeedDTO::getDescription).collect(Collectors.toList()));
+        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getTaskId()==-1).map(NeedDTO::getDescription).collect(Collectors.toList()));
 
         // Usar el formatTaskType para mostrar los valores como strings legibles
         //needsListBox.setItemLabelGenerator(this::formatTaskType);
@@ -332,7 +336,7 @@ public class AddTaskView extends VerticalLayout {
     protected Component getButtons(){
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button saveTaskButton = new Button("Guardar");
+        Button saveTaskButton = new Button("Añadir");
         saveTaskButton.addClickListener(e -> saveNewTask());
 
         Button cancel = new Button("Cancelar");
