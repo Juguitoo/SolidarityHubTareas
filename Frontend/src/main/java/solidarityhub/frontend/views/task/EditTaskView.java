@@ -159,12 +159,12 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         .collect(Collectors.toList());
 
                 TaskDTO updatedTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
+                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
 
                 taskService.updateTask(taskId, updatedTaskDTO);
-
-                    Notification.show("Tarea actualizada correctamente");
-                    UI.getCurrent().navigate("tasks");
+                Notification.show("Tarea actualizada correctamente");
+                taskService.clearCache();
+                UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
                 Notification.show("Error al actualizar la tarea: " + e.getMessage(),
                         5000, Notification.Position.MIDDLE);
