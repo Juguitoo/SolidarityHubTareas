@@ -1,15 +1,10 @@
 package solidarityhub.backend.service;
 
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
-import java.util.Properties;
 
 @Service
 public class NotificationService {
@@ -25,14 +20,20 @@ public class NotificationService {
     @Value("${spring.mail.password}")
     private String password;
 
-    public void notifyEmail(String receiver, String subject, String body) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(user);
-        message.setTo(receiver);
-        message.setSubject(subject);
-        message.setText(body);
+    public boolean notifyEmail(String receiver, String subject, String body) {
+        try{
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(user);
+            message.setTo(receiver);
+            message.setSubject(subject);
+            message.setText(body);
 
-        sender.send(message);
+            sender.send(message);
+            return true;
+        } catch (Exception e) {
+            System.out.println("NotificationService: Error al enviar el correo: " + e.getMessage());
+            return false;
+        }
     }
 /*
     public void notifyEmail(String receiver, String subject, String message) {

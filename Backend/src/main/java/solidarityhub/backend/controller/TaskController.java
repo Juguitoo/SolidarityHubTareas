@@ -142,6 +142,7 @@ public class TaskController {
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
         Catastrophe catastrophe = null;
+
         if (taskDTO.getCatastropheId() != null) {
             catastrophe = catastropheService.getCatastrophe(taskDTO.getCatastropheId());
             if (catastrophe == null) {
@@ -161,9 +162,8 @@ public class TaskController {
         List<String> volunteerDnis = taskDTO.getVolunteers().stream().map(VolunteerDTO::getDni).toList();
         for (String volunteerID : volunteerDnis) {
             Volunteer volunteer = volunteerService.getVolunteer(volunteerID);
-            if (volunteer != null && !task.getVolunteers().contains(volunteer)) {
-                volunteers.add(volunteer);
-            }
+            volunteers.add(volunteer);
+
         }
 
         task.setTaskName(taskDTO.getName());
@@ -186,20 +186,23 @@ public class TaskController {
         }
 
         for (Volunteer volunteer : volunteers) {
-            //if(!volunteer.getTasks().contains(task)) {
+            if(!volunteer.getTasks().contains(task)) {
                 volunteer.getTasks().add(task);
-                notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
-                        "Se ha actualizado una tarea que se le había asignado. " + "\n" +
-                                "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                                "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                                "Descripción: " + task.getTaskDescription() + "\n" +
-                                "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                                "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                                "Prioridad: " + task.getPriority() + "\n" +
-                                "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                                "Estado: " + task.getStatus());
                 volunteerService.saveVolunteer(volunteer);
-            //}
+            }
+            boolean emailSent = notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
+                    "Se ha actualizado una tarea que se le había asignado. " + "\n" +
+                            "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                            "Nombre de la tarea: " + task.getTaskName() + "\n" +
+                            "Descripción: " + task.getTaskDescription() + "\n" +
+                            "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                            "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                            "Prioridad: " + task.getPriority() + "\n" +
+                            "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                            "Estado: " + task.getStatus());
+            if (!emailSent) {
+                System.out.println("Correo no enviado a " + volunteer.getEmail());
+            }
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
@@ -217,6 +220,16 @@ public class TaskController {
             needService.saveNeed(need);
         }
         for (Volunteer volunteer : task.getVolunteers()) {
+            notificationService.notifyEmail(volunteer.getEmail(), "Tarea eliminada -> " + task.getTaskName(),
+                    "Se ha eliminado una tarea que se le había asignado. " + "\n" +
+                            "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                            "Nombre de la tarea: " + task.getTaskName() + "\n" +
+                            "Descripción: " + task.getTaskDescription() + "\n" +
+                            "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                            "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                            "Prioridad: " + task.getPriority() + "\n" +
+                            "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                            "Estado: " + task.getStatus());
             volunteer.getTasks().remove(task);
             volunteerService.saveVolunteer(volunteer);
         }
