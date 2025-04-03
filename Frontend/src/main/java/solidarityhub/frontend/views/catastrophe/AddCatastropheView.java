@@ -61,7 +61,7 @@ public class AddCatastropheView extends VerticalLayout {
         header.addClassName("header");
 
         Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("catastrophe")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
         backButton.addClassName("back-button");
 
         H1 title = new H1("Añadir Catástrofe");

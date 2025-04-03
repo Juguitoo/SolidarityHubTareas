@@ -193,7 +193,7 @@ public class AddTaskView extends VerticalLayout {
         return addTaskForm;
     }
 
-    private Component getVolunteersForm(){
+    protected Component getVolunteersForm(){
         volunteerMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
@@ -282,14 +282,14 @@ public class AddTaskView extends VerticalLayout {
             volunteerDialog.close();
         });
 
-        volunteerDialog.getFooter().add(saveButton, cancelButton);
+        volunteerDialog.getFooter().add(cancelButton, saveButton);
 
         volunteerDialog.add(dialogContent);
 
         return volunteerDialog;
     }
 
-    private Component getNeedsForm() {
+    protected Component getNeedsForm() {
         needsMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
         needsMultiSelectComboBox.setReadOnly(true);
         needsMultiSelectComboBox.setRequiredIndicatorVisible(true);
@@ -365,7 +365,7 @@ public class AddTaskView extends VerticalLayout {
             }
         });
 
-        buttons.add(saveTaskButton, cancel);
+        buttons.add(cancel, saveTaskButton);
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;

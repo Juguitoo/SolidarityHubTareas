@@ -6,6 +6,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
@@ -105,9 +106,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         List<TaskComponent> toDoTasks;
 
         try {
-            // Obtener las tareas filtradas por la catástrofe seleccionada
-            toDoTasks = taskService.getToDoTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+            toDoTasks = taskService.getToDoTasksByCatastrophe( selectedCatastrophe.getId(), 3).stream()
+                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), formatEmergencyLevel(task.getEmergencyLevel())))
                     .toList();
 
             if (toDoTasks.isEmpty()) {
@@ -179,5 +179,14 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     private String formatDate(LocalDateTime taskDate) {
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
+
+    private String formatEmergencyLevel(EmergencyLevel level) {
+        return switch (level) {
+            case LOW -> "Baja";
+            case MEDIUM -> "Media";
+            case HIGH -> "Alta";
+            case VERYHIGH -> "Muy alta";
+        };
     }
 }
