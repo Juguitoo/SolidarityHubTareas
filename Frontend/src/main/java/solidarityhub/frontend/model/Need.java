@@ -1,6 +1,8 @@
 package solidarityhub.frontend.model;
 
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +21,7 @@ public class Need {
     private UrgencyLevel urgency;
 
     @Setter
+    @Enumerated(EnumType.STRING)
     private TaskType taskType;
 
     @Setter

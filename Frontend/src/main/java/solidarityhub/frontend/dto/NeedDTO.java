@@ -1,5 +1,7 @@
 package solidarityhub.frontend.dto;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solidarityhub.frontend.model.GPSCoordinates;
@@ -13,7 +15,10 @@ public class NeedDTO {
     private int id;
     private String description;
     private UrgencyLevel urgency;
+
+    @Enumerated(EnumType.STRING)
     private TaskType taskType;
+
     private GPSCoordinates location;
     private int taskId;
     private int catastropheId; // Añadido para saber a qué catástrofe pertenece la necesidad

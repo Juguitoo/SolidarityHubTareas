@@ -101,7 +101,7 @@ public class TaskComponent extends HorizontalLayout {
 
         editButton.addClickListener(event -> {
             UI.getCurrent().navigate("editTask", QueryParameters.simple(
-                    Collections.singletonMap("id", String.valueOf(taskId))));
+                    Collections.singletonMap("id", String.valueOf(this.taskId))));
         });
 
         buttonLayout.add(taskDateSpan, editButton);

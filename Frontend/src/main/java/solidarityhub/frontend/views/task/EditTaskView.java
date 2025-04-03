@@ -140,6 +140,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private void updateTask() {
         if (validateForm()) {
             try {
+                List<NeedDTO> originalNeeds = originalTask.getNeeds();
+                List<VolunteerDTO> originalVolunteers = originalTask.getVolunteers();
 
                 TaskDTO updatedTaskDTO = new TaskDTO(
                         taskName.getValue(),
@@ -150,8 +152,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
                         Status.TO_DO,
-                        originalTask.getNeeds(),
-                        originalTask.getVolunteers()
+                        originalNeeds,
+                        originalVolunteers,
+                        selectedCatastrophe.getId()
                 );
 
                 taskService.updateTask(taskId, updatedTaskDTO);
