@@ -9,6 +9,8 @@ import solidarityhub.backend.model.enums.EmergencyLevel;
 import solidarityhub.backend.service.CatastropheService;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/catastrophes")
@@ -21,7 +23,9 @@ public class CatastropheController {
 
     @GetMapping
     public ResponseEntity<?> getCatastrophes() {
-        return ResponseEntity.ok(catastropheService.getAllCatastrophes());
+        List<CatastropheDTO> catastropheDTOS = new ArrayList<>();
+        catastropheService.getAllCatastrophes().forEach(c ->{catastropheDTOS.add(new CatastropheDTO(c));});
+        return ResponseEntity.ok(catastropheDTOS);
     }
 
     @GetMapping("/{id}")

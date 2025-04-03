@@ -10,10 +10,12 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.service.CatastropheService;
+import solidarityhub.frontend.service.TaskService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -26,9 +28,12 @@ public class CatastropheSelectionView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final CatastropheService catastropheService;
+    private final TaskService taskService;
 
-    public CatastropheSelectionView(CatastropheService catastropheService) {
+    @Autowired
+    public CatastropheSelectionView(CatastropheService catastropheService, TaskService taskService) {
         this.catastropheService = catastropheService;
+        this.taskService = taskService;
 
         addClassName("catastrophe-selection-view");
         setSizeFull();
@@ -99,6 +104,8 @@ public class CatastropheSelectionView extends VerticalLayout {
 
         // Al hacer clic, se selecciona esta catástrofe
         card.addClickListener(e -> {
+            taskService.taskCache = null; // Limpiar caché de tareas
+            System.out.println("Cache de tareas limpiada");
             selectCatastrophe(catastrophe);
             UI.getCurrent().navigate("tasks");
         });

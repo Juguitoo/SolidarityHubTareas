@@ -102,8 +102,8 @@ public class TaskController {
                     taskDTO.getStatus(), volunteers);
 
             // Si no se especificó una catástrofe, utilizar la de la primera necesidad
-            if (!needs.isEmpty() && needs.get(0).getCatastrophe() != null) {
-                task.setCatastrophe(needs.get(0).getCatastrophe());
+            if (!needs.isEmpty() && needs.getFirst().getCatastrophe() != null) {
+                task.setCatastrophe(needs.getFirst().getCatastrophe());
             }
         }
 

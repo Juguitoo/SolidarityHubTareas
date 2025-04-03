@@ -28,7 +28,7 @@ public class CatastropheService {
     public List<CatastropheDTO> getAllCatastrophes() {
         try {
             CatastropheDTO[] catastrophes = restTemplate.getForObject(baseUrl, CatastropheDTO[].class);
-            return catastrophes != null ? Arrays.asList(catastrophes) : Collections.emptyList();
+            return List.of(catastrophes);
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();

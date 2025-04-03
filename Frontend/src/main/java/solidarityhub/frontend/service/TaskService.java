@@ -12,11 +12,11 @@ import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -24,7 +24,7 @@ public class TaskService {
     private final String baseUrl;
     private final VolunteerService volunteerService;
     private final NeedService needService;
-    private List<TaskDTO> taskCache;
+    public List<TaskDTO> taskCache;
 
     public TaskService() {
         this.restTemplate = new RestTemplate();
@@ -71,9 +71,7 @@ public class TaskService {
     // Métodos para obtener tareas filtradas por catástrofe
     public List<TaskDTO> getTasksByCatastrophe(int catastropheId) {
         return getTasks().stream()
-                .filter(task -> task.getNeeds().stream()
-                        .anyMatch(need -> need.getCatastropheId() == catastropheId))
-                .collect(Collectors.toList());
+                .filter(task -> task.getCatastropheId() == catastropheId).toList();
     }
 
     public List<TaskDTO> getToDoTasksByCatastrophe(int catastropheId, int limit) {
@@ -94,8 +92,7 @@ public class TaskService {
         }
         return getTasks().stream()
                 .filter(task -> status.equals(task.getStatus()))
-                .filter(task -> task.getNeeds().stream()
-                        .anyMatch(need -> need.getCatastropheId() == catastropheId))
+                .filter(task -> task.getCatastropheId() == catastropheId)
                 .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
                 .limit(limit)
                 .toList();
@@ -104,8 +101,7 @@ public class TaskService {
     private List<TaskDTO> getTasksByStatusAndCatastrophe(Status status, int catastropheId) {
         return getTasks().stream()
                 .filter(task -> status.equals(task.getStatus()))
-                .filter(task -> task.getNeeds().stream()
-                        .anyMatch(need -> need.getCatastropheId() == catastropheId))
+                .filter(task -> task.getCatastropheId() == catastropheId)
                 .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
                 .toList();
     }
