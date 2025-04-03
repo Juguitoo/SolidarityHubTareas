@@ -10,6 +10,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
@@ -29,8 +30,10 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private TaskDTO originalTask;
     private int taskId;
 
-    public EditTaskView() {
-        this.taskService = new TaskService();
+    @Autowired
+    public EditTaskView(TaskService taskService) {
+        super(taskService);
+        this.taskService = taskService;
 
         // Cambiar el título de la vista
         getElement().getChildren()
@@ -152,9 +155,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                 );
 
                 taskService.updateTask(taskId, updatedTaskDTO);
-
-                    Notification.show("Tarea actualizada correctamente");
-                    UI.getCurrent().navigate("tasks");
+                taskService.taskCache = null;
+                Notification.show("Tarea actualizada correctamente");
+                UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
                 Notification.show("Error al actualizar la tarea: " + e.getMessage(),
                         5000, Notification.Position.MIDDLE);
@@ -177,6 +180,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         Button confirmButton = new Button("Eliminar", event -> {
             try {
                 taskService.deleteTask(taskId);
+                taskService.taskCache = null;
                 confirmDialog.close();
                 Notification.show("Tarea eliminada correctamente");
                 UI.getCurrent().navigate("tasks");
