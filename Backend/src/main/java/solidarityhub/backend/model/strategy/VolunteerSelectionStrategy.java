@@ -1,6 +1,7 @@
-package solidarityhub.backend.model;
+package solidarityhub.backend.model.strategy;
 
 import solidarityhub.backend.dto.TaskDTO;
+import solidarityhub.backend.model.Volunteer;
 
 import java.util.List;
 

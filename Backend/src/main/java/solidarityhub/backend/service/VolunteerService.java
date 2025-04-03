@@ -2,6 +2,7 @@ package solidarityhub.backend.service;
 
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.*;
+import solidarityhub.backend.model.strategy.*;
 import solidarityhub.backend.repository.VolunteerRepository;
 import org.springframework.stereotype.Service;
 
@@ -27,13 +28,16 @@ public class VolunteerService {
     public List<Volunteer> getAllVolunteers() {return volunteerRepository.findAll();}
 
     public List<Volunteer> getVolunteersByStrategy(String strategy, TaskDTO taskDTO) {
+
         if (strategy.equals("disponibilidad")) {
             volunteerAssigner.setStrategy(new AvailabilityStrategy());
         } else if (strategy.equals("habilidades")) {
             volunteerAssigner.setStrategy(new SkillStrategy());
         } else if (strategy.equals("distancia")) {
             volunteerAssigner.setStrategy(new DistanceStrategy());
-        } else return volunteerRepository.findAll();
-        return volunteerAssigner.assignVolunteers(volunteerRepository.findAll(), taskDTO);
+        } else  {
+            volunteerAssigner.setStrategy(new NoFilterStrategy());
+        }
+        return volunteerAssigner.assignVolunteers(getAllVolunteers(), taskDTO);
     }
 }

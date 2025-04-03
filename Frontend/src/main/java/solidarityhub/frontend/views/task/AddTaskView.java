@@ -117,7 +117,7 @@ public class AddTaskView extends VerticalLayout {
                                 //Por hacer(Aplicar patron)
                                 return new VolunteerDTO();
                             }
-                            return volunteerService.getVolunteers().stream()
+                            return volunteerService.getVolunteers("", new TaskDTO()).stream()
                                     .filter(v -> v.getFirstName().equals(name))
                                     .findFirst()
                                     .orElse(null);
@@ -217,7 +217,7 @@ public class AddTaskView extends VerticalLayout {
         volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
 
         // Obtener los nombres de voluntarios
-        List<String> volunteerNames = volunteerService.getVolunteers().stream()
+        List<String> volunteerNames = volunteerService.getVolunteers("", new TaskDTO()).stream()
                 .map(VolunteerDTO::getFirstName)
                 .collect(Collectors.toList());
 

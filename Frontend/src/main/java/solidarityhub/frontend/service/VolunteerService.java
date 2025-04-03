@@ -1,14 +1,22 @@
 package solidarityhub.frontend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import solidarityhub.frontend.dto.NeedDTO;
+import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.Volunteer;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class VolunteerService {
     private final RestTemplate restTemplate;
@@ -33,15 +41,19 @@ public class VolunteerService {
     }
 
     //GET METHODS
-    public List<VolunteerDTO> getVolunteers() {
+    public List<VolunteerDTO> getVolunteers(String strategy, TaskDTO taskDTO) {
         try {
-            ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, VolunteerDTO[].class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String taskDTOParams = objectMapper.writeValueAsString(taskDTO);
+            System.out.println(taskDTOParams);
+            String url = baseUrl + "?strategy=" + strategy + "&" + "taskString=" + URLEncoder.encode(taskDTOParams, StandardCharsets.UTF_8);
+            ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, VolunteerDTO[].class);
             VolunteerDTO[] volunteers = response.getBody();
             if (volunteers != null) {
                 return List.of(volunteers);
             }
             return new ArrayList<>();
-        } catch (RestClientException e) {
+        } catch (Exception e) {
             return getExampleVolunteers();
         }
     }
@@ -73,4 +85,34 @@ public class VolunteerService {
         }
         return volunteers;
     }
+/*
+    private String convertToQueryTaskDTO(TaskDTO taskDTO) {
+        Map<String, String> params = Map.of(
+                "id", taskDTO.getId() + "",
+                "type", taskDTO.getType().toString(),
+                "startTimeDate", taskDTO.getStartTimeDate().toString(),
+                "estimatedEndTimeDate", taskDTO.getEstimatedEndTimeDate().toString());
+        for (NeedDTO need : taskDTO.getNeeds()) {
+            params.put("needs", need.toString());
+        }
+
+        return params.entrySet().stream()
+                .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+    }
+
+    private String convertToQueryNeedDTO(List<NeedDTO> needDTOs){
+        Map<String, String> params = new HashMap<>();
+        for (NeedDTO needDTO : needDTOs) {
+            params.put( needDTO.getId() + "",
+                    "latitude", needDTO.getLocation().getLatitude() + "",
+                    "longitude", needDTO.getLocation().getLongitude() + ""));
+        }
+
+        return params.entrySet().stream()
+                .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+    }
+
+ */
 }

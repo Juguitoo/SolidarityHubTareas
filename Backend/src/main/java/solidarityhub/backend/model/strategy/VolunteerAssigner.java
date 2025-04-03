@@ -1,9 +1,10 @@
-package solidarityhub.backend.model;
+package solidarityhub.backend.model.strategy;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import solidarityhub.backend.dto.TaskDTO;
+import solidarityhub.backend.model.Volunteer;
 
 import java.util.List;
 
