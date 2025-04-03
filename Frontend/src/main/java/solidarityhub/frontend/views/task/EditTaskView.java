@@ -26,6 +26,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private final TaskService taskService;
 
+    private TaskDTO originalTask;
     private int taskId;
 
     public EditTaskView() {
@@ -51,7 +52,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         if (parameterMap.containsKey("id") && !parameterMap.get("id").isEmpty()) {
             try {
                 taskId = Integer.parseInt(parameterMap.get("id").getFirst());
-                loadTaskData(taskId);
+                loadTaskData();
             } catch (NumberFormatException e) {
                 Notification.show("ID de tarea inválido");
                 UI.getCurrent().navigate("tasks");
@@ -62,11 +63,11 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         }
     }
 
-    private void loadTaskData(int taskId) {
+    private void loadTaskData() {
         try {
-            TaskDTO task = taskService.getTaskById(taskId);
-            if (task != null) {
-                setFormValues(task);
+            originalTask = taskService.getTaskById(taskId);
+            if (originalTask != null) {
+                setFormValues(originalTask);
                 Notification.show("Tarea cargada correctamente");
             } else {
                 Notification.show("No se pudo encontrar la tarea");
@@ -136,30 +137,19 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private void updateTask() {
         if (validateForm()) {
             try {
-                List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-                List<NeedDTO> needs = new ArrayList<>();
-                for (String need : selectedNeeds) {
-                    needService.getNeeds().stream()
-                            .filter(n -> n.getDescription().equals(need))
-                            .findFirst().ifPresent(needs::add);
-                }
 
-                List<VolunteerDTO> selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
-                        .map(name -> {
-                            if (name.equals("Elegir voluntarios automáticamente")) {
-                                //Por hacer(Aplicar patron)
-                                return new VolunteerDTO();
-                            }
-                            return volunteerService.getVolunteers().stream()
-                                    .filter(v -> v.getFirstName().equals(name))
-                                    .findFirst()
-                                    .orElse(null);
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-
-                TaskDTO updatedTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers);
+                TaskDTO updatedTaskDTO = new TaskDTO(
+                        taskName.getValue(),
+                        taskDescription.getValue(),
+                        starDateTimePicker.getValue(),
+                        endDateTimePicker.getValue(),
+                        originalTask.getType(),
+                        taskPriority.getValue(),
+                        taskEmergency.getValue(),
+                        Status.TO_DO,
+                        originalTask.getNeeds(),
+                        originalTask.getVolunteers()
+                );
 
                 taskService.updateTask(taskId, updatedTaskDTO);
 
@@ -201,6 +191,26 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         confirmDialog.getFooter().add(cancelButton, confirmButton);
 
         confirmDialog.open();
+    }
+
+    @Override
+    protected Component getNeedsForm() {
+        needsMultiSelectComboBox.setReadOnly(true);
+        needsMultiSelectComboBox.setRequired(false);
+        needsMultiSelectComboBox.setRequiredIndicatorVisible(false);
+
+        needsMultiSelectComboBox.getElement().removeAttribute("clickable");
+        return needsMultiSelectComboBox;
+    }
+
+    @Override
+    protected Component getVolunteersForm() {
+        volunteerMultiSelectComboBox.setReadOnly(true);
+        volunteerMultiSelectComboBox.setRequired(false);
+        volunteerMultiSelectComboBox.setRequiredIndicatorVisible(false);
+
+        volunteerMultiSelectComboBox.getElement().removeAttribute("clickable");
+        return volunteerMultiSelectComboBox;
     }
 
 }

@@ -56,7 +56,7 @@ public class TaskComponent extends HorizontalLayout {
                 Image imgHigh = new Image("images/task_high.png", "Tarea de emergencia alta");
                 imgHigh.addClassName("task-icon");
                 return imgHigh;
-            case "veryHigh", "muy alta":
+            case "veryHigh", "Muy alta":
                 Image imgVeryHigh = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
                 imgVeryHigh.addClassName("task-icon");
                 return imgVeryHigh;

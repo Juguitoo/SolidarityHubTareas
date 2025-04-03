@@ -68,7 +68,6 @@ public class TaskService {
         return taskCache;
     }
 
-    // Métodos para obtener tareas filtradas por catástrofe
     public List<TaskDTO> getTasksByCatastrophe(int catastropheId) {
         return getTasks().stream()
                 .filter(task -> task.getCatastropheId() == catastropheId).toList();
