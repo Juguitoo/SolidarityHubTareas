@@ -83,7 +83,7 @@ public class Volunteer extends Person {
         }
 
     public double getDistance(TaskDTO taskDTO) {
-        if (taskDTO.getNeeds().isEmpty()) {return 0.0;};
+        if (taskDTO.getNeeds().isEmpty()) {return 0.0;}
         double totalLatitude = 0.0;
         double totalLongitude = 0.0;
         for (NeedDTO need : taskDTO.getNeeds()) {

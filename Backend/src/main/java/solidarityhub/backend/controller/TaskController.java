@@ -117,9 +117,9 @@ public class TaskController {
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
-            notificationService.notifyEmail(volunteer.getEmail(),"Nueva tarea",
-            "Se le ha asignado una nueva tarea: " + task.getTaskName() +
-                    "Referente a la catástrofe" + task.getCatastrophe().getName() + "\n" +
+            notificationService.notifyEmail(volunteer.getEmail(),"Nueva tarea -> " + task.getCatastrophe().getName(),
+            "Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
+                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
                     "Descripción: " + task.getTaskDescription() + "\n" +
                     "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
                     "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
@@ -187,9 +187,9 @@ public class TaskController {
         for (Volunteer volunteer : volunteers) {
             //if(!volunteer.getTasks().contains(task)) {
                 volunteer.getTasks().add(task);
-                notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada",
-                        "Se ha actualizado una tarea que se le había asignado. " +
-                                " Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
+                        "Se ha actualizado una tarea que se le había asignado. " + "\n" +
+                                "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
                                 "Nombre de la tarea: " + task.getTaskName() +
                                 "Descripción: " + task.getTaskDescription() + "\n" +
                                 "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
