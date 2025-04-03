@@ -4,6 +4,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
@@ -20,6 +21,8 @@ import solidarityhub.frontend.service.TaskService;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 @PageTitle("Catastrofes")
@@ -28,14 +31,11 @@ import java.util.List;
 public class CatastropheSelectionView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private final CatastropheService catastropheService;
-    private final TaskService taskService;
+    // Inicializando logger para reemplazar printStackTrace
+    private static final Logger LOGGER = Logger.getLogger(CatastropheSelectionView.class.getName());
 
     @Autowired
     public CatastropheSelectionView(CatastropheService catastropheService, TaskService taskService) {
-        this.catastropheService = catastropheService;
-        this.taskService = taskService;
-
         // Configuración de la vista
         addClassName("catastrophe-selection-view");
         setSizeFull();
@@ -57,6 +57,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         cardsContainer.getStyle().set("margin-top", "10px");
 
         try {
+            // Obtener las catástrofes
             List<CatastropheDTO> catastrophes = catastropheService.getAllCatastrophes();
 
             if (catastrophes.isEmpty()) {
@@ -78,7 +79,7 @@ public class CatastropheSelectionView extends VerticalLayout {
 
                 // Luego agregar las tarjetas de catástrofes ordenadas
                 for (CatastropheDTO catastrophe : catastrophes) {
-                    cardsContainer.add(createCatastropheCard(catastrophe));
+                    cardsContainer.add(createCatastropheCard(catastrophe, taskService));
                 }
                 add(cardsContainer);
 
@@ -88,8 +89,11 @@ public class CatastropheSelectionView extends VerticalLayout {
                 add(addCatastropheButton);
             }
         } catch (Exception e) {
-            Notification.show("Error al cargar las catástrofes: " + e.getMessage());
-            e.printStackTrace();
+            Notification.show("Error al cargar las catástrofes: " + e.getMessage(),
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            // Reemplazo de printStackTrace por logging adecuado
+            LOGGER.log(Level.SEVERE, "Error al cargar las catástrofes", e);
         }
     }
 
@@ -98,7 +102,7 @@ public class CatastropheSelectionView extends VerticalLayout {
      * @param level Nivel de emergencia
      * @return Peso numérico (mayor número = mayor prioridad)
      */
-    private int getEmergencyLevelWeight(EmergencyLevel level) {
+    private static int getEmergencyLevelWeight(EmergencyLevel level) {
         if (level == null) return 0;
 
         return switch (level) {
@@ -109,7 +113,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         };
     }
 
-    private VerticalLayout createCatastropheCard(CatastropheDTO catastrophe) {
+    private static VerticalLayout createCatastropheCard(CatastropheDTO catastrophe, TaskService taskService) {
         VerticalLayout card = new VerticalLayout();
         card.addClassName("catastrophe-selection-card");
 
@@ -139,7 +143,6 @@ public class CatastropheSelectionView extends VerticalLayout {
         // Al hacer clic, se selecciona esta catástrofe
         card.addClickListener(e -> {
             taskService.taskCache = null; // Limpiar caché de tareas
-            System.out.println("Cache de tareas limpiada");
             selectCatastrophe(catastrophe);
             UI.getCurrent().navigate("tasks");
         });
@@ -147,14 +150,14 @@ public class CatastropheSelectionView extends VerticalLayout {
         return card;
     }
 
-    private void selectCatastrophe(CatastropheDTO catastrophe) {
+    private static void selectCatastrophe(CatastropheDTO catastrophe) {
         // Guardar la catástrofe seleccionada en la sesión
         VaadinSession.getCurrent().setAttribute("selectedCatastrophe", catastrophe);
         Notification.show("Catástrofe seleccionada: " + catastrophe.getName(),
                 3000, Notification.Position.BOTTOM_START);
     }
 
-    private String formatEmergencyLevel(EmergencyLevel level) {
+    private static String formatEmergencyLevel(EmergencyLevel level) {
         if (level == null) return "Desconocido";
 
         return switch (level) {
@@ -165,7 +168,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         };
     }
 
-    private String getEmergencyLevelClass(EmergencyLevel level) {
+    private static String getEmergencyLevelClass(EmergencyLevel level) {
         if (level == null) return "emergency-unknown";
 
         return switch (level) {
