@@ -45,7 +45,6 @@ public class VolunteerService {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String taskDTOParams = objectMapper.writeValueAsString(taskDTO);
-            System.out.println(taskDTOParams);
             String url = baseUrl + "?strategy=" + strategy + "&" + "taskString=" + URLEncoder.encode(taskDTOParams, StandardCharsets.UTF_8);
             ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, VolunteerDTO[].class);
             VolunteerDTO[] volunteers = response.getBody();

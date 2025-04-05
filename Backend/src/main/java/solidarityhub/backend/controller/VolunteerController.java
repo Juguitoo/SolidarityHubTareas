@@ -36,6 +36,9 @@ public class VolunteerController {
             throw new RuntimeException(e);
         }
         volunteerService.getVolunteersByStrategy(strategy, taskDTO).forEach(v -> {volunteerDTOList.add(new VolunteerDTO(v));});
+        for (VolunteerDTO v : volunteerDTOList) {
+            System.out.println(v.getFirstName());
+        }
         return ResponseEntity.ok(volunteerDTOList);
     }
 

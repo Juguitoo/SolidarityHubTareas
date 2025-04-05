@@ -103,30 +103,7 @@ public class AddTaskView extends VerticalLayout {
     private void saveNewTask(){
         if (validateForm()) {
             try {
-                List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-                List<NeedDTO> needs = new ArrayList<>();
-                for (String need : selectedNeeds) {
-                    needService.getNeeds().stream()
-                            .filter(n -> n.getDescription().equals(need))
-                            .findFirst().ifPresent(needs::add);
-                }
-
-                List<VolunteerDTO> selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
-                        .map(name -> {
-                            if (name.equals("Elegir voluntarios automáticamente")) {
-                                //Por hacer(Aplicar patron)
-                                return new VolunteerDTO();
-                            }
-                            return volunteerService.getVolunteers("", new TaskDTO()).stream()
-                                    .filter(v -> v.getFirstName().equals(name))
-                                    .findFirst()
-                                    .orElse(null);
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-
-                TaskDTO newTaskDTO = new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                        needs.getFirst().getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
+                TaskDTO newTaskDTO = getTaskDTO();
                 taskService.addTask(newTaskDTO);
 
                 getConfirmationDialog().open();
@@ -140,6 +117,7 @@ public class AddTaskView extends VerticalLayout {
                     3000, Notification.Position.MIDDLE);
         }
     }
+
 
     //===============================Get Components=========================================
     private Component getPreview(){
@@ -217,9 +195,10 @@ public class AddTaskView extends VerticalLayout {
         volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
 
         // Obtener los nombres de voluntarios
-        List<String> volunteerNames = volunteerService.getVolunteers("", new TaskDTO()).stream()
+        List<String> allVolunteers = volunteerService.getVolunteers("None", new TaskDTO()).stream()
                 .map(VolunteerDTO::getFirstName)
                 .collect(Collectors.toList());
+        List<String> volunteerNames = allVolunteers;
 
 
         MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
@@ -232,21 +211,58 @@ public class AddTaskView extends VerticalLayout {
                 new Tab("Habilidades")
         );
 
+        tabs.setSelectedIndex(0);
+
         // Listener para el cambio de pestañas
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
             switch (selectedTabName) {
                 case "Todos":
-                    volunteersListBox.setItems(volunteerNames);
+                    volunteerNames.clear();
+                    volunteerService.getVolunteers("None", getTaskDTO()).forEach(v -> {
+                        volunteerNames.add(v.getFirstName());
+                    });
+                    volunteersListBox.setItems(allVolunteers);
                     break;
                 case "Distancia":
-                    volunteersListBox.setItems(volunteerNames);
+                    if(needsMultiSelectComboBox.getSelectedItems().isEmpty()){
+                        Notification.show("Por favor, seleccione una necesidad primero para poder calcular las distancias.", 3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    }else{
+                        volunteerNames.clear();
+                        volunteerService.getVolunteers("distancia", getTaskDTO()).forEach(v -> {
+                            volunteerNames.add(v.getFirstName());
+                        });
+                        volunteersListBox.setItems(volunteerNames);
+                    }
                     break;
                 case "Disponibilidad":
-                    volunteersListBox.setItems(volunteerNames);
+                    if(starDateTimePicker.isEmpty() || endDateTimePicker.isEmpty()){
+                        Notification.show("Por favor, seleccione primero una fecha de inicio y de fin de la tarea.", 3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    }else{
+                        volunteerNames.clear();
+                        volunteerService.getVolunteers("disponibilidad", getTaskDTO()).forEach(v -> {
+                            volunteerNames.add(v.getFirstName());
+                        });
+                        volunteersListBox.setItems(volunteerNames);
+                    }
                     break;
                 case "Habilidades":
-                    volunteersListBox.setItems(volunteerNames);
+                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
+                        Notification.show("Por favor, seleccione una necesidad primero para indicar el tipo de la tarea.", 3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    }else{
+                        volunteerNames.clear();
+                        volunteerService.getVolunteers("habilidades", getTaskDTO()).forEach(v -> {
+                            volunteerNames.add(v.getFirstName());
+                        });
+                        volunteersListBox.setItems(volunteerNames);
+                    }
+
                     break;
             }
         });
@@ -312,9 +328,6 @@ public class AddTaskView extends VerticalLayout {
 
         MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
         needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getTaskId()==-1).map(NeedDTO::getDescription).collect(Collectors.toList()));
-
-        // Usar el formatTaskType para mostrar los valores como strings legibles
-        //needsListBox.setItemLabelGenerator(this::formatTaskType);
 
         dialogContent.add(needsListBox);
 
@@ -393,48 +406,6 @@ public class AddTaskView extends VerticalLayout {
 
         confirmDialog.getFooter().add(addNewTaskButton, closeButton);
         return confirmDialog;
-    }
-
-
-    private String formatTaskType(TaskType TaskType) {
-        return switch (TaskType) {
-            case MEDICAL -> "Medica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            default -> "Otro";
-        };
-    }
-
-    private TaskType stringToTaskType(String formattedNeed) {
-        return switch (formattedNeed) {
-            case "Medica" -> TaskType.MEDICAL;
-            case "Policía" -> TaskType.POLICE;
-            case "Bomberos" -> TaskType.FIREFIGHTERS;
-            case "Limpieza" -> TaskType.CLEANING;
-            case "Alimentación" -> TaskType.FEED;
-            case "Psicológica" -> TaskType.PSYCHOLOGICAL;
-            case "Construcción" -> TaskType.BUILDING;
-            case "Ropa" -> TaskType.CLOTHING;
-            case "Refugio" -> TaskType.REFUGE;
-            case "Búsqueda" -> TaskType.SEARCH;
-            case "Logística" -> TaskType.LOGISTICS;
-            case "Comunicación" -> TaskType.COMMUNICATION;
-            case "Movilidad" -> TaskType.MOBILITY;
-            case "Gestión de personas" -> TaskType.PEOPLEMANAGEMENT;
-            default -> TaskType.OTHER;
-        };
     }
 
     protected String formatDate(LocalDateTime taskDate){
@@ -518,6 +489,36 @@ public class AddTaskView extends VerticalLayout {
 
     protected void updatePreviewDate(LocalDateTime date) {
         taskPreview.updateDate(formatDate(date));
+    }
+
+    private TaskDTO getTaskDTO() {
+        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+        List<NeedDTO> needs = new ArrayList<>();
+        for (String need : selectedNeeds) {
+            needService.getNeeds().stream()
+                    .filter(n -> n.getDescription().equals(need))
+                    .findFirst().ifPresent(needs::add);
+        }
+        List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
+        List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
+        selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
+                .map(name -> {
+                    if (name.equals("Elegir voluntarios automáticamente")) {
+                         for (VolunteerDTO v : volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1)) {
+                            finalSelectedVolunteers.add(v);
+                        }
+                    }
+                    return volunteerService.getVolunteers("", new TaskDTO()).stream()
+                            .filter(v -> v.getFirstName().equals(name))
+                            .findFirst()
+                            .orElse(null);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
+        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
+                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
     }
 
 }

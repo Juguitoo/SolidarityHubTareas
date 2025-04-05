@@ -21,11 +21,8 @@ public class BackendApplication {
 	public BackendApplication(TaskService taskService, NeedService needService, VolunteerService volunteerService,
 							  CatastropheService catastropheService, AffectedService affectedService, NotificationService notificationService) {
 
-
-		//notificationService.notifyEmail("javiupv10@gmail.com", "TestNotify", "Test");
-/*
-		Affected affected = affectedService.getAffectedById("12345678A");
-		Catastrophe catastrophe = catastropheService.getCatastrophe(9);
+		/*Affected affected = affectedService.getAffectedById("12345678A");
+		Catastrophe catastrophe = catastropheService.getCatastrophe(3);
 		Need need = new Need(affected, "Necesidad de bomberos", UrgencyLevel.MODERATE, TaskType.FIREFIGHTERS, new GPSCoordinates(47.8965000, -10.7025600), catastrophe);
 		Need need1 = new Need(affected, "Necesidad de policias", UrgencyLevel.MODERATE, TaskType.POLICE, new GPSCoordinates(47.8965000, -10.7025600), catastrophe);
 		Need need2 = new Need(affected, "Necesidad de gestión de personas", UrgencyLevel.MODERATE, TaskType.PEOPLEMANAGEMENT, new GPSCoordinates(47.8965000, -10.7025600), catastrophe);
