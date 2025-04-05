@@ -504,9 +504,7 @@ public class AddTaskView extends VerticalLayout {
         selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
                 .map(name -> {
                     if (name.equals("Elegir voluntarios automáticamente")) {
-                         for (VolunteerDTO v : volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1)) {
-                            finalSelectedVolunteers.add(v);
-                        }
+                        finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
                     }
                     return volunteerService.getVolunteers("", new TaskDTO()).stream()
                             .filter(v -> v.getFirstName().equals(name))

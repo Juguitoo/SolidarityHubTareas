@@ -40,13 +40,6 @@ public class TaskController {
         return ResponseEntity.ok(taskDTOList);
     }
 
-    @GetMapping("/catastrophe/{catastropheId}")
-    public ResponseEntity<?> getTasksByCatastrophe(@PathVariable Integer catastropheId) {
-        List<TaskDTO> taskDTOList = new ArrayList<>();
-        taskService.getTasksByCatastrophe(catastropheId).forEach(t -> {taskDTOList.add(new TaskDTO(t));});
-        return ResponseEntity.ok(taskDTOList);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getTask(@PathVariable Integer id) {
         if(taskService.getTaskById(id) == null) {
@@ -55,7 +48,7 @@ public class TaskController {
         return ResponseEntity.ok(new TaskDTO(taskService.getTaskById(id)));
     }
 
-    @PostMapping
+    @PostMapping("{id}")
     public ResponseEntity<?> addTask(@RequestBody TaskDTO taskDTO) {
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();

@@ -15,10 +15,4 @@ public class TaskService {
     public List<Task> getAllTasks() {return this.taskRepository.findAll();}
     public Task getTaskById(Integer id) {return this.taskRepository.findById(id).get();}
     public void deleteTask(Task task) {this.taskRepository.delete(task);}
-    public List<Task> getTasksByCatastrophe(Integer catastropheId) {
-        return this.taskRepository.findAll().stream()
-                .filter(task -> task.getCatastrophe() != null &&
-                        task.getCatastrophe().getId() == catastropheId)
-                .collect(Collectors.toList());
-    }
 }

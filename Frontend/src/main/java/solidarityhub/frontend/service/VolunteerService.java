@@ -1,6 +1,7 @@
 package solidarityhub.frontend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -44,6 +45,7 @@ public class VolunteerService {
     public List<VolunteerDTO> getVolunteers(String strategy, TaskDTO taskDTO) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
             String taskDTOParams = objectMapper.writeValueAsString(taskDTO);
             String url = baseUrl + "?strategy=" + strategy + "&" + "taskString=" + URLEncoder.encode(taskDTOParams, StandardCharsets.UTF_8);
             ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, VolunteerDTO[].class);

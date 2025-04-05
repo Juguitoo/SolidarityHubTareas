@@ -76,11 +76,12 @@ public class Volunteer extends Person {
                     }
                 } else
                     available++;
-                }
-
             }
-            return available;
+
         }
+        System.out.println(this.getFirstName() + " " + available);
+        return available;
+    }
 
     public double getDistance(TaskDTO taskDTO) {
         if (taskDTO.getNeeds().isEmpty()) {return 0.0;}
