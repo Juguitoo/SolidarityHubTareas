@@ -9,10 +9,14 @@ import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.enums.DayMoment;
 import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.backend.model.enums.WeekDay;
+import solidarityhub.backend.repository.VolunteerRepository;
+import solidarityhub.backend.service.CoordinatesService;
+import solidarityhub.backend.service.VolunteerService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -84,13 +88,17 @@ public class Volunteer extends Person {
     }
 
     public double getDistance(TaskDTO taskDTO) {
-        if (taskDTO.getNeeds().isEmpty()) {return 0.0;}
+        if(this.getLocation() == null) {
+            return 0.0;
+        }
+
         double totalLatitude = 0.0;
         double totalLongitude = 0.0;
         for (NeedDTO need : taskDTO.getNeeds()) {
             totalLongitude += need.getLocation().getLongitude();
             totalLatitude += need.getLocation().getLatitude();
         }
+
         double averageLatitude = totalLatitude / taskDTO.getNeeds().size();
         double averageLongitude = totalLongitude / taskDTO.getNeeds().size();
 
