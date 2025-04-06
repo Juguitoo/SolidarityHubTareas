@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class TaskService {
@@ -28,7 +29,7 @@ public class TaskService {
 
     public TaskService() {
         this.restTemplate = new RestTemplate();
-        this.baseUrl = "http://localhost:8082/tasks";
+        this.baseUrl = "http://localhost:8082/solidarityhub/tasks";
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.taskCache = new ArrayList<>();
@@ -37,7 +38,7 @@ public class TaskService {
     //CRUD METHODS
     public void addTask(TaskDTO taskDTO) {
         restTemplate.postForEntity(baseUrl, taskDTO, TaskDTO.class);
-        taskCache.add(taskDTO);
+        taskCache.clear();
     }
 
     public void updateTask(int id, TaskDTO taskDTO) {
@@ -59,7 +60,7 @@ public class TaskService {
                 ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, TaskDTO[].class);
                 TaskDTO[] tasks = response.getBody();
                 if (tasks != null) {
-                    taskCache = List.of(tasks);
+                    taskCache = new ArrayList<>(List.of(tasks));
                 } else {
                     taskCache = new ArrayList<>();
                 }

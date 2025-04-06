@@ -20,7 +20,7 @@ public class VolunteerService {
 
     public VolunteerService() {
         this.restTemplate = new RestTemplate();
-        this.baseUrl = "http://localhost:8082/volunteers";
+        this.baseUrl = "http://localhost:8082/solidarityhub/volunteers";
     }
 
     //CRUD METHODS

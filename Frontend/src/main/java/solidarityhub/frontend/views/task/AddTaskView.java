@@ -401,7 +401,7 @@ public class AddTaskView extends VerticalLayout {
 
         Button closeButton = new Button("Salir", e -> {
             confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate(""));
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
         });
 
         confirmDialog.getFooter().add(addNewTaskButton, closeButton);

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tasks")
+@RequestMapping("/solidarityhub/tasks")
 public class TaskController {
     private final TaskService taskService;
     private final VolunteerService volunteerService;
@@ -48,7 +48,7 @@ public class TaskController {
         return ResponseEntity.ok(new TaskDTO(taskService.getTaskById(id)));
     }
 
-    @PostMapping("{id}")
+    @PostMapping
     public ResponseEntity<?> addTask(@RequestBody TaskDTO taskDTO) {
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();

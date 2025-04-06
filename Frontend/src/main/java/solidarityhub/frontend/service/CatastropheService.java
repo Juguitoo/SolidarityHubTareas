@@ -21,7 +21,7 @@ import java.util.List;
 public class CatastropheService {
 
     private final RestTemplate restTemplate;
-    private final String baseUrl = "http://localhost:8082/catastrophes";
+    private final String baseUrl = "http://localhost:8082/solidarityhub/catastrophes";
 
     public CatastropheService() {
         this.restTemplate = new RestTemplate();

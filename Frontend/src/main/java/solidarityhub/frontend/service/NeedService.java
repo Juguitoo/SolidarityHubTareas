@@ -18,7 +18,7 @@ public class NeedService {
 
     public NeedService() {
         this.restTemplate = new RestTemplate();
-        this.baseUrl = "http://localhost:8082/needs";
+        this.baseUrl = "http://localhost:8082/solidarityhub/needs";
     }
 
     //CRUD METHODS
