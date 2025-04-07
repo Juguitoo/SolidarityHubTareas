@@ -3,7 +3,6 @@ package solidarityhub.frontend.views.task;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +97,7 @@ public class AddTaskView extends VerticalLayout {
         add(
             header,
             getPreview(),
-            getAddTaskForms(),
+            getForms(),
             getButtons()
         );
     }
@@ -165,7 +164,7 @@ public class AddTaskView extends VerticalLayout {
         return preview;
     }
 
-    private Component getAddTaskForms(){
+    private Component getForms(){
         FormLayout addTaskForm = new FormLayout();
         addTaskForm.addClassName("addTaskForm");
 
@@ -200,6 +199,7 @@ public class AddTaskView extends VerticalLayout {
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
 
+        //Update endDateTimePicker min value when startDateTimePicker changes
         starDateTimePicker.addValueChangeListener(event -> {
             LocalDateTime startValue = null;
             try {
@@ -235,6 +235,7 @@ public class AddTaskView extends VerticalLayout {
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
         volunteerMultiSelectComboBox.setRequired(true);
         volunteerMultiSelectComboBox.setHelperText("Los voluntarios no se podrán modificar una vez creada la tarea");
+        volunteerMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
         Dialog selectVolunteersDialog = getVolunteersDialogContent();
         volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> selectVolunteersDialog.open());
@@ -369,6 +370,7 @@ public class AddTaskView extends VerticalLayout {
         needsMultiSelectComboBox.setRequiredIndicatorVisible(true);
         needsMultiSelectComboBox.setRequired(true);
         needsMultiSelectComboBox.setHelperText("Las necesidades no se podrán modificar una vez creada la tarea");
+        needsMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
         Dialog selectNeedsDialog = getNeedsDialogContent();
         needsMultiSelectComboBox.getElement().addEventListener("click", e -> selectNeedsDialog.open());
@@ -406,7 +408,7 @@ public class AddTaskView extends VerticalLayout {
         );
 
         Span infoText = new Span("Al seleccionar una necesidad, solo podrá elegir necesidades adicionales del mismo tipo.");
-        infoText.addClassName("needsDialog__infoText");
+        infoText.addClassName("needsDialog--infoText");
 
         dialogContent.add(infoText, needsListBox);
 
