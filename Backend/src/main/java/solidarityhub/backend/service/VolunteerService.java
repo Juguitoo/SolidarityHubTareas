@@ -6,12 +6,14 @@ import solidarityhub.backend.model.strategy.*;
 import solidarityhub.backend.repository.VolunteerRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VolunteerService {
     private final VolunteerRepository volunteerRepository;
-    private VolunteerAssigner volunteerAssigner;
+    private final VolunteerAssigner volunteerAssigner;
 
     public VolunteerService(VolunteerRepository volunteerRepository) {
         this.volunteerRepository = volunteerRepository;
@@ -25,7 +27,22 @@ public class VolunteerService {
         return volunteerRepository.findById(volunteerId).get();
     }
 
-    public List<Volunteer> getAllVolunteers() {return volunteerRepository.findAll();}
+    public List<Volunteer> getAllVolunteers() {
+        CoordinatesService coordinatesService = new CoordinatesService();
+        List<Volunteer> volunteersWithCoords = new ArrayList<>();
+        List<Volunteer> volunteers = volunteerRepository.findAll();
+        volunteers.forEach(v -> {
+            if(v.getLocation() == null){
+                Map<String, Double> coordinatesMap = coordinatesService.getCoordinates(v.getHomeAddress());
+                if(coordinatesMap.get("lat") != null && coordinatesMap.get("lon") != null) {
+                    v.setLocation(new GPSCoordinates(coordinatesMap.get("lat"), coordinatesMap.get("lon")));
+                }
+                saveVolunteer(v);
+            }
+            volunteersWithCoords.add(v);
+        });
+        return volunteersWithCoords;
+    }
 
     public List<Volunteer> getVolunteersByStrategy(String strategy, TaskDTO taskDTO) {
 

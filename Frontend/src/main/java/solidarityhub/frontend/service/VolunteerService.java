@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.Volunteer;
@@ -14,10 +12,7 @@ import solidarityhub.frontend.model.Volunteer;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class VolunteerService {
     private final RestTemplate restTemplate;
@@ -25,7 +20,7 @@ public class VolunteerService {
 
     public VolunteerService() {
         this.restTemplate = new RestTemplate();
-        this.baseUrl = "http://localhost:8082/volunteers";
+        this.baseUrl = "http://localhost:8082/solidarityhub/volunteers";
     }
 
     //CRUD METHODS
@@ -86,34 +81,4 @@ public class VolunteerService {
         }
         return volunteers;
     }
-/*
-    private String convertToQueryTaskDTO(TaskDTO taskDTO) {
-        Map<String, String> params = Map.of(
-                "id", taskDTO.getId() + "",
-                "type", taskDTO.getType().toString(),
-                "startTimeDate", taskDTO.getStartTimeDate().toString(),
-                "estimatedEndTimeDate", taskDTO.getEstimatedEndTimeDate().toString());
-        for (NeedDTO need : taskDTO.getNeeds()) {
-            params.put("needs", need.toString());
-        }
-
-        return params.entrySet().stream()
-                .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
-                .collect(Collectors.joining("&"));
-    }
-
-    private String convertToQueryNeedDTO(List<NeedDTO> needDTOs){
-        Map<String, String> params = new HashMap<>();
-        for (NeedDTO needDTO : needDTOs) {
-            params.put( needDTO.getId() + "",
-                    "latitude", needDTO.getLocation().getLatitude() + "",
-                    "longitude", needDTO.getLocation().getLongitude() + ""));
-        }
-
-        return params.entrySet().stream()
-                .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
-                .collect(Collectors.joining("&"));
-    }
-
- */
 }

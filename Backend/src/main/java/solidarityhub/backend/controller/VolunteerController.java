@@ -17,7 +17,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/volunteers")
+@RequestMapping("/solidarityhub/volunteers")
 public class VolunteerController {
     private final VolunteerService volunteerService;
 

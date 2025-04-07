@@ -1,13 +1,12 @@
 package solidarityhub.frontend.service;
 
-import solidarityhub.frontend.dto.CatastropheDTO;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.model.Catastrophe;
 import solidarityhub.frontend.model.GPSCoordinates;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
@@ -22,7 +21,7 @@ import java.util.List;
 public class CatastropheService {
 
     private final RestTemplate restTemplate;
-    private final String baseUrl = "http://localhost:8082/catastrophes";
+    private final String baseUrl = "http://localhost:8082/solidarityhub/catastrophes";
 
     public CatastropheService() {
         this.restTemplate = new RestTemplate();

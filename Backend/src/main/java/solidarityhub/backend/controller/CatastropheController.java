@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/catastrophes")
+@RequestMapping("/solidarityhub/catastrophes")
 public class CatastropheController {
     private final CatastropheService catastropheService;
 
