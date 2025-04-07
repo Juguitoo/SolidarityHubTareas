@@ -50,15 +50,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         this.taskService = taskService;
         addClassName("tasks-container");
 
-        // Añadir estilos para el arrastre de tareas
-        getElement().executeJs(
-                "const style = document.createElement('style');" +
-                        "style.textContent = `" +
-                        ".v-dragged { opacity: 0.6; transform: scale(0.95); }\\n" +
-                        ".v-drag-over-target { background-color: var(--lumo-contrast-10pct); }\\n" +
-                        "`;" +
-                        "document.head.appendChild(style);"
-        );
+
+
 
         beforeEnter(null);
     }
@@ -228,17 +221,25 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void configureDropTarget(VerticalLayout layout, Status newStatus) {
-        // Configurar el layout como destino de soltar según la documentación de Vaadin
         DropTarget<VerticalLayout> dropTarget = DropTarget.create(layout);
-
-        // Establecer el efecto como "mover"
         dropTarget.setDropEffect(DropEffect.MOVE);
 
-        // Añadir el listener para el evento de soltar
         dropTarget.addDropListener(event -> {
             if (event.getDragData().isPresent() && event.getDragData().get() instanceof Integer) {
                 int taskId = (Integer) event.getDragData().get();
-                updateTaskStatus(taskId, newStatus);
+
+                try {
+                    TaskDTO task = taskService.getTaskById(taskId);
+
+                    // Solo actualizar si el estado actual es diferente del nuevo estado
+                    if (task != null && task.getStatus() != newStatus) {
+                        updateTaskStatus(taskId, newStatus);
+                    }
+                } catch (Exception e) {
+                    Notification.show("Error al verificar el estado de la tarea: " + e.getMessage(),
+                                    3000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
             }
         });
     }
@@ -247,8 +248,12 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         try {
             TaskDTO originalTask = taskService.getTaskById(taskId);
             if (originalTask != null) {
+                // Verificar si el estado actual es el mismo que el nuevo estado
+                if (originalTask.getStatus() == newStatus) {
+                    return; // No hacer nada si el estado no ha cambiado
+                }
+
                 // Crear un nuevo TaskDTO con el estado actualizado
-                // usando el constructor completo de TaskDTO
                 TaskDTO updatedTask = new TaskDTO(
                         originalTask.getName(),
                         originalTask.getDescription(),
@@ -271,7 +276,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                 String statusText = newStatus == Status.TO_DO ? "Por hacer" :
                         newStatus == Status.IN_PROGRESS ? "En proceso" : "Terminada";
                 Notification.show("Tarea '" + originalTask.getName() + "' movida a " + statusText,
-                                2000, Notification.Position.BOTTOM_END)
+                                3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                 // Reconstruir la vista para reflejar los cambios

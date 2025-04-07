@@ -91,7 +91,14 @@
     }
 }
 
+.v-dragged {
+    opacity: 0.6;
+    transform: scale(0.95);
+}
 
+.v-drag-over-target {
+    background-color: var(--lumo-contrast-10pct);
+}
 
 /* Responsive design */
 @media (max-width: 768px) {
