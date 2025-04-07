@@ -93,7 +93,7 @@ public class CatastropheService {
     public List<CatastropheDTO> getExampleCatastrophes() {
         List<CatastropheDTO> exampleCatastrophes = new ArrayList<>();
 
-        Catastrophe expampleCatastrophe = new Catastrophe(
+        Catastrophe exampleCatastrophe = new Catastrophe(
                 "Catástrofe de ejemplo",
                 "Descripción de la catástrofe de ejemplo",
                 new GPSCoordinates(0.0, 0.0),
@@ -101,7 +101,7 @@ public class CatastropheService {
                 EmergencyLevel.HIGH
         );
 
-        exampleCatastrophes.add(new CatastropheDTO(expampleCatastrophe));
+        exampleCatastrophes.add(new CatastropheDTO(exampleCatastrophe));
 
         return exampleCatastrophes;
     }

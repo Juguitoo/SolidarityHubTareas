@@ -2,12 +2,17 @@ package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.dnd.DropTarget;
+import com.vaadin.flow.component.dnd.DragSource;
+import com.vaadin.flow.component.dnd.DropEffect;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
+import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
@@ -36,10 +41,25 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private final TaskService taskService;
     private CatastropheDTO selectedCatastrophe;
 
+    private VerticalLayout toDoLayout;
+    private VerticalLayout inProgressLayout;
+    private VerticalLayout doneLayout;
+
     @Autowired
     public TaskView(TaskService taskService) {
         this.taskService = taskService;
         addClassName("tasks-container");
+
+        // Añadir estilos para el arrastre de tareas
+        getElement().executeJs(
+                "const style = document.createElement('style');" +
+                        "style.textContent = `" +
+                        ".v-dragged { opacity: 0.6; transform: scale(0.95); }\\n" +
+                        ".v-drag-over-target { background-color: var(--lumo-contrast-10pct); }\\n" +
+                        "`;" +
+                        "document.head.appendChild(style);"
+        );
+
         beforeEnter(null);
     }
 
@@ -53,7 +73,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             Notification.show("Por favor, selecciona una catástrofe primero",
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            event.forwardTo(CatastropheSelectionView.class);
+            if (event != null) {
+                event.forwardTo(CatastropheSelectionView.class);
+            }
             return;
         }
 
@@ -78,10 +100,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         moreTasks.addClassName("more-tasks-button");
 
         add(
-            title,
-            getTasks(),
-            moreTasks,
-            addTask
+                title,
+                getTasks(),
+                moreTasks,
+                addTask
         );
     }
 
@@ -98,85 +120,168 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private Component getToDoTasks() {
-        VerticalLayout toDoTasksLayout = new VerticalLayout();
-        toDoTasksLayout.addClassName("task-section");
+        toDoLayout = new VerticalLayout();
+        toDoLayout.addClassName("task-section");
 
         H3 todoTitle = new H3("Por hacer");
         todoTitle.addClassName("section-title");
-        toDoTasksLayout.add(todoTitle);
+        toDoLayout.add(todoTitle);
 
         List<TaskComponent> toDoTasks;
 
         try {
-            toDoTasks = taskService.getToDoTasks(3).stream()
-                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), formatEmergencyLevel(task.getEmergencyLevel())))
+            toDoTasks = taskService.getToDoTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
+                    .map(task -> createDraggableTaskComponent(task))
                     .toList();
 
             if (toDoTasks.isEmpty()) {
-                toDoTasksLayout.add(new Span("No hay tareas pendientes para esta catástrofe."));
+                toDoLayout.add(new Span("No hay tareas pendientes para esta catástrofe."));
             } else {
-                toDoTasks.forEach(toDoTasksLayout::add);
+                toDoTasks.forEach(toDoLayout::add);
             }
         } catch (Exception e) {
-            toDoTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            toDoLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
         }
 
-        return toDoTasksLayout;
+        // Configurar como drop target
+        configureDropTarget(toDoLayout, Status.TO_DO);
+
+        return toDoLayout;
     }
 
     private Component getDoingTasks() {
-        VerticalLayout doingTasksLayout = new VerticalLayout();
-        doingTasksLayout.addClassName("task-section");
+        inProgressLayout = new VerticalLayout();
+        inProgressLayout.addClassName("task-section");
 
         H3 doingTitle = new H3("En proceso");
         doingTitle.addClassName("section-title");
-        doingTasksLayout.add(doingTitle);
+        inProgressLayout.add(doingTitle);
 
         List<TaskComponent> doingTasks;
 
         try {
-            // Obtener las tareas filtradas por la catástrofe seleccionada
-            doingTasks = taskService.getDoingTasksByCatastrophe(selectedCatastrophe.getId(),3).stream()
-                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+            doingTasks = taskService.getDoingTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
+                    .map(task -> createDraggableTaskComponent(task))
                     .toList();
 
             if (doingTasks.isEmpty()) {
-                doingTasksLayout.add(new Span("No hay tareas en proceso para esta catástrofe."));
+                inProgressLayout.add(new Span("No hay tareas en proceso para esta catástrofe."));
             } else {
-                doingTasks.forEach(doingTasksLayout::add);
+                doingTasks.forEach(inProgressLayout::add);
             }
         } catch (Exception e) {
-            doingTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            inProgressLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
         }
 
-        return doingTasksLayout;
+        // Configurar como drop target
+        configureDropTarget(inProgressLayout, Status.IN_PROGRESS);
+
+        return inProgressLayout;
     }
 
     private Component getDoneTasks() {
-        VerticalLayout doneTasksLayout = new VerticalLayout();
-        doneTasksLayout.addClassName("task-section");
+        doneLayout = new VerticalLayout();
+        doneLayout.addClassName("task-section");
 
         H3 doneTitle = new H3("Terminadas");
         doneTitle.addClassName("section-title");
-        doneTasksLayout.add(doneTitle);
+        doneLayout.add(doneTitle);
 
         List<TaskComponent> doneTasks;
         try {
-            // Obtener las tareas filtradas por la catástrofe seleccionada
-            doneTasks = taskService.getDoneTasksByCatastrophe(selectedCatastrophe.getId(),3).stream()
-                    .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), "high"))
+            doneTasks = taskService.getDoneTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
+                    .map(task -> createDraggableTaskComponent(task))
                     .toList();
 
             if (doneTasks.isEmpty()) {
-                doneTasksLayout.add(new Span("No hay tareas terminadas para esta catástrofe."));
+                doneLayout.add(new Span("No hay tareas terminadas para esta catástrofe."));
             } else {
-                doneTasks.forEach(doneTasksLayout::add);
+                doneTasks.forEach(doneLayout::add);
             }
         } catch (Exception e) {
-            doneTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            doneLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
         }
 
-        return doneTasksLayout;
+        // Configurar como drop target
+        configureDropTarget(doneLayout, Status.FINISHED);
+
+        return doneLayout;
+    }
+
+    private TaskComponent createDraggableTaskComponent(TaskDTO task) {
+        TaskComponent taskComponent = new TaskComponent(
+                task.getId(),
+                task.getName(),
+                task.getDescription(),
+                formatDate(task.getStartTimeDate()),
+                task.getPriority().toString(),
+                formatEmergencyLevel(task.getEmergencyLevel())
+        );
+
+        // Configurar el componente como origen de arrastre según la documentación de Vaadin
+        DragSource<TaskComponent> dragSource = DragSource.create(taskComponent);
+
+        // Asociar los datos de la tarea para acceder a ellos al soltar
+        dragSource.setDragData(task.getId());
+
+        return taskComponent;
+    }
+
+    private void configureDropTarget(VerticalLayout layout, Status newStatus) {
+        // Configurar el layout como destino de soltar según la documentación de Vaadin
+        DropTarget<VerticalLayout> dropTarget = DropTarget.create(layout);
+
+        // Establecer el efecto como "mover"
+        dropTarget.setDropEffect(DropEffect.MOVE);
+
+        // Añadir el listener para el evento de soltar
+        dropTarget.addDropListener(event -> {
+            if (event.getDragData().isPresent() && event.getDragData().get() instanceof Integer) {
+                int taskId = (Integer) event.getDragData().get();
+                updateTaskStatus(taskId, newStatus);
+            }
+        });
+    }
+
+    private void updateTaskStatus(int taskId, Status newStatus) {
+        try {
+            TaskDTO originalTask = taskService.getTaskById(taskId);
+            if (originalTask != null) {
+                // Crear un nuevo TaskDTO con el estado actualizado
+                // usando el constructor completo de TaskDTO
+                TaskDTO updatedTask = new TaskDTO(
+                        originalTask.getName(),
+                        originalTask.getDescription(),
+                        originalTask.getStartTimeDate(),
+                        originalTask.getEstimatedEndTimeDate(),
+                        originalTask.getType(),
+                        originalTask.getPriority(),
+                        originalTask.getEmergencyLevel(),
+                        newStatus, // Aquí actualizamos el estado
+                        originalTask.getNeeds(),
+                        originalTask.getVolunteers(),
+                        originalTask.getCatastropheId()
+                );
+
+                // Actualizar la tarea en el servicio
+                taskService.updateTask(taskId, updatedTask);
+                taskService.clearCache(); // Limpiar caché para forzar recarga
+
+                // Mostrar notificación
+                String statusText = newStatus == Status.TO_DO ? "Por hacer" :
+                        newStatus == Status.IN_PROGRESS ? "En proceso" : "Terminada";
+                Notification.show("Tarea '" + originalTask.getName() + "' movida a " + statusText,
+                                2000, Notification.Position.BOTTOM_END)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+                // Reconstruir la vista para reflejar los cambios
+                buildView();
+            }
+        } catch (Exception e) {
+            Notification.show("Error al actualizar la tarea: " + e.getMessage(),
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     private String formatDate(LocalDateTime taskDate) {

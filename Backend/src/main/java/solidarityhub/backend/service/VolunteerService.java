@@ -24,7 +24,7 @@ public class VolunteerService {
     }
 
     public Volunteer getVolunteer(String volunteerId) {
-        return volunteerRepository.findById(volunteerId).get();
+        return volunteerRepository.findById(volunteerId).orElse(null);
     }
 
     public List<Volunteer> getAllVolunteers() {
