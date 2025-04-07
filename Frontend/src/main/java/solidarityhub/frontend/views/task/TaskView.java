@@ -108,7 +108,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         List<TaskComponent> toDoTasks;
 
         try {
-            toDoTasks = taskService.getToDoTasksByCatastrophe( selectedCatastrophe.getId(), 3).stream()
+            toDoTasks = taskService.getToDoTasks(3).stream()
                     .map(task -> new TaskComponent(task.getId(), task.getName(), task.getDescription(), formatDate(task.getStartTimeDate()), task.getPriority().toString(), formatEmergencyLevel(task.getEmergencyLevel())))
                     .toList();
 

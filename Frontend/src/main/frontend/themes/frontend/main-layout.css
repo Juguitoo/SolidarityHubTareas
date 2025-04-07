@@ -14,13 +14,15 @@
   --nav-item-height: 44px;
 }
 /* Asegurar que la transición del ancho sea fluida */
-vaadin-app-layout::part(drawer) {
-  transition: width var(--transition-duration) var(--transition-easing);
+vaadin-app-layout::part(content) {
+  margin-left: var(--drawer-width);
+  transition: margin-left var(--transition-duration) var(--transition-easing);
 }
+
 /* Ocultar el toggle del drawer */
 [part="navbar"] [slot="navbar"] vaadin-drawer-toggle,
 .drawer-toggle {
-  display: none !important;
+  display: none;
 }
 
 /* Transición para el contenido de la aplicación */
@@ -179,6 +181,10 @@ vaadin-app-layout::part(drawer) {
 }
 
 /* Estado minimizado */
+.drawer-minimized ~ [part="content"] {
+  margin-left: var(--drawer-minimized-width);
+}
+
 .drawer-minimized {
   --_vaadin-app-layout-drawer-width: var(--drawer-minimized-width);
   width: var(--drawer-minimized-width) !important;
@@ -237,6 +243,7 @@ vaadin-app-layout::part(drawer) {
   margin-left: 5px;
   animation: fadeIn 0.2s;
 }
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

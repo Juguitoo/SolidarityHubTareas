@@ -8,3 +8,19 @@
 .addTaskForm{
     padding: 0 50px;
 }
+
+.needContent{
+    gap: 6px;
+}
+
+.needContent--description{
+    font-size: 1.1em;
+}
+
+.needContent--type{
+    background-color: #DADFE4;
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+    font-size: 0.8em;
+}

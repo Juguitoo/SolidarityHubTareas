@@ -1,7 +1,10 @@
 package solidarityhub.frontend.views.task;
 
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
@@ -118,6 +121,33 @@ public class AddTaskView extends VerticalLayout {
         }
     }
 
+    private TaskDTO getTaskDTO() {
+        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+        List<NeedDTO> needs = new ArrayList<>();
+        for (String need : selectedNeeds) {
+            needService.getNeeds().stream()
+                    .filter(n -> n.getDescription().equals(need))
+                    .findFirst().ifPresent(needs::add);
+        }
+        List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
+        List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
+        selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
+                .map(name -> {
+                    if (name.equals("Elegir voluntarios automáticamente")) {
+                        finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
+                    }
+                    return volunteerService.getVolunteers("", new TaskDTO()).stream()
+                            .filter(v -> v.getFirstName().equals(name))
+                            .findFirst()
+                            .orElse(null);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
+        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
+                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
+    }
 
     //===============================Get Components=========================================
     private Component getPreview(){
@@ -159,7 +189,28 @@ public class AddTaskView extends VerticalLayout {
         taskEmergency.setRequired(true);
 
         starDateTimePicker.setRequiredIndicatorVisible(true);
+        starDateTimePicker.setMin(LocalDateTime.now());
+        starDateTimePicker.setDatePickerI18n(
+                new DatePicker.DatePickerI18n().setFirstDayOfWeek(1)
+        );
+
         endDateTimePicker.setRequiredIndicatorVisible(true);
+        endDateTimePicker.setMin(starDateTimePicker.getValue());
+        endDateTimePicker.setDatePickerI18n(
+                new DatePicker.DatePickerI18n().setFirstDayOfWeek(1)
+        );
+        endDateTimePicker.setHelperText("La fehca debe ser posterior a la fecha de comienzo");
+
+        starDateTimePicker.addValueChangeListener(event -> {
+            LocalDateTime startValue = event.getValue();
+            if (startValue != null) {
+                endDateTimePicker.setMin(startValue);
+
+                if (endDateTimePicker.getValue().isBefore(startValue)) {
+                    endDateTimePicker.setValue(null);
+                }
+            }
+        });
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
 
@@ -198,11 +249,10 @@ public class AddTaskView extends VerticalLayout {
         List<String> allVolunteers = volunteerService.getVolunteers("None", new TaskDTO()).stream()
                 .map(VolunteerDTO::getFirstName)
                 .collect(Collectors.toList());
-        List<String> volunteerNames = allVolunteers;
 
 
         MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
-        volunteersListBox.setItems(volunteerNames);
+        volunteersListBox.setItems(allVolunteers);
 
         Tabs tabs = new Tabs(
                 new Tab("Todos"),
@@ -218,9 +268,9 @@ public class AddTaskView extends VerticalLayout {
             String selectedTabName = tabs.getSelectedTab().getLabel();
             switch (selectedTabName) {
                 case "Todos":
-                    volunteerNames.clear();
+                    allVolunteers.clear();
                     volunteerService.getVolunteers("None", getTaskDTO()).forEach(v -> {
-                        volunteerNames.add(v.getFirstName());
+                        allVolunteers.add(v.getFirstName());
                     });
                     volunteersListBox.setItems(allVolunteers);
                     break;
@@ -230,11 +280,11 @@ public class AddTaskView extends VerticalLayout {
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
                     }else{
-                        volunteerNames.clear();
+                        allVolunteers.clear();
                         volunteerService.getVolunteers("distancia", getTaskDTO()).forEach(v -> {
-                            volunteerNames.add(v.getFirstName());
+                            allVolunteers.add(v.getFirstName());
                         });
-                        volunteersListBox.setItems(volunteerNames);
+                        volunteersListBox.setItems(allVolunteers);
                     }
                     break;
                 case "Disponibilidad":
@@ -243,11 +293,11 @@ public class AddTaskView extends VerticalLayout {
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
                     }else{
-                        volunteerNames.clear();
+                        allVolunteers.clear();
                         volunteerService.getVolunteers("disponibilidad", getTaskDTO()).forEach(v -> {
-                            volunteerNames.add(v.getFirstName());
+                            allVolunteers.add(v.getFirstName());
                         });
-                        volunteersListBox.setItems(volunteerNames);
+                        volunteersListBox.setItems(allVolunteers);
                     }
                     break;
                 case "Habilidades":
@@ -256,11 +306,11 @@ public class AddTaskView extends VerticalLayout {
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
                     }else{
-                        volunteerNames.clear();
+                        allVolunteers.clear();
                         volunteerService.getVolunteers("habilidades", getTaskDTO()).forEach(v -> {
-                            volunteerNames.add(v.getFirstName());
+                            allVolunteers.add(v.getFirstName());
                         });
-                        volunteersListBox.setItems(volunteerNames);
+                        volunteersListBox.setItems(allVolunteers);
                     }
 
                     break;
@@ -325,24 +375,56 @@ public class AddTaskView extends VerticalLayout {
         needsDialog.setHeaderTitle("Seleccione las necesidades a cubrir");
 
         VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
 
-        MultiSelectListBox<String> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getTaskId()==-1).map(NeedDTO::getDescription).collect(Collectors.toList()));
+        MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
+        List<NeedDTO> allNeeds = needService.getNeeds();
+        ListDataProvider<NeedDTO> dataProvider = new ListDataProvider<>(allNeeds);
+        needsListBox.setDataProvider(dataProvider);
+        needsListBox.setRenderer(
+                new ComponentRenderer<>(need -> {
+                    VerticalLayout needContent = new VerticalLayout();
+                    needContent.addClassName("needContent");
+
+                    Span needDescription = new Span(need.getDescription());
+                    needDescription.addClassName("needContent--description");
+                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    needType.addClassName("needContent--type");
+
+                    needContent.add(needDescription, needType);
+                    needContent.setPadding(false);
+                    needContent.setSpacing(false);
+
+                    return needContent;
+                })
+        );
 
         dialogContent.add(needsListBox);
+// POR HACER
+//        needsListBox.addValueChangeListener(event -> {
+//            Set<NeedDTO> selectedNeeds = event.getValue();
+//            if (!selectedNeeds.isEmpty()) {
+//                TaskType selectedType = selectedNeeds.iterator().next().getTaskType();
+//                dataProvider.setFilter(need -> need.getTaskType() == selectedType || selectedNeeds.contains(need));
+//            } else {
+//                dataProvider.clearFilters();
+//            }
+//        });
 
         // Footer
         Button saveButton = new Button("Guardar", e -> {
+            Set<String> selectedNeedDescriptions = needsListBox.getSelectedItems().stream()
+                    .map(NeedDTO::getDescription)
+                    .collect(Collectors.toSet());
+
             needsMultiSelectComboBox.clear();
-            Set<String> selectedNeeds = needsListBox.getSelectedItems();
-            needsMultiSelectComboBox.setItems(selectedNeeds);
-            needsMultiSelectComboBox.select(selectedNeeds);
+            needsMultiSelectComboBox.setItems(selectedNeedDescriptions);
+            needsMultiSelectComboBox.select(selectedNeedDescriptions);
             needsDialog.close();
         });
-
         Button cancelButton = new Button("Cancelar", e -> needsDialog.close());
-
         needsDialog.getFooter().add(cancelButton, saveButton);
+
         needsDialog.add(dialogContent);
 
         return needsDialog;
@@ -401,7 +483,7 @@ public class AddTaskView extends VerticalLayout {
 
         Button closeButton = new Button("Salir", e -> {
             confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate(""));
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
         });
 
         confirmDialog.getFooter().add(addNewTaskButton, closeButton);
@@ -491,32 +573,29 @@ public class AddTaskView extends VerticalLayout {
         taskPreview.updateDate(formatDate(date));
     }
 
-    private TaskDTO getTaskDTO() {
-        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-        List<NeedDTO> needs = new ArrayList<>();
-        for (String need : selectedNeeds) {
-            needService.getNeeds().stream()
-                    .filter(n -> n.getDescription().equals(need))
-                    .findFirst().ifPresent(needs::add);
+
+    private String formatTaskType(TaskType taskType) {
+        if (taskType == null) {
+            return "No especificado";
         }
-        List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
-        List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
-        selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
-                .map(name -> {
-                    if (name.equals("Elegir voluntarios automáticamente")) {
-                        finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
-                    }
-                    return volunteerService.getVolunteers("", new TaskDTO()).stream()
-                            .filter(v -> v.getFirstName().equals(name))
-                            .findFirst()
-                            .orElse(null);
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
 
-        TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
-        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
+        return switch (taskType) {
+            case MEDICAL -> "Medica";
+            case POLICE -> "Policía";
+            case FIREFIGHTERS -> "Bomberos";
+            case CLEANING -> "Limpieza";
+            case FEED -> "Alimentación";
+            case PSYCHOLOGICAL -> "Psicológica";
+            case BUILDING -> "Construcción";
+            case CLOTHING -> "Ropa";
+            case REFUGE -> "Refugio";
+            case OTHER -> "Otra";
+            case SEARCH -> "Búsqueda";
+            case LOGISTICS -> "Logística";
+            case COMMUNICATION -> "Comunicación";
+            case MOBILITY -> "Movilidad";
+            case PEOPLEMANAGEMENT -> "Gestión de personas";
+            default -> "Otro";
+        };
     }
-
 }

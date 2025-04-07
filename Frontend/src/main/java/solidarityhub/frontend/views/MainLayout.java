@@ -149,7 +149,10 @@ public class MainLayout extends AppLayout {
 
             // Luego colapsar el drawer
             drawerContent.getElement().setAttribute("class", "drawer-content drawer-minimized");
-            getElement().executeJs("document.documentElement.style.setProperty('--drawer-width', '55px');");
+            getElement().executeJs(
+                    "document.documentElement.style.setProperty('--drawer-width', '55px');" +
+                            "document.querySelector('vaadin-app-layout::part(content)').style.marginLeft = '55px';"
+            );
 
             // Ocultar nombre de la app
             appName.setVisible(false);
@@ -165,7 +168,10 @@ public class MainLayout extends AppLayout {
         } else {
             // Expandir el drawer
             drawerContent.getElement().setAttribute("class", "drawer-content");
-            getElement().executeJs("document.documentElement.style.setProperty('--drawer-width', '260px');");
+            getElement().executeJs(
+                    "document.documentElement.style.setProperty('--drawer-width', '260px');" +
+                            "document.querySelector('vaadin-app-layout::part(content)').style.marginLeft = '260px';"
+            );
 
             // Mostrar nombre de la app
             appName.setVisible(true);
