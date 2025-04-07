@@ -191,29 +191,33 @@ public class AddTaskView extends VerticalLayout {
 
         starDateTimePicker.setRequiredIndicatorVisible(true);
         starDateTimePicker.setMin(LocalDateTime.now());
-        starDateTimePicker.setDatePickerI18n(
-                new DatePicker.DatePickerI18n().setFirstDayOfWeek(1)
-        );
+        starDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
 
         endDateTimePicker.setRequiredIndicatorVisible(true);
-        endDateTimePicker.setMin(starDateTimePicker.getValue());
-        endDateTimePicker.setDatePickerI18n(
-                new DatePicker.DatePickerI18n().setFirstDayOfWeek(1)
-        );
-        endDateTimePicker.setHelperText("La fehca debe ser posterior a la fecha de comienzo");
-
-        starDateTimePicker.addValueChangeListener(event -> {
-            LocalDateTime startValue = event.getValue();
-            if (startValue != null) {
-                endDateTimePicker.setMin(startValue);
-
-                if (endDateTimePicker.getValue().isBefore(startValue)) {
-                    endDateTimePicker.setValue(null);
-                }
-            }
-        });
+        endDateTimePicker.setMin(LocalDateTime.now().plusHours(1));
+        endDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        endDateTimePicker.setHelperText("La fecha debe ser posterior a la fecha de comienzo");
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
+
+        starDateTimePicker.addValueChangeListener(event -> {
+            LocalDateTime startValue = null;
+            try {
+                startValue = event.getValue();
+                if (startValue != null) {
+                    endDateTimePicker.setMin(startValue);
+
+                    if (endDateTimePicker.getValue() != null &&
+                            endDateTimePicker.getValue().isBefore(startValue)) {
+                        endDateTimePicker.setValue(startValue.plusHours(1));
+                    } else if (endDateTimePicker.getValue().isBefore(startValue)) {
+                        endDateTimePicker.setValue(null);
+                    }
+                }
+            } catch (Exception e) {
+                endDateTimePicker.setMin(LocalDateTime.now().plusHours(1));
+            }
+        });
 
         addTaskForm.setColspan(taskDescription, 2);
         addTaskForm.setResponsiveSteps(
@@ -496,10 +500,6 @@ public class AddTaskView extends VerticalLayout {
         return confirmDialog;
     }
 
-    protected String formatDate(LocalDateTime taskDate){
-        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
-    }
-
     protected String getEmergencyLevelString(EmergencyLevel level) {
         return switch (level) {
             case LOW -> "Baja";
@@ -579,6 +579,10 @@ public class AddTaskView extends VerticalLayout {
         taskPreview.updateDate(formatDate(date));
     }
 
+    //===============================Format Methods=========================================
+    protected String formatDate(LocalDateTime taskDate){
+        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
 
     private String formatTaskType(TaskType taskType) {
         if (taskType == null) {

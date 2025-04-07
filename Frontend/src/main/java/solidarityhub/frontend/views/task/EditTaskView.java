@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +48,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         taskPreview.enabledEditButton(false);
     }
 
+    //===============================Load data=========================================
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String parameter) {
 
@@ -87,7 +90,15 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         taskDescription.setValue(task.getDescription());
         taskPriority.setValue(task.getPriority());
         taskEmergency.setValue(task.getEmergencyLevel());
+
+        //startDateTimePicker configuration
+        starDateTimePicker.setMin(null);
         starDateTimePicker.setValue(task.getStartTimeDate());
+
+        if (task.getStartTimeDate().isAfter(LocalDateTime.now())) {
+            starDateTimePicker.setMin(LocalDateTime.now());
+        }
+
         endDateTimePicker.setValue(task.getEstimatedEndTimeDate());
 
         Set<String> needDescriptions = task.getNeeds().stream()
@@ -95,6 +106,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                 .collect(Collectors.toSet());
         needsMultiSelectComboBox.setItems(needDescriptions);
         needsMultiSelectComboBox.select(needDescriptions);
+        needsMultiSelectComboBox.setHelperText("Este campo no se puede modificar");
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
@@ -108,6 +120,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             volunteerMultiSelectComboBox.setItems(volunteerNames);
             volunteerMultiSelectComboBox.select(volunteerNames);
         }
+        volunteerMultiSelectComboBox.setHelperText("Este campo no se puede modificar");
 
         // Actualizar la vista previa
         taskPreview.updateName(task.getName());
@@ -115,8 +128,10 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         taskPreview.updateDate(formatDate(task.getStartTimeDate()));
         taskPreview.updatePriority(task.getPriority().toString());
         taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
+        taskPreview.enabledEditButton(false);
     }
 
+    //===============================Get Components=========================================
     @Override
     protected Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
@@ -126,7 +141,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
         Button deleteButton = new Button("Eliminar");
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        deleteButton.addClickListener(e -> confirmDelete());
+        deleteButton.addClickListener(e -> deleteTask());
 
         Button cancelButton = new Button("Salir");
         cancelButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("tasks")));
@@ -137,6 +152,27 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return buttons;
     }
 
+    @Override
+    protected Component getNeedsForm() {
+        needsMultiSelectComboBox.setReadOnly(true);
+        needsMultiSelectComboBox.setRequired(false);
+        needsMultiSelectComboBox.setRequiredIndicatorVisible(false);
+
+        needsMultiSelectComboBox.getElement().removeAttribute("clickable");
+        return needsMultiSelectComboBox;
+    }
+
+    @Override
+    protected Component getVolunteersForm() {
+        volunteerMultiSelectComboBox.setReadOnly(true);
+        volunteerMultiSelectComboBox.setRequired(false);
+        volunteerMultiSelectComboBox.setRequiredIndicatorVisible(false);
+
+        volunteerMultiSelectComboBox.getElement().removeAttribute("clickable");
+        return volunteerMultiSelectComboBox;
+    }
+
+    //===============================Modify task=========================================
     private void updateTask() {
         if (validateForm()) {
             try {
@@ -151,7 +187,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         originalTask.getType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
-                        Status.TO_DO,
+                        originalTask.getStatus(),
                         originalNeeds,
                         originalVolunteers,
                         selectedCatastrophe.getId()
@@ -171,7 +207,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         }
     }
 
-    private void confirmDelete() {
+    private void deleteTask() {
         Dialog confirmDialog = new Dialog();
         confirmDialog.setHeaderTitle("Confirmar eliminación");
 
@@ -200,24 +236,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         confirmDialog.open();
     }
 
-    @Override
-    protected Component getNeedsForm() {
-        needsMultiSelectComboBox.setReadOnly(true);
-        needsMultiSelectComboBox.setRequired(false);
-        needsMultiSelectComboBox.setRequiredIndicatorVisible(false);
 
-        needsMultiSelectComboBox.getElement().removeAttribute("clickable");
-        return needsMultiSelectComboBox;
-    }
-
-    @Override
-    protected Component getVolunteersForm() {
-        volunteerMultiSelectComboBox.setReadOnly(true);
-        volunteerMultiSelectComboBox.setRequired(false);
-        volunteerMultiSelectComboBox.setRequiredIndicatorVisible(false);
-
-        volunteerMultiSelectComboBox.getElement().removeAttribute("clickable");
-        return volunteerMultiSelectComboBox;
-    }
 
 }
