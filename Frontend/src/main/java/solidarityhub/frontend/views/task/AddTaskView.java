@@ -103,6 +103,7 @@ public class AddTaskView extends VerticalLayout {
         );
     }
 
+
     private void saveNewTask(){
         if (validateForm()) {
             try {
@@ -229,6 +230,7 @@ public class AddTaskView extends VerticalLayout {
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
         volunteerMultiSelectComboBox.setRequired(true);
+        volunteerMultiSelectComboBox.setHelperText("Los voluntarios no se podrán modificar una vez creada la tarea");
 
         Dialog selectVolunteersDialog = getVolunteersDialogContent();
         volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> selectVolunteersDialog.open());
@@ -362,6 +364,7 @@ public class AddTaskView extends VerticalLayout {
         needsMultiSelectComboBox.setReadOnly(true);
         needsMultiSelectComboBox.setRequiredIndicatorVisible(true);
         needsMultiSelectComboBox.setRequired(true);
+        needsMultiSelectComboBox.setHelperText("Las necesidades no se podrán modificar una vez creada la tarea");
 
         Dialog selectNeedsDialog = getNeedsDialogContent();
         needsMultiSelectComboBox.getElement().addEventListener("click", e -> selectNeedsDialog.open());
@@ -378,9 +381,8 @@ public class AddTaskView extends VerticalLayout {
         dialogContent.setPadding(false);
 
         MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-        List<NeedDTO> allNeeds = needService.getNeeds();
-        ListDataProvider<NeedDTO> dataProvider = new ListDataProvider<>(allNeeds);
-        needsListBox.setDataProvider(dataProvider);
+        needsListBox.setItems(needService.getNeeds());
+
         needsListBox.setRenderer(
                 new ComponentRenderer<>(need -> {
                     VerticalLayout needContent = new VerticalLayout();
@@ -399,17 +401,21 @@ public class AddTaskView extends VerticalLayout {
                 })
         );
 
-        dialogContent.add(needsListBox);
-// POR HACER
-//        needsListBox.addValueChangeListener(event -> {
-//            Set<NeedDTO> selectedNeeds = event.getValue();
-//            if (!selectedNeeds.isEmpty()) {
-//                TaskType selectedType = selectedNeeds.iterator().next().getTaskType();
-//                dataProvider.setFilter(need -> need.getTaskType() == selectedType || selectedNeeds.contains(need));
-//            } else {
-//                dataProvider.clearFilters();
-//            }
-//        });
+        Span infoText = new Span("Al seleccionar una necesidad, solo podrá elegir necesidades adicionales del mismo tipo.");
+        infoText.addClassName("needsDialog__infoText");
+
+        dialogContent.add(infoText, needsListBox);
+
+        //Needs type filter
+        needsListBox.addSelectionListener(event -> {
+            Set<NeedDTO> selectedNeeds = event.getValue();
+            if (!selectedNeeds.isEmpty()) {
+                TaskType selectedType = selectedNeeds.iterator().next().getTaskType();
+                needsListBox.setItemEnabledProvider(needDTO -> selectedType.equals(needDTO.getTaskType()));
+            } else {
+                needsListBox.setItemEnabledProvider(needDTO -> true);
+            }
+        });
 
         // Footer
         Button saveButton = new Button("Guardar", e -> {
