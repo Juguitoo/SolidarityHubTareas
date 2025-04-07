@@ -128,40 +128,143 @@
     100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
 }
 
+/* ===== BARRA LATERAL: CATÁSTROFE SELECCIONADA ===== */
+
+/* Asegurar que los contenedores padres no limiten el ancho */
+.drawer-content {
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.drawer-content vaadin-scroller {
+    padding: 0;
+}
+
 /* Estilo para mostrar catástrofe seleccionada en la barra lateral */
 .selected-catastrophe-info {
-    padding: 1rem;
+    padding: 0;
     background-color: rgba(0, 0, 0, 0.1);
     border-bottom: 1px solid var(--lumo-contrast-10pct);
-    font-size: var(--lumo-font-size-s);
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0;
+    box-sizing: border-box;
 }
 
+/* Contenedor de información de catástrofe */
+.compact-catastrophe-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Título "Catástrofe seleccionada" */
 .selected-catastrophe-title {
-    margin: 0 0 0.3rem 0;
-    color: var(--lumo-contrast-70pct);
-    font-size: var(--lumo-font-size-s);
+    margin: 0;
+    padding: 0.5rem 1rem 0.2rem 1rem;
+    color: var(--lumo-tertiary-text-color);
+    font-size: var(--lumo-font-size-xs);
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
+/* Nombre de la catástrofe */
 .selected-catastrophe-name {
-    margin: 0 0 0.7rem 0;
+    margin: 0;
+    padding: 0.2rem 1rem 0.5rem 1rem;
     color: var(--lumo-primary-color);
     font-weight: bold;
+    font-size: var(--lumo-font-size-s);
 }
 
-.change-catastrophe-button {
-    font-size: var(--lumo-font-size-xs);
-    padding: 0.3rem 0.5rem;
-    border-radius: 4px;
-    background-color: var(--lumo-primary-color-10pct);
+/* Versión compacta del nombre (con ellipsis) */
+.catastrophe-name-text {
+    margin: 0;
+    padding: 0.2rem 1rem;
+    font-weight: 600;
     color: var(--lumo-primary-color);
+    font-size: var(--lumo-font-size-s);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.select-catastrophe-button {
+/* Texto cuando no hay catástrofe */
+.no-catastrophe-text {
+    color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-xs);
-    padding: 0.3rem 0.5rem;
-    border-radius: 4px;
+    margin: 0;
+    padding: 0.5rem 1rem 0.2rem 1rem;
+}
+
+/* Botón para cambiar catástrofe */
+.change-catastrophe-button {
+    margin: 0.3rem 0 0.5rem 1rem;
+    background-color: transparent;
+    color: var(--lumo-primary-color);
+    font-size: var(--lumo-font-size-xs);
+    padding: 0.2rem 0.5rem;
+    height: 24px;
+    min-width: auto;
+    border-radius: var(--lumo-border-radius-s);
+    transition: background-color 0.2s;
+}
+
+.change-catastrophe-button:hover {
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+/* Botón para seleccionar catástrofe */
+.select-catastrophe-button {
+    margin: 0.3rem 0 0.5rem 1rem;
     background-color: var(--lumo-primary-color);
     color: white;
-    margin-top: 0.5rem;
+    font-size: var(--lumo-font-size-xs);
+    padding: 0.2rem 0.5rem;
+    height: 24px;
+    border-radius: var(--lumo-border-radius-s);
+    transition: background-color 0.2s;
+}
+
+.select-catastrophe-button:hover {
+    background-color: var(--lumo-primary-color-50pct);
+}
+
+/* Clase para botones compactos */
+.compact-button {
+    font-size: var(--lumo-font-size-xs);
+    padding: 0.1rem 0.5rem;
+    height: 22px;
+    min-width: auto;
+}
+
+/* Para ocultar cuando está minimizado */
+.drawer-minimized .selected-catastrophe-info {
+    display: none;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.selected-catastrophe-info {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Ajustes responsive para pantallas pequeñas */
+@media (max-width: 600px) {
+    .selected-catastrophe-title,
+    .selected-catastrophe-name,
+    .catastrophe-name-text,
+    .no-catastrophe-text,
+    .change-catastrophe-button,
+    .select-catastrophe-button {
+        font-size: var(--lumo-font-size-xs);
+    }
 }

@@ -106,6 +106,11 @@ public class MainLayout extends AppLayout {
 
         selectedCatastropheInfo.removeAll();
 
+        if (minimized) {
+            selectedCatastropheInfo.setVisible(false);
+            return;
+        }
+
         if (selectedCatastrophe != null) {
             VerticalLayout infoLayout = new VerticalLayout();
             infoLayout.setSpacing(false);
@@ -175,7 +180,7 @@ public class MainLayout extends AppLayout {
 
             // Mostrar nombre de la app
             appName.setVisible(true);
-
+            updateSelectedCatastropheInfo();
             // Mostrar info de catástrofe seleccionada
             selectedCatastropheInfo.setVisible(true);
 
