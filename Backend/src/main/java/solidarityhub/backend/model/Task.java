@@ -4,11 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.enums.EmergencyLevel;
-import solidarityhub.backend.model.enums.NeedType;
-import solidarityhub.backend.model.enums.Priority;
-import solidarityhub.backend.model.enums.Status;
+import solidarityhub.backend.model.enums.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,7 +35,8 @@ public class Task {
     private LocalDateTime estimatedEndTimeDate;
 
     @Setter
-    private NeedType type;
+    @Enumerated(EnumType.STRING)
+    private TaskType type;
 
     @Setter
     @Enumerated(EnumType.STRING)
@@ -63,6 +62,12 @@ public class Task {
     @OneToOne(cascade = CascadeType.ALL)
     private Notification notification;
 
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "catastrophe_id")
+    private Catastrophe catastrophe;
+
+    private LocalDate creationDate;
 
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers) {
@@ -75,6 +80,13 @@ public class Task {
         this.emergencyLevel = emergencyLevel;
         this.status = status;
         this.volunteers= volunteers;
-        this.type = needs.getFirst().getNeedType();
+        this.type = needs.getFirst().getTaskType();
+        this.creationDate = LocalDate.now();
+    }
+    public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel,
+                Status status, List<Volunteer> volunteers, Catastrophe catastrophe) {
+        this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers);
+        this.catastrophe = catastrophe;
     }
 }

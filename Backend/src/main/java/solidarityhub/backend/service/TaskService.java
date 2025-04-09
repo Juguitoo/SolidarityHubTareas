@@ -5,6 +5,7 @@ import solidarityhub.backend.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -14,5 +15,4 @@ public class TaskService {
     public List<Task> getAllTasks() {return this.taskRepository.findAll();}
     public Task getTaskById(Integer id) {return this.taskRepository.findById(id).get();}
     public void deleteTask(Task task) {this.taskRepository.delete(task);}
-
 }

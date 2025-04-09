@@ -2,7 +2,6 @@ package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -20,13 +19,13 @@ public class CatastropheComponent extends Div {
     private String name;
     private String description;
     private String date;
-    private String imageUrl;
+    private String emergencyLevel;
 
     /**
      * Constructor básico con valores por defecto
      */
     public CatastropheComponent() {
-        this("Sin nombre", "Sin descripción", "Sin fecha", null);
+        this("Sin nombre", "Sin descripción", "Sin fecha", "");
     }
 
     /**
@@ -35,13 +34,13 @@ public class CatastropheComponent extends Div {
      * @param name Nombre de la catástrofe
      * @param description Descripción breve
      * @param date Fecha en formato texto
-     * @param imageUrl URL de la imagen (opcional)
+     * @param emergencyLevel Nivel de emergencia (texto descriptivo)
      */
-    public CatastropheComponent(String name, String description, String date, String imageUrl) {
+    public CatastropheComponent(String name, String description, String date, String emergencyLevel) {
         this.name = name;
         this.description = description;
         this.date = date;
-        this.imageUrl = imageUrl;
+        this.emergencyLevel = emergencyLevel;
 
         setupComponent();
     }
@@ -53,17 +52,30 @@ public class CatastropheComponent extends Div {
         // Estilo del contenedor principal
         addClassName("catastrophe-card");
 
-
-
-        // Crear el componente para la imagen
+        // Crear el componente para la imagen según el nivel de emergencia
         Component imageComponent;
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            Image image = new Image(imageUrl, "Imagen de catástrofe");
-            image.setWidth("48px");
-            image.setHeight("48px");
-            imageComponent = image;
+        if (emergencyLevel.contains("bajo")) {
+            Icon icon = VaadinIcon.WARNING.create();
+            icon.setColor("#4CAF50"); // verde
+            icon.setSize("24px");
+            imageComponent = icon;
+        } else if (emergencyLevel.contains("medio")) {
+            Icon icon = VaadinIcon.WARNING.create();
+            icon.setColor("#FFC107"); // amarillo
+            icon.setSize("24px");
+            imageComponent = icon;
+        } else if (emergencyLevel.contains("alto")) {
+            Icon icon = VaadinIcon.WARNING.create();
+            icon.setColor("#FF5722"); // naranja
+            icon.setSize("24px");
+            imageComponent = icon;
+        } else if (emergencyLevel.contains("MUY ALTO")) {
+            Icon icon = VaadinIcon.WARNING.create();
+            icon.setColor("#F44336"); // rojo
+            icon.setSize("24px");
+            imageComponent = icon;
         } else {
-            Icon fallbackIcon = VaadinIcon.PICTURE.create();
+            Icon fallbackIcon = VaadinIcon.EXCLAMATION_CIRCLE.create();
             fallbackIcon.setSize("24px");
             imageComponent = fallbackIcon;
         }
@@ -77,7 +89,6 @@ public class CatastropheComponent extends Div {
         Span titleSpan = new Span(name);
         titleSpan.addClassName("catastrophe-title");
 
-
         Span descSpan = new Span(description);
         descSpan.addClassName("catastrophe-description");
 
@@ -86,6 +97,21 @@ public class CatastropheComponent extends Div {
         // Fecha en la esquina superior derecha
         Span dateSpan = new Span(date);
         dateSpan.addClassName("catastrophe-date");
+
+        // Nivel de emergencia
+        if (!emergencyLevel.isEmpty()) {
+            Span levelSpan = new Span(emergencyLevel);
+            levelSpan.addClassName("catastrophe-level");
+            if (emergencyLevel.contains("alto")) {
+                levelSpan.getElement().getStyle().set("color", "#FF5722");
+                levelSpan.getElement().getStyle().set("font-weight", "bold");
+            } else if (emergencyLevel.contains("MUY ALTO")) {
+                levelSpan.getElement().getStyle().set("color", "#F44336");
+                levelSpan.getElement().getStyle().set("font-weight", "bold");
+                levelSpan.getElement().getStyle().set("text-transform", "uppercase");
+            }
+            textContent.add(levelSpan);
+        }
 
         // Layout para imagen y texto
         HorizontalLayout contentLayout = new HorizontalLayout(imageComponent, textContent);
@@ -151,14 +177,14 @@ public class CatastropheComponent extends Div {
                 .findFirst()
                 .ifPresent(element -> element.setText(date));
     }
-
-    public String getImageUrl() {
-        return imageUrl;
+    public String getEmergencyLevel() {
+        return emergencyLevel;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-        // Aquí habría que reimplementar la parte de la imagen
+    public void setEmergencyLevel(String emergencyLevel) {
+        this.emergencyLevel = emergencyLevel;
+        // Aquí habría que reimplementar la parte del nivel de emergencia
         // Para una implementación completa
     }
+
 }

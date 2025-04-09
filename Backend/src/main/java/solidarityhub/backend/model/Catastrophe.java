@@ -50,6 +50,10 @@ public class Catastrophe {
     @ManyToMany(mappedBy = "catastrophes")
     private List<Zone> zones;
 
+    @Setter
+    @OneToMany(mappedBy = "catastrophe")
+    private List<Task> tasks;
+
     public Catastrophe(String name, String description, GPSCoordinates location, LocalDate startDate , EmergencyLevel emergencyLevel) {
         this.zones = new ArrayList<>();
         this.needs = new ArrayList<>();
@@ -58,5 +62,12 @@ public class Catastrophe {
         this.location = location;
         this.startDate = startDate;
         this.emergencyLevel = emergencyLevel;
+    }
+    public void addTask(Task task) {
+        if (this.tasks == null) {
+            this.tasks = new ArrayList<>();
+        }
+        this.tasks.add(task);
+        task.setCatastrophe(this);
     }
 }

@@ -1,11 +1,13 @@
 package solidarityhub.frontend.model;
 
 
-import solidarityhub.frontend.model.enums.NeedType;
-import solidarityhub.frontend.model.enums.UrgencyLevel;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import solidarityhub.frontend.model.enums.TaskType;
+import solidarityhub.frontend.model.enums.UrgencyLevel;
 
 @Getter
 @NoArgsConstructor
@@ -19,7 +21,8 @@ public class Need {
     private UrgencyLevel urgency;
 
     @Setter
-    private NeedType needType;
+    @Enumerated(EnumType.STRING)
+    private TaskType taskType;
 
     @Setter
     private GPSCoordinates location;
@@ -31,10 +34,10 @@ public class Need {
     private Task task;
 
 
-    public Need(String description, UrgencyLevel urgency, NeedType needType, GPSCoordinates location, Catastrophe catastrophe) {
+    public Need(String description, UrgencyLevel urgency, TaskType taskType, GPSCoordinates location, Catastrophe catastrophe) {
         this.description = description;
         this.urgency = urgency;
-        this.needType = needType;
+        this.taskType = taskType;
         this.location = location;
         this.catastrophe = catastrophe;
     }

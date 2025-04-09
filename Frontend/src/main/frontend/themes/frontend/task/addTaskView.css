@@ -8,3 +8,50 @@
 .addTaskForm{
     padding: 0 50px;
 }
+
+.needContent{
+    gap: 6px;
+}
+
+.needContent--description{
+    font-size: 1.1em;
+}
+
+.needContent--type{
+    background-color: #DADFE4;
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+    font-size: 0.8em;
+}
+
+.needsDialog--infoText{
+    font-style: italic;
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+    margin-bottom: 10px;
+}
+
+.addTaskForm--multiSelectComboBox::part(input-field) {
+    background-color: var(--lumo-contrast-5pct);
+    cursor: pointer;
+}
+
+.addTaskForm--multiSelectComboBox::part(input-field) {
+    background-color: var(--lumo-contrast-10pct);
+}
+
+.addTaskForm--multiSelectComboBox[has-value] {
+    color: var(--lumo-body-text-color);
+}
+
+.addTaskForm--multiSelectComboBox::part(toggle-button) {
+    color: var(--lumo-contrast-60pct);
+    pointer-events: none;
+}
+
+.addTaskForm--multiSelectComboBox::part(input-field)::after {
+    content: '';
+    border-color: var(--lumo-contrast-50pct);
+    border-width: 0;
+}

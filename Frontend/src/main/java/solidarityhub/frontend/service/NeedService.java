@@ -6,11 +6,12 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.model.Need;
-import solidarityhub.frontend.model.enums.NeedType;
+import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.model.enums.UrgencyLevel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NeedService {
     private final RestTemplate restTemplate;
@@ -18,7 +19,7 @@ public class NeedService {
 
     public NeedService() {
         this.restTemplate = new RestTemplate();
-        this.baseUrl = "http://localhost:8082/needs";
+        this.baseUrl = "http://localhost:8082/solidarityhub/needs";
     }
 
     //CRUD METHODS
@@ -40,7 +41,7 @@ public class NeedService {
             ResponseEntity<NeedDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, NeedDTO[].class);
             NeedDTO[] needs = response.getBody();
             if (needs != null) {
-                return List.of(needs);
+                return new ArrayList<>(List.of(needs)).stream().filter(n -> n.getTaskId() == -1).collect(Collectors.toList());
             }
             return new ArrayList<>();
         } catch (RestClientException e) {
@@ -53,10 +54,10 @@ public class NeedService {
         return response.getBody();
     }
 
-    public List<NeedDTO> getNeedsByType(NeedType needType) {
+    public List<NeedDTO> getNeedsByType(TaskType needType) {
         List<NeedDTO> allNeeds = getNeeds();
         List<NeedDTO> filteredNeeds = allNeeds.stream()
-                .filter(needDTO -> needType.equals(needDTO.getNeedType()))
+                .filter(needDTO -> needType.equals(needDTO.getTaskType()))
                 .collect(java.util.stream.Collectors.toList());
 
         return filteredNeeds;
@@ -65,8 +66,8 @@ public class NeedService {
     //GET EXAMPLE NEEDS
     public List<NeedDTO> getExampleNeeds() {
         List<NeedDTO> needDTOs = new ArrayList<>();
-        needDTOs.add(new NeedDTO(new Need("Material de construcción", UrgencyLevel.MODERATE, NeedType.BUILDING, null, null)));
-        needDTOs.add(new NeedDTO(new Need("Alimentos no perecederos", UrgencyLevel.URGENT, NeedType.FEED, null, null)));
+        needDTOs.add(new NeedDTO(new Need("Material de construcción", UrgencyLevel.MODERATE, TaskType.LOGISTICS, null, null)));
+        needDTOs.add(new NeedDTO(new Need("Alimentos no perecederos", UrgencyLevel.URGENT, TaskType.FEED, null, null)));
         return needDTOs;
     }
 
@@ -77,7 +78,7 @@ public class NeedService {
             needs.add(new Need(
                     dto.getDescription(),
                     dto.getUrgency(),
-                    dto.getNeedType(),
+                    dto.getTaskType(),
                     null,
                     null
             ));
