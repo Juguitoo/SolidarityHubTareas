@@ -1,12 +1,12 @@
 package solidarityhub.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import solidarityhub.backend.model.Task;
-import solidarityhub.backend.model.enums.EmergencyLevel;
-import solidarityhub.backend.model.enums.NeedType;
-import solidarityhub.backend.model.enums.Priority;
-import solidarityhub.backend.model.enums.Status;
+import solidarityhub.backend.model.enums.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,18 +14,20 @@ import java.util.List;
 
 @NoArgsConstructor
 @Getter
+@Setter
 public class TaskDTO {
     private int id;
     private String name;
     private String description;
     private LocalDateTime startTimeDate;
     private LocalDateTime estimatedEndTimeDate;
-    private NeedType type;
+    private TaskType type;
     private Priority priority;
     private EmergencyLevel emergencyLevel;
     private Status status;
     private List<NeedDTO> needs;
     private List<VolunteerDTO> volunteers;
+    private Integer catastropheId;
 
     public TaskDTO(Task task) {
         this.needs = new ArrayList<>();
@@ -41,5 +43,38 @@ public class TaskDTO {
         this.status = task.getStatus();
         task.getNeeds().forEach(n -> {needs.add(new NeedDTO(n));});
         task.getVolunteers().forEach(v -> {volunteers.add(new VolunteerDTO(v));});
+
+        if (task.getCatastrophe() != null) {
+            this.catastropheId = task.getCatastrophe().getId();
+        }
+    }
+
+    @JsonCreator
+    public TaskDTO(
+            @JsonProperty("id") int id,
+            @JsonProperty("name") String name,
+            @JsonProperty("description") String description,
+            @JsonProperty("startTimeDate") LocalDateTime startTimeDate,
+            @JsonProperty("estimatedEndTimeDate") LocalDateTime estimatedEndTimeDate,
+            @JsonProperty("type") TaskType type,
+            @JsonProperty("priority") Priority priority,
+            @JsonProperty("emergencyLevel") EmergencyLevel emergencyLevel,
+            @JsonProperty("status") Status status,
+            @JsonProperty("needs") List<NeedDTO> needs,
+            @JsonProperty("volunteers") List<VolunteerDTO> volunteers,
+            @JsonProperty("catastropheId") Integer catastropheId
+    ) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.startTimeDate = startTimeDate;
+        this.estimatedEndTimeDate = estimatedEndTimeDate;
+        this.type = type;
+        this.priority = priority;
+        this.emergencyLevel = emergencyLevel;
+        this.status = status;
+        this.needs = needs != null ? needs : new ArrayList<>();
+        this.volunteers = volunteers != null ? volunteers : new ArrayList<>();
+        this.catastropheId = catastropheId;
     }
 }

@@ -1,9 +1,12 @@
 package solidarityhub.backend.dto;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.Need;
-import solidarityhub.backend.model.enums.NeedType;
+import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.backend.model.enums.UrgencyLevel;
 
 @NoArgsConstructor
@@ -12,18 +15,29 @@ public class NeedDTO {
     private int id;
     private String description;
     private UrgencyLevel urgency;
-    private NeedType needType;
+
+    @Enumerated(EnumType.STRING)
+    private TaskType taskType;
+
+    private GPSCoordinates location;
     private int taskId;
+    private int catastropheId;
 
     public NeedDTO(Need need) {
         this.id = need.getId();
         this.description = need.getDescription();
         this.urgency = need.getUrgency();
-        this.needType = need.getNeedType();
+        this.taskType = need.getTaskType();
+        this.location = need.getLocation();
         if(need.getTask() != null) {
             this.taskId = need.getTask().getId();
         } else {
             this.taskId = -1;
+        }
+        if(need.getCatastrophe() != null) {
+            this.catastropheId = need.getCatastrophe().getId();
+        } else {
+            this.catastropheId = -1;
         }
     }
 }

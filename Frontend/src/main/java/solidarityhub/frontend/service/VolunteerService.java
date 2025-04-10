@@ -1,12 +1,16 @@
 package solidarityhub.frontend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.model.Volunteer;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +20,7 @@ public class VolunteerService {
 
     public VolunteerService() {
         this.restTemplate = new RestTemplate();
-        this.baseUrl = "http://localhost:8082/volunteers";
+        this.baseUrl = "http://localhost:8082/solidarityhub/volunteers";
     }
 
     //CRUD METHODS
@@ -33,15 +37,19 @@ public class VolunteerService {
     }
 
     //GET METHODS
-    public List<VolunteerDTO> getVolunteers() {
+    public List<VolunteerDTO> getVolunteers(String strategy, TaskDTO taskDTO) {
         try {
-            ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, VolunteerDTO[].class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            String taskDTOParams = objectMapper.writeValueAsString(taskDTO);
+            String url = baseUrl + "?strategy=" + strategy + "&" + "taskString=" + URLEncoder.encode(taskDTOParams, StandardCharsets.UTF_8);
+            ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, VolunteerDTO[].class);
             VolunteerDTO[] volunteers = response.getBody();
             if (volunteers != null) {
                 return List.of(volunteers);
             }
             return new ArrayList<>();
-        } catch (RestClientException e) {
+        } catch (Exception e) {
             return getExampleVolunteers();
         }
     }

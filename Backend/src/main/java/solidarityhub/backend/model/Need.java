@@ -6,8 +6,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.enums.NeedType;
+import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.backend.model.enums.UrgencyLevel;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -35,7 +37,7 @@ public class Need {
     @Setter
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private NeedType needType;
+    private TaskType taskType;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "location_id")
@@ -52,14 +54,17 @@ public class Need {
     @JoinColumn(name = "task_id")
     private Task task;
 
+    @Setter
+    private LocalDateTime startTimeDate;
 
-    public Need(Affected affected, String description, UrgencyLevel urgency, NeedType needType, GPSCoordinates location, Catastrophe catastrophe) {
+    public Need(Affected affected, String description, UrgencyLevel urgency, TaskType needType, GPSCoordinates location, Catastrophe catastrophe) {
         this.affected = affected;
         this.description = description;
         this.urgency = urgency;
-        this.needType = needType;
+        this.taskType = needType;
         this.location = location;
         this.affected.addNeed(this);
         this.catastrophe = catastrophe;
+        this.startTimeDate = LocalDateTime.now();
     }
 }

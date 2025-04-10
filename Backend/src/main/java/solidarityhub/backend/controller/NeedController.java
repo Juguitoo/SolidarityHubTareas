@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/needs")
+@RequestMapping("/solidarityhub/needs")
 public class NeedController {
     private final NeedService needService;
 
