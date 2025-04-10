@@ -23,16 +23,7 @@ import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
 
-/**
- * Vista para añadir una nueva catástrofe
- * Adaptada para trabajar con las columnas de la base de datos:
- * - id (int auto increment)
- * - name (varchar 255)
- * - description (varchar 255)
- * - emergency_level (enum)
- * - start_date (date)
- * - location_id (int)
- */
+
 @Route("add-catastrophe")
 @PageTitle("Añadir Catástrofe")
 public class AddCatastropheView extends VerticalLayout {

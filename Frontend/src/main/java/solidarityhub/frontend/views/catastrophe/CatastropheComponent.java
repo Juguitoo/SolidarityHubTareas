@@ -9,10 +9,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-/**
- * Componente reutilizable que representa una catástrofe en la interfaz.
- * Muestra información como nombre, descripción, fecha y una imagen o ícono.
- */
+
 
 public class CatastropheComponent extends Div {
 
