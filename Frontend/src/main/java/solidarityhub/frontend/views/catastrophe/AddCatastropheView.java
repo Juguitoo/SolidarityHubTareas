@@ -141,10 +141,10 @@ public class AddCatastropheView extends VerticalLayout {
         }
 
         try {
-            // Crear las coordenadas para la ubicación
+
             GPSCoordinates location = new GPSCoordinates(locationYField.getValue(), locationXField.getValue());
 
-            // Crear el objeto Catastrophe directamente
+
             Catastrophe catastrophe = new Catastrophe(
                     nameField.getValue(),
                     descriptionField.getValue(),
@@ -169,18 +169,18 @@ public class AddCatastropheView extends VerticalLayout {
             volver();
 
         } catch (Exception e) {
-            // Manejar errores
+
             Notification.show("Error al guardar la catástrofe: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
 
-            // Loguear el error para depuración
+
             e.printStackTrace();
         }
     }
 
     private void volver() {
-        // Navegar de vuelta a la vista principal de catástrofes
+
         getUI().ifPresent(ui -> ui.navigate(""));
     }
 
@@ -191,7 +191,7 @@ public class AddCatastropheView extends VerticalLayout {
         buttonLayout.setSpacing(true);
         buttonLayout.addClassName("button-container");
 
-        // Añadir botones al layout
+
         buttonLayout.add(saveButton, cancelButton);
 
         return buttonLayout;

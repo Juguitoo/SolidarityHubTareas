@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 public class CatastropheSelectionView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    // Inicializando logger para reemplazar printStackTrace
     private static final Logger LOGGER = Logger.getLogger(CatastropheSelectionView.class.getName());
 
     @Autowired
@@ -92,16 +91,11 @@ public class CatastropheSelectionView extends VerticalLayout {
             Notification.show("Error al cargar las catástrofes: " + e.getMessage(),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            // Reemplazo de printStackTrace por logging adecuado
             LOGGER.log(Level.SEVERE, "Error al cargar las catástrofes", e);
         }
     }
 
-    /**
-     * Asigna un peso numérico a cada nivel de emergencia para ordenarlos
-     * @param level Nivel de emergencia
-     * @return Peso numérico (mayor número = mayor prioridad)
-     */
+
     private static int getEmergencyLevelWeight(EmergencyLevel level) {
         if (level == null) return 0;
 

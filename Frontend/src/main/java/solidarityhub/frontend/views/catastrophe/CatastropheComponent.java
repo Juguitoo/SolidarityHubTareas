@@ -18,21 +18,12 @@ public class CatastropheComponent extends Div {
     private String date;
     private String emergencyLevel;
 
-    /**
-     * Constructor básico con valores por defecto
-     */
+
     public CatastropheComponent() {
         this("Sin nombre", "Sin descripción", "Sin fecha", "");
     }
 
-    /**
-     * Constructor con todos los parámetros
-     *
-     * @param name Nombre de la catástrofe
-     * @param description Descripción breve
-     * @param date Fecha en formato texto
-     * @param emergencyLevel Nivel de emergencia (texto descriptivo)
-     */
+
     public CatastropheComponent(String name, String description, String date, String emergencyLevel) {
         this.name = name;
         this.description = description;
@@ -42,9 +33,7 @@ public class CatastropheComponent extends Div {
         setupComponent();
     }
 
-    /**
-     * Configura el aspecto visual del componente
-     */
+
     private void setupComponent() {
         // Estilo del contenedor principal
         addClassName("catastrophe-card");
@@ -77,7 +66,7 @@ public class CatastropheComponent extends Div {
             imageComponent = fallbackIcon;
         }
 
-        // Contenido de texto
+
         VerticalLayout textContent = new VerticalLayout();
         textContent.setPadding(false);
         textContent.setSpacing(false);
@@ -115,16 +104,16 @@ public class CatastropheComponent extends Div {
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         contentLayout.setSpacing(true);
 
-        // Añadir todos los componentes
+
         add(contentLayout, dateSpan);
 
-        // Agregar eventos de hover para mejorar la experiencia de usuario
+
         addClickListener(event -> {
-            // Aquí se puede implementar la acción de clic en la catástrofe
+
             getElement().getStyle().set("cursor", "pointer");
         });
 
-        // Efecto hover
+
         getElement().addEventListener("mouseover", e ->
                 getStyle().set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)"));
         getElement().addEventListener("mouseout", e ->
@@ -180,8 +169,6 @@ public class CatastropheComponent extends Div {
 
     public void setEmergencyLevel(String emergencyLevel) {
         this.emergencyLevel = emergencyLevel;
-        // Aquí habría que reimplementar la parte del nivel de emergencia
-        // Para una implementación completa
     }
 
 }
