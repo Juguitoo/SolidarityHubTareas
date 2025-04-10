@@ -34,8 +34,10 @@ public class VolunteerService {
         volunteers.forEach(v -> {
             if(v.getLocation() == null){
                 Map<String, Double> coordinatesMap = coordinatesService.getCoordinates(v.getHomeAddress());
-                if(coordinatesMap.get("lat") != null && coordinatesMap.get("lon") != null) {
-                    v.setLocation(new GPSCoordinates(coordinatesMap.get("lat"), coordinatesMap.get("lon")));
+                if(coordinatesMap != null) {
+                    if(coordinatesMap.get("lat") != null && coordinatesMap.get("lon") != null) {
+                        v.setLocation(new GPSCoordinates(coordinatesMap.get("lat"), coordinatesMap.get("lon")));
+                    }
                 }
                 saveVolunteer(v);
             }

@@ -25,9 +25,33 @@
     font-size: 0.8em;
 }
 
-.needsDialog__infoText{
+.needsDialog--infoText{
     font-style: italic;
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
     margin-bottom: 10px;
+}
+
+.addTaskForm--multiSelectComboBox::part(input-field) {
+    background-color: var(--lumo-contrast-5pct);
+    cursor: pointer;
+}
+
+.addTaskForm--multiSelectComboBox::part(input-field) {
+    background-color: var(--lumo-contrast-10pct);
+}
+
+.addTaskForm--multiSelectComboBox[has-value] {
+    color: var(--lumo-body-text-color);
+}
+
+.addTaskForm--multiSelectComboBox::part(toggle-button) {
+    color: var(--lumo-contrast-60pct);
+    pointer-events: none;
+}
+
+.addTaskForm--multiSelectComboBox::part(input-field)::after {
+    content: '';
+    border-color: var(--lumo-contrast-50pct);
+    border-width: 0;
 }

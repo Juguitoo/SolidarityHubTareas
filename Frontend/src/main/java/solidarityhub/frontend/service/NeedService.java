@@ -11,6 +11,7 @@ import solidarityhub.frontend.model.enums.UrgencyLevel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class NeedService {
     private final RestTemplate restTemplate;
@@ -40,7 +41,7 @@ public class NeedService {
             ResponseEntity<NeedDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, NeedDTO[].class);
             NeedDTO[] needs = response.getBody();
             if (needs != null) {
-                return List.of(needs);
+                return new ArrayList<>(List.of(needs)).stream().filter(n -> n.getTaskId() == -1).collect(Collectors.toList());
             }
             return new ArrayList<>();
         } catch (RestClientException e) {

@@ -41,10 +41,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private final TaskService taskService;
     private CatastropheDTO selectedCatastrophe;
 
-    private VerticalLayout toDoLayout;
-    private VerticalLayout inProgressLayout;
-    private VerticalLayout doneLayout;
-
     @Autowired
     public TaskView(TaskService taskService) {
         this.taskService = taskService;
@@ -77,10 +73,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void buildView() {
-        // Limpiar componentes previos si los hay
         removeAll();
 
-        // Título con el nombre de la catástrofe
         H1 title = new H1("Tareas: " + selectedCatastrophe.getName());
         title.addClassNames("task-title");
 
@@ -100,6 +94,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         );
     }
 
+    //===============================Get Tasks=========================================
     private Component getTasks(){
         HorizontalLayout tasksListsLayout = new HorizontalLayout();
         tasksListsLayout.addClassName("tasks-lists");
@@ -113,7 +108,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private Component getToDoTasks() {
-        toDoLayout = new VerticalLayout();
+        VerticalLayout toDoLayout = new VerticalLayout();
         toDoLayout.addClassName("task-section");
 
         H3 todoTitle = new H3("Por hacer");
@@ -124,7 +119,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
         try {
             toDoTasks = taskService.getToDoTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> createDraggableTaskComponent(task))
+                    .map(this::createDraggableTaskComponent)
                     .toList();
 
             if (toDoTasks.isEmpty()) {
@@ -143,7 +138,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private Component getDoingTasks() {
-        inProgressLayout = new VerticalLayout();
+        VerticalLayout inProgressLayout = new VerticalLayout();
         inProgressLayout.addClassName("task-section");
 
         H3 doingTitle = new H3("En proceso");
@@ -154,7 +149,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
         try {
             doingTasks = taskService.getDoingTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> createDraggableTaskComponent(task))
+                    .map(this::createDraggableTaskComponent)
                     .toList();
 
             if (doingTasks.isEmpty()) {
@@ -173,7 +168,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private Component getDoneTasks() {
-        doneLayout = new VerticalLayout();
+        VerticalLayout doneLayout = new VerticalLayout();
         doneLayout.addClassName("task-section");
 
         H3 doneTitle = new H3("Terminadas");
@@ -183,7 +178,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         List<TaskComponent> doneTasks;
         try {
             doneTasks = taskService.getDoneTasksByCatastrophe(selectedCatastrophe.getId(), 3).stream()
-                    .map(task -> createDraggableTaskComponent(task))
+                    .map(this::createDraggableTaskComponent)
                     .toList();
 
             if (doneTasks.isEmpty()) {
@@ -201,49 +196,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         return doneLayout;
     }
 
-    private TaskComponent createDraggableTaskComponent(TaskDTO task) {
-        TaskComponent taskComponent = new TaskComponent(
-                task.getId(),
-                task.getName(),
-                task.getDescription(),
-                formatDate(task.getStartTimeDate()),
-                task.getPriority().toString(),
-                formatEmergencyLevel(task.getEmergencyLevel())
-        );
-
-        // Configurar el componente como origen de arrastre según la documentación de Vaadin
-        DragSource<TaskComponent> dragSource = DragSource.create(taskComponent);
-
-        // Asociar los datos de la tarea para acceder a ellos al soltar
-        dragSource.setDragData(task.getId());
-
-        return taskComponent;
-    }
-
-    private void configureDropTarget(VerticalLayout layout, Status newStatus) {
-        DropTarget<VerticalLayout> dropTarget = DropTarget.create(layout);
-        dropTarget.setDropEffect(DropEffect.MOVE);
-
-        dropTarget.addDropListener(event -> {
-            if (event.getDragData().isPresent() && event.getDragData().get() instanceof Integer) {
-                int taskId = (Integer) event.getDragData().get();
-
-                try {
-                    TaskDTO task = taskService.getTaskById(taskId);
-
-                    // Solo actualizar si el estado actual es diferente del nuevo estado
-                    if (task != null && task.getStatus() != newStatus) {
-                        updateTaskStatus(taskId, newStatus);
-                    }
-                } catch (Exception e) {
-                    Notification.show("Error al verificar el estado de la tarea: " + e.getMessage(),
-                                    3000, Notification.Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-            }
-        });
-    }
-
+    //===============================Update Status Methods=========================================
     private void updateTaskStatus(int taskId, Status newStatus) {
         try {
             TaskDTO originalTask = taskService.getTaskById(taskId);
@@ -289,6 +242,50 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
+    private TaskComponent createDraggableTaskComponent(TaskDTO task) {
+        TaskComponent taskComponent = new TaskComponent(
+                task.getId(),
+                task.getName(),
+                task.getDescription(),
+                formatDate(task.getStartTimeDate()),
+                task.getPriority().toString(),
+                formatEmergencyLevel(task.getEmergencyLevel())
+        );
+
+        // Configurar el componente como origen de arrastre según la documentación de Vaadin
+        DragSource<TaskComponent> dragSource = DragSource.create(taskComponent);
+
+        // Asociar los datos de la tarea para acceder a ellos al soltar
+        dragSource.setDragData(task.getId());
+
+        return taskComponent;
+    }
+
+    private void configureDropTarget(VerticalLayout layout, Status newStatus) {
+        DropTarget<VerticalLayout> dropTarget = DropTarget.create(layout);
+        dropTarget.setDropEffect(DropEffect.MOVE);
+
+        dropTarget.addDropListener(event -> {
+            if (event.getDragData().isPresent() && event.getDragData().get() instanceof Integer) {
+                int taskId = (Integer) event.getDragData().get();
+
+                try {
+                    TaskDTO task = taskService.getTaskById(taskId);
+
+                    // Solo actualizar si el estado actual es diferente del nuevo estado
+                    if (task != null && task.getStatus() != newStatus) {
+                        updateTaskStatus(taskId, newStatus);
+                    }
+                } catch (Exception e) {
+                    Notification.show("Error al verificar el estado de la tarea: " + e.getMessage(),
+                                    3000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+        });
+    }
+
+    //===============================Format Methods=========================================
     private String formatDate(LocalDateTime taskDate) {
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
