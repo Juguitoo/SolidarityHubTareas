@@ -11,7 +11,8 @@ public class AvailabilityStrategy implements VolunteerSelectionStrategy {
     @Override
     public List<Volunteer> selectVolunteers(List<Volunteer> volunteers, TaskDTO taskDTO) {
         return volunteers.stream()
-                .sorted(Comparator.comparingInt((Volunteer v) -> v.isAvailable(taskDTO.getStartTimeDate(), taskDTO.getEstimatedEndTimeDate())).reversed())
+                .sorted(Comparator.comparingInt((Volunteer v) ->
+                        v.isAvailable(taskDTO.getStartTimeDate(), taskDTO.getEstimatedEndTimeDate())).reversed())
                 .collect(Collectors.toList());
     }
 }

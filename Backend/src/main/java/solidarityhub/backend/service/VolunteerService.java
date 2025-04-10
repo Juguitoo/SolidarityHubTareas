@@ -17,7 +17,7 @@ public class VolunteerService {
 
     public VolunteerService(VolunteerRepository volunteerRepository) {
         this.volunteerRepository = volunteerRepository;
-        this.volunteerAssigner = new VolunteerAssigner();
+        this.volunteerAssigner = new VolunteerAssigner(new NoFilterStrategy());
     }
     public Volunteer saveVolunteer(Volunteer volunteer) {
         return volunteerRepository.save(volunteer);

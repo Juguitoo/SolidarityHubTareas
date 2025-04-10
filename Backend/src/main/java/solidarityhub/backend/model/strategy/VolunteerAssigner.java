@@ -8,7 +8,6 @@ import solidarityhub.backend.model.Volunteer;
 
 import java.util.List;
 
-@Setter
 @Getter
 @NoArgsConstructor
 public class VolunteerAssigner {
@@ -20,5 +19,9 @@ public class VolunteerAssigner {
 
     public List<Volunteer> assignVolunteers(List<Volunteer> volunteers, TaskDTO taskDTO) {
         return strategy.selectVolunteers(volunteers, taskDTO);
+    }
+
+    public void setStrategy(VolunteerSelectionStrategy strategy) {
+        this.strategy = strategy;
     }
 }
