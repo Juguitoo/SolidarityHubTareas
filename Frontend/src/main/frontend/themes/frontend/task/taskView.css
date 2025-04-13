@@ -51,7 +51,7 @@
     background-color: #0056b3;
 }
 
-.addTaskButton{
+.add-task-button{
     position: sticky;
     bottom: 20px;
     left: 20px;
@@ -63,9 +63,34 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-.addTaskButton:hover {
+.add-task-button:hover {
+    background-color: #0056b3;
 }
 
+.suggested-tasks-icon{
+    width: 48px;
+    height: 48px;
+    color: blue;
+}
+
+.suggested-tasks{
+    background: transparent;
+}
+
+.suggested-tasks:hover{
+    background: transparent;
+    .suggested-tasks-icon{
+        color: #0056b3;
+    }
+}
+
+.tasks-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 6rem;
+    width: 100%;
+}
 
 @keyframes bounce {
     0% {

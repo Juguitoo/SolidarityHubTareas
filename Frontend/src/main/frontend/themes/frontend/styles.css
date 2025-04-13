@@ -45,4 +45,19 @@ vaadin-button{
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    color: #424242;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.centered-checkbox-group {
+    margin: auto;
+}
+
+.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 5rem 0
 }

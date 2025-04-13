@@ -45,10 +45,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     public TaskView(TaskService taskService) {
         this.taskService = taskService;
         addClassName("tasks-container");
-
-
-
-
         beforeEnter(null);
     }
 
@@ -75,19 +71,31 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private void buildView() {
         removeAll();
 
+        HorizontalLayout header = new HorizontalLayout();
+        header.addClassName("tasks-header");
+
         H1 title = new H1("Tareas: " + selectedCatastrophe.getName());
         title.addClassNames("task-title");
 
+        Icon lightbulbIcon = new Icon("vaadin", "lightbulb");
+        lightbulbIcon.addClassNames("suggested-tasks-icon");
+
+        Button suggestedTasks = new Button(lightbulbIcon);
+        suggestedTasks.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
+        suggestedTasks.addClassNames("button", "suggested-tasks");
+
+        header.add(title, suggestedTasks);
+
         Button addTask = new Button(new Icon("vaadin", "plus"));
         addTask.addClickListener(e -> UI.getCurrent().navigate("addtask"));
-        addTask.addClassNames("button", "addTaskButton");
+        addTask.addClassNames("button", "add-task-button");
 
         Button moreTasks = new Button("Ver todas las tareas");
         moreTasks.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
         moreTasks.addClassName("more-tasks-button");
 
         add(
-                title,
+                header,
                 getTasks(),
                 moreTasks,
                 addTask
