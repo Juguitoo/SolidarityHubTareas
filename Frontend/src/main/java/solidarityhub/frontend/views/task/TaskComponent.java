@@ -11,6 +11,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
+import solidarityhub.frontend.dto.TaskDTO;
 
 import java.util.Collections;
 
@@ -42,6 +43,24 @@ public class TaskComponent extends HorizontalLayout {
         );
     }
 
+    public TaskComponent(TaskDTO taskDTO) {
+        this.taskId = taskDTO.getId();
+        this.taskName = taskDTO.getName();
+        this.taskDescription = taskDTO.getDescription();
+        this.startTimeDate = taskDTO.getStartTimeDate().toString();
+        this.priority = taskDTO.getPriority().toString();
+        this.emergencyLevel = taskDTO.getEmergencyLevel().toString();
+
+        addClassName("task-card");
+
+        add(
+                getImg(),
+                getTaskInfo(),
+                getPriorityLevel(),
+                getSettings()
+        );
+    }
+
     private Image getImg() {
         switch (emergencyLevel) {
             case "low", "Baja":
@@ -66,7 +85,7 @@ public class TaskComponent extends HorizontalLayout {
         return img;
     }
 
-    private Component getTaskInfo() {
+    public Component getTaskInfo() {
         VerticalLayout textLayout = new VerticalLayout();
         textLayout.addClassName("task-info");
 

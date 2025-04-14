@@ -1,23 +1,33 @@
 package solidarityhub.frontend.views.task;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.service.TaskService;
 
 import java.util.List;
 
 @PageTitle("Suggested Tasks")
 @Route("suggested-tasks")
 public class SuggestedTasks extends VerticalLayout {
+    private final TaskService taskService;
+    private CatastropheDTO selectedCatastrophe;
 
-    public SuggestedTasks() {
+    @Autowired
+    public SuggestedTasks(TaskService taskService) {
+        this.taskService = taskService;
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         Div header = new Div();
         header.addClassName("header");
@@ -37,15 +47,28 @@ public class SuggestedTasks extends VerticalLayout {
     private HorizontalLayout getSuggestedTasks() {
         HorizontalLayout suggestedTasksLayout = new HorizontalLayout();
         suggestedTasksLayout.addClassName("centered-container");
-        CheckboxGroup<String> suggestedTasks = new CheckboxGroup<>();
+        CheckboxGroup<CheckTaskComponent> suggestedTasksCheckBox = new CheckboxGroup<>();
 
-        List<String> options = List.of("Opción 1", "Opción 2", "Opción 3");
-        suggestedTasks.setItems(options);
+        List<TaskComponent> suggestedTasks;
+        try {
+            suggestedTasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId()).stream()
+                    .map(TaskComponent::new).toList();
 
-        suggestedTasks.setThemeName("vertical");
-        suggestedTasks.addClassName("centered-checkbox-group");
+            if (suggestedTasks.isEmpty()) {
+                suggestedTasksLayout.add(new Span("No hay tareas pendientes para esta catástrofe."));
+            } else {
+                List<CheckTaskComponent> checkTaskComponents = suggestedTasks.stream()
+                                .map(CheckTaskComponent::new).toList();
+                suggestedTasksCheckBox.setItems(checkTaskComponents);
+            }
+        } catch (Exception e) {
+            suggestedTasksCheckBox.add(new Span("Error al cargar tareas: " + e.getMessage()));
+        }
 
-        suggestedTasksLayout.add(suggestedTasks);
+        suggestedTasksCheckBox.setThemeName("vertical");
+        suggestedTasksCheckBox.addClassName("centered-checkbox-group");
+
+        suggestedTasksLayout.add(suggestedTasksCheckBox);
         suggestedTasksLayout.setAlignItems(Alignment.CENTER);
         suggestedTasksLayout.setJustifyContentMode(JustifyContentMode.CENTER);
 
