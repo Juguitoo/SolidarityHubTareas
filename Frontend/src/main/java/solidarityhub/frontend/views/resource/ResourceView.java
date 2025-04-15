@@ -20,7 +20,7 @@ import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 @Route("resources")
 public class ResourceView extends VerticalLayout implements BeforeEnterObserver {
 
-    private ResourceService resourceService;
+    private final ResourceService resourceService;
     private CatastropheDTO selectedCatastrophe;
 
     @Autowired
