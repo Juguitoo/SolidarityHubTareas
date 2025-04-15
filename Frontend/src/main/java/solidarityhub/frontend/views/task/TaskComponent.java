@@ -15,7 +15,7 @@ import solidarityhub.frontend.dto.TaskDTO;
 
 import java.util.Collections;
 
-public class TaskComponent extends HorizontalLayout {
+public class TaskComponent extends VerticalLayout {
 
     private final int taskId;
     private String taskName;
@@ -35,11 +35,21 @@ public class TaskComponent extends HorizontalLayout {
 
         addClassName("task-card");
 
+        HorizontalLayout header = new HorizontalLayout();
+        header.setWidthFull();
+        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        header.setAlignItems(Alignment.CENTER);
+        header.add(getTaskName(), getStartDateTime());
+
+        HorizontalLayout footer = new HorizontalLayout();
+        footer.setWidthFull();
+        footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        footer.setAlignItems(Alignment.CENTER);
+        footer.add(getPriorityLevel(), getSettings());
+
         add(
-            getImg(),
-            getTaskInfo(),
-            getPriorityLevel(),
-            getSettings()
+            header, new HorizontalLayout(getImg(), getTaskDescription()),
+            footer
         );
     }
 
@@ -53,15 +63,25 @@ public class TaskComponent extends HorizontalLayout {
 
         addClassName("task-card");
 
+        HorizontalLayout header = new HorizontalLayout();
+        header.setWidthFull();
+        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        header.setAlignItems(Alignment.CENTER);
+        header.add(getTaskName(), getStartDateTime());
+
+        HorizontalLayout footer = new HorizontalLayout();
+        footer.setWidthFull();
+        footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        footer.setAlignItems(Alignment.CENTER);
+        footer.add(getPriorityLevel(), getSettings());
+
         add(
-                getImg(),
-                getTaskInfo(),
-                getPriorityLevel(),
-                getSettings()
+                header, new HorizontalLayout(getImg(), getTaskDescription()),
+                footer
         );
     }
 
-    private Image getImg() {
+    public Image getImg() {
         switch (emergencyLevel) {
             case "low", "Baja":
                 Image imgLow = new Image("images/task_low.png", "Tarea de emergencia baja");
@@ -85,8 +105,21 @@ public class TaskComponent extends HorizontalLayout {
         return img;
     }
 
+    public Component getTaskName() {
+        H2 taskNameTitle = new H2(taskName);
+        taskNameTitle.addClassName("task-title");
+        return taskNameTitle;
+    }
+
+    public Component getTaskDescription() {
+        Span taskDescriptionSpan = new Span(taskDescription);
+        taskDescriptionSpan.addClassName("task-description");
+        return taskDescriptionSpan;
+    }
+
     public Component getTaskInfo() {
         VerticalLayout textLayout = new VerticalLayout();
+        textLayout.setSizeFull();
         textLayout.addClassName("task-info");
 
 
@@ -103,16 +136,12 @@ public class TaskComponent extends HorizontalLayout {
     public Component getPriorityLevel() {
         Span emergencyLevelSpan = new Span(priority);
         emergencyLevelSpan.addClassName("task-priority");
-        setAlignSelf(Alignment.END, emergencyLevelSpan);
         return emergencyLevelSpan;
     }
 
-    private Component getSettings() {
+    public Component getSettings() {
         VerticalLayout buttonLayout = new VerticalLayout();
         buttonLayout.addClassName("settings");
-
-        Span taskDateSpan = new Span(startTimeDate);
-        taskDateSpan.addClassName("task-date");
 
         Icon icon = VaadinIcon.COG.create();
         editButton = new Button(icon);
@@ -123,8 +152,14 @@ public class TaskComponent extends HorizontalLayout {
                     Collections.singletonMap("id", String.valueOf(this.taskId))));
         });
 
-        buttonLayout.add(taskDateSpan, editButton);
+        buttonLayout.add(editButton);
         return buttonLayout;
+    }
+
+    public Component getStartDateTime() {
+        Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
+        startDateTimeSpan.addClassName("task-date");
+        return startDateTimeSpan;
     }
 
 

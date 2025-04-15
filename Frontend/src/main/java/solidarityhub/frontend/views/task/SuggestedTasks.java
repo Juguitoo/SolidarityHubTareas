@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
@@ -41,13 +42,35 @@ public class SuggestedTasks extends VerticalLayout {
 
         header.add(backButton, title);
 
-        add(header, getSuggestedTasks());
+        setAlignItems(Alignment.CENTER);
+        setJustifyContentMode(JustifyContentMode.CENTER);
+        add(header, getSuggestedTasks(), getButtons());
+    }
+
+    private Component getButtons() {
+        HorizontalLayout buttonsLayout = new HorizontalLayout();
+        buttonsLayout.addClassName("buttons-layout");
+
+        Button acceptButton = new Button("Confirmar");
+        acceptButton.addClickListener(event -> {
+            // Handle acceptance of suggested tasks
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        });
+
+        Button cancelButton = new Button("Rechazar");
+        cancelButton.addClickListener(event -> {
+            // Handle cancellation
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        });
+
+        buttonsLayout.add(cancelButton, acceptButton);
+        return buttonsLayout;
     }
 
     private HorizontalLayout getSuggestedTasks() {
         HorizontalLayout suggestedTasksLayout = new HorizontalLayout();
         suggestedTasksLayout.addClassName("centered-container");
-        CheckboxGroup<CheckTaskComponent> suggestedTasksCheckBox = new CheckboxGroup<>();
+        CheckboxGroup<TaskComponent> suggestedTasksCheckBox = new CheckboxGroup<>();
 
         List<TaskComponent> suggestedTasks;
         try {
@@ -57,9 +80,8 @@ public class SuggestedTasks extends VerticalLayout {
             if (suggestedTasks.isEmpty()) {
                 suggestedTasksLayout.add(new Span("No hay tareas pendientes para esta catástrofe."));
             } else {
-                List<CheckTaskComponent> checkTaskComponents = suggestedTasks.stream()
-                                .map(CheckTaskComponent::new).toList();
-                suggestedTasksCheckBox.setItems(checkTaskComponents);
+                suggestedTasksCheckBox.setItems(suggestedTasks);
+                suggestedTasksCheckBox.setRenderer(getTaskRenderer());
             }
         } catch (Exception e) {
             suggestedTasksCheckBox.add(new Span("Error al cargar tareas: " + e.getMessage()));
@@ -73,5 +95,29 @@ public class SuggestedTasks extends VerticalLayout {
         suggestedTasksLayout.setJustifyContentMode(JustifyContentMode.CENTER);
 
         return suggestedTasksLayout;
+    }
+
+    private ComponentRenderer<Component, TaskComponent> getTaskRenderer() {
+        return new ComponentRenderer<>(t -> {
+            VerticalLayout card = new VerticalLayout();
+            card.addClassName("task-card");
+            HorizontalLayout header = new HorizontalLayout();
+            header.setWidthFull();
+            header.setJustifyContentMode(JustifyContentMode.BETWEEN);
+            header.setAlignItems(Alignment.CENTER);
+            header.add(t.getTaskName(), t.getStartDateTime());
+
+            HorizontalLayout footer = new HorizontalLayout();
+            footer.setWidthFull();
+            footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
+            footer.setAlignItems(Alignment.CENTER);
+            footer.add(t.getPriorityLevel(), t.getSettings());
+
+            card.add(
+                    header, new HorizontalLayout(t.getImg(), t.getTaskDescription()),
+                    footer
+            );
+            return card;
+        });
     }
 }
