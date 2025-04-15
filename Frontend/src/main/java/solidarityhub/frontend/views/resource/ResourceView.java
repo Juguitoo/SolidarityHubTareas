@@ -9,6 +9,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
@@ -22,6 +23,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
     private ResourceService resourceService;
     private CatastropheDTO selectedCatastrophe;
 
+    @Autowired
     public ResourceView(ResourceService resourceService) {
         this.resourceService = resourceService;
         setSizeFull();
