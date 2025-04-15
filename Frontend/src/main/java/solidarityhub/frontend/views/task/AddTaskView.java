@@ -387,7 +387,7 @@ public class AddTaskView extends VerticalLayout {
         dialogContent.setPadding(false);
 
         MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds());
+        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getCatastropheId() == selectedCatastrophe.getId()).toList());
 
         needsListBox.setRenderer(
                 new ComponentRenderer<>(need -> {

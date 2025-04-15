@@ -146,7 +146,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         Button cancelButton = new Button("Salir");
         cancelButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("tasks")));
 
-        buttons.add(updateButton, deleteButton, cancelButton);
+        buttons.add(cancelButton, deleteButton, updateButton);
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;
