@@ -7,8 +7,15 @@
     box-shadow: var(--card-shadow);
     border-left: 6px solid var(--default-priority);
     transition: transform 0.2s;
+    width: 100%;
+    height: auto;
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    overflow: auto;
+}
+
+.task-card > * {
+    flex: 1;
 }
 
 .task-card.high {
@@ -30,8 +37,19 @@
     color: #212121;
 }
 
+.task-description {
+    font-size: 0.8rem;
+    color: #616161;
+    margin: 0.5rem 0;
+}
+
 .task-card .task-date {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    color: #757575;
+}
+
+.task-priority {
+    font-size: 0.8rem;
     color: #757575;
 }
 
@@ -39,12 +57,11 @@
 .task-card img {
     width: 50px;
     height: 50px;
+    align-items: center;
 }
 
 /* Configuración de la tarea */
 .task-card .settings {
-    display: flex;
-    align-items: center;
     gap: 0.5rem;
 }
 
@@ -53,7 +70,7 @@
     color: white; /* Color del texto */
     border: none; /* Sin borde */
     border-radius: 4px; /* Bordes redondeados */
-    padding: 0.5rem 1rem; /* Espaciado interno */
+    padding: 0.3rem 1rem; /* Espaciado interno */
     cursor: pointer; /* Cambia el cursor al pasar por encima */
     transition: background-color 0.3s; /* Transición suave para el cambio de color */
 }
