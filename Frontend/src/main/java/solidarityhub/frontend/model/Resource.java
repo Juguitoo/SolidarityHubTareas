@@ -10,7 +10,6 @@ import solidarityhub.frontend.model.enums.ResourceType;
 @Getter
 @NoArgsConstructor
 public class Resource {
-
     private int id;
 
     @Setter
@@ -29,8 +28,10 @@ public class Resource {
     @Setter
     private Storage storage;
 
-    public Resource(ResourceType type, double quantity) {
+    public Resource(String name, ResourceType type, double quantity, Storage storage) {
+        this.name = name;
         this.type = type;
         this.quantity = quantity;
+        this.storage = storage;
     }
 }

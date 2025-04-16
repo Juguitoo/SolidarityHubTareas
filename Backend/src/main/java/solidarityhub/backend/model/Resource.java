@@ -24,6 +24,7 @@ public class Resource {
     @Column(nullable = false)
     private ResourceType type;
 
+    @Setter
     private double quantity;
 
     @Setter
@@ -36,9 +37,17 @@ public class Resource {
     @JoinColumn(name = "storage_id")
     private Storage storage;
 
-    public Resource(ResourceType type, double quantity) {
+    public Resource(String name, ResourceType type, double quantity, Storage storage) {
+        this.name = name;
         this.type = type;
         this.quantity = quantity;
+        this.storage = storage;
+    }
+    public Resource(String name, ResourceType type, double quantity) {
+        this.name = name;
+        this.type = type;
+        this.quantity = quantity;
+        this.storage = null;
     }
 
 }
