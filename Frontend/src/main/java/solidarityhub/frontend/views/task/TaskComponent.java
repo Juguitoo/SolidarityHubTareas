@@ -84,19 +84,19 @@ public class TaskComponent extends VerticalLayout {
     public Image getImg() {
         switch (emergencyLevel) {
             case "low", "Baja":
-                Image imgLow = new Image("images/task_low.png", "Tarea de emergencia baja");
+                Image imgLow = new Image("images/task_low.png", "Tarea de peligrosidad baja");
                 imgLow.addClassName("task-icon");
                 return imgLow;
             case "medium", "Media":
-                Image imgMedium = new Image("images/task_medium.png", "Tarea de emergencia media");
+                Image imgMedium = new Image("images/task_medium.png", "Tarea de peligrosidad media");
                 imgMedium.addClassName("task-icon");
                 return imgMedium;
             case "high", "Alta":
-                Image imgHigh = new Image("images/task_high.png", "Tarea de emergencia alta");
+                Image imgHigh = new Image("images/task_high.png", "Tarea de peligrosidad alta");
                 imgHigh.addClassName("task-icon");
                 return imgHigh;
             case "veryHigh", "Muy alta":
-                Image imgVeryHigh = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
+                Image imgVeryHigh = new Image("images/task_veryHigh.png", "Tarea de peligrosidad muy alta");
                 imgVeryHigh.addClassName("task-icon");
                 return imgVeryHigh;
         }
@@ -134,9 +134,9 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getPriorityLevel() {
-        Span emergencyLevelSpan = new Span(priority);
-        emergencyLevelSpan.addClassName("task-priority");
-        return emergencyLevelSpan;
+        Span prioritySpan = new Span(priority);
+        prioritySpan.addClassName("task-priority");
+        return prioritySpan;
     }
 
     public Component getSettings() {
@@ -147,10 +147,8 @@ public class TaskComponent extends VerticalLayout {
         editButton = new Button(icon);
         editButton.addClassName("edit-button");
 
-        editButton.addClickListener(event -> {
-            UI.getCurrent().navigate("editTask", QueryParameters.simple(
-                    Collections.singletonMap("id", String.valueOf(this.taskId))));
-        });
+        editButton.addClickListener(event -> UI.getCurrent().navigate("editTask", QueryParameters.simple(
+                Collections.singletonMap("id", String.valueOf(this.taskId)))));
 
         buttonLayout.add(editButton);
         return buttonLayout;

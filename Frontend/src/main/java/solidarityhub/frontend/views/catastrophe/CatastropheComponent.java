@@ -8,14 +8,17 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import lombok.Getter;
+import lombok.Setter;
 
 
-
+@Getter
 public class CatastropheComponent extends Div {
 
     private String name;
     private String description;
     private String date;
+    @Setter
     private String emergencyLevel;
 
 
@@ -108,10 +111,7 @@ public class CatastropheComponent extends Div {
         add(contentLayout, dateSpan);
 
 
-        addClickListener(event -> {
-
-            getElement().getStyle().set("cursor", "pointer");
-        });
+        addClickListener(event -> getElement().getStyle().set("cursor", "pointer"));
 
 
         getElement().addEventListener("mouseover", e ->
@@ -122,10 +122,6 @@ public class CatastropheComponent extends Div {
 
     // Getters y setters
 
-    public String getName() {
-        return name;
-    }
-
     public void setName(String name) {
         this.name = name;
         getElement().getChildren()
@@ -134,10 +130,6 @@ public class CatastropheComponent extends Div {
                 .filter(child -> child.getAttribute("class").contains("catastrophe-title"))
                 .findFirst()
                 .ifPresent(element -> element.setText(name));
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public void setDescription(String description) {
@@ -150,10 +142,6 @@ public class CatastropheComponent extends Div {
                 .ifPresent(element -> element.setText(description));
     }
 
-    public String getDate() {
-        return date;
-    }
-
     public void setDate(String date) {
         this.date = date;
         getElement().getChildren()
@@ -162,13 +150,6 @@ public class CatastropheComponent extends Div {
                 .filter(child -> child.getAttribute("class").contains("catastrophe-date"))
                 .findFirst()
                 .ifPresent(element -> element.setText(date));
-    }
-    public String getEmergencyLevel() {
-        return emergencyLevel;
-    }
-
-    public void setEmergencyLevel(String emergencyLevel) {
-        this.emergencyLevel = emergencyLevel;
     }
 
 }

@@ -12,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
 
 import java.time.LocalDateTime;
