@@ -1,44 +1,36 @@
-package solidarityhub.backend.model;
+package solidarityhub.frontend.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-import solidarityhub.backend.model.enums.ResourceType;
+import solidarityhub.frontend.model.enums.ResourceType;
 
 @Getter
-@ToString
 @NoArgsConstructor
-@Entity
 public class Resource {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private int id;
 
     @Setter
-    @Column(nullable = false)
     private String name;
 
     @Setter
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ResourceType type;
 
+    @Setter
     private double quantity;
 
     @Setter
-    @ManyToOne
-    @JoinColumn(name = "donation_id")
     private Donation donation;
 
     @Setter
-    @ManyToOne
-    @JoinColumn(name = "storage_id")
     private Storage storage;
 
     public Resource(ResourceType type, double quantity) {
         this.type = type;
         this.quantity = quantity;
     }
-
 }
