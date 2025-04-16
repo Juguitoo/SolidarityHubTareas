@@ -42,7 +42,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     private final TaskService taskService;
     private CatastropheDTO selectedCatastrophe;
     private ListDataProvider<TaskDTO> dataProvider;
-    private Grid<TaskDTO> taskGrid;
+    private final Grid<TaskDTO> taskGrid;
 
     @Autowired
     public MoreTasks(TaskService taskService) {

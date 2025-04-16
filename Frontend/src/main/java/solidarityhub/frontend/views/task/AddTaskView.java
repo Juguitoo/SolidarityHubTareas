@@ -58,7 +58,7 @@ public class AddTaskView extends VerticalLayout {
     protected final TextField taskName = new TextField("Nombre de la tarea");
     protected final TextArea taskDescription = new TextArea("Descripción de la tarea");
     protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
-    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
+    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de peligrosidad");
     protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
     protected final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
@@ -77,7 +77,7 @@ public class AddTaskView extends VerticalLayout {
                 "Descripccion de la tarea",
                 formatDate(LocalDateTime.now()),
                 "Prioridad",
-                "Nivel de emergencia"
+                "Nivel de peligrosidad"
         );
         taskPreview.enabledEditButton(false);
 
@@ -201,7 +201,7 @@ public class AddTaskView extends VerticalLayout {
 
         //Update endDateTimePicker min value when startDateTimePicker changes
         starDateTimePicker.addValueChangeListener(event -> {
-            LocalDateTime startValue = null;
+            LocalDateTime startValue;
             try {
                 startValue = event.getValue();
                 if (startValue != null) {
@@ -276,9 +276,7 @@ public class AddTaskView extends VerticalLayout {
             switch (selectedTabName) {
                 case "Todos":
                     allVolunteers.clear();
-                    volunteerService.getVolunteers("None", getTaskDTO()).forEach(v -> {
-                        allVolunteers.add(v.getFirstName());
-                    });
+                    volunteerService.getVolunteers("None", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
                     volunteersListBox.setItems(allVolunteers);
                     break;
                 case "Distancia":
@@ -288,9 +286,7 @@ public class AddTaskView extends VerticalLayout {
                         return;
                     }else{
                         allVolunteers.clear();
-                        volunteerService.getVolunteers("distancia", getTaskDTO()).forEach(v -> {
-                            allVolunteers.add(v.getFirstName());
-                        });
+                        volunteerService.getVolunteers("distancia", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
                         volunteersListBox.setItems(allVolunteers);
                     }
                     break;
@@ -301,9 +297,7 @@ public class AddTaskView extends VerticalLayout {
                         return;
                     }else{
                         allVolunteers.clear();
-                        volunteerService.getVolunteers("disponibilidad", getTaskDTO()).forEach(v -> {
-                            allVolunteers.add(v.getFirstName());
-                        });
+                        volunteerService.getVolunteers("disponibilidad", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
                         volunteersListBox.setItems(allVolunteers);
                     }
                     break;
@@ -314,9 +308,7 @@ public class AddTaskView extends VerticalLayout {
                         return;
                     }else{
                         allVolunteers.clear();
-                        volunteerService.getVolunteers("habilidades", getTaskDTO()).forEach(v -> {
-                            allVolunteers.add(v.getFirstName());
-                        });
+                        volunteerService.getVolunteers("habilidades", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
                         volunteersListBox.setItems(allVolunteers);
                     }
 
@@ -545,7 +537,7 @@ public class AddTaskView extends VerticalLayout {
                 updatePreview(taskName.getValue(), taskDescription.getValue(),
                         e.getValue(), taskEmergency.getValue()));
 
-        // Listener para el nivel de emergencia
+        // Listener para el nivel de peligrosidad
         taskEmergency.addValueChangeListener(e ->
                 updatePreview(taskName.getValue(), taskDescription.getValue(),
                         taskPriority.getValue(), e.getValue()));

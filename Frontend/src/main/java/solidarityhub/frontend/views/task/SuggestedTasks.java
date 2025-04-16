@@ -23,7 +23,7 @@ import java.util.List;
 @Route("suggested-tasks")
 public class SuggestedTasks extends VerticalLayout {
     private final TaskService taskService;
-    private CatastropheDTO selectedCatastrophe;
+    private final CatastropheDTO selectedCatastrophe;
 
     @Autowired
     public SuggestedTasks(TaskService taskService) {
