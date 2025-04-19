@@ -132,6 +132,9 @@ public class TaskController {
             return ResponseEntity.notFound().build();
         }
 
+        task.getVolunteers().forEach(volunteer -> {volunteer.getTasks().remove(task); volunteerService.saveVolunteer(volunteer);});
+        task.getNeeds().forEach(need -> {need.setTask(null); needService.saveNeed(need);});
+
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
         Catastrophe catastrophe = null;
@@ -147,7 +150,7 @@ public class TaskController {
         List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer needId : needIds) {
             Need need = needService.findNeed(needId);
-            if (need != null && !task.getNeeds().contains(need)) {
+            if (need != null) {
                 needs.add(need);
             }
         }
@@ -156,7 +159,6 @@ public class TaskController {
         for (String volunteerID : volunteerDnis) {
             Volunteer volunteer = volunteerService.getVolunteer(volunteerID);
             volunteers.add(volunteer);
-
         }
 
         task.setTaskName(taskDTO.getName());
@@ -168,6 +170,7 @@ public class TaskController {
         task.setStatus(taskDTO.getStatus());
         task.setVolunteers(volunteers);
         task.setNeeds(needs);
+        task.setType(taskDTO.getType());
 
         taskService.saveTask(task);
 

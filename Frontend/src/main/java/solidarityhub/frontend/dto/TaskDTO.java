@@ -2,6 +2,7 @@ package solidarityhub.frontend.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
@@ -24,6 +25,7 @@ public class TaskDTO {
     private Status status;
     private List<NeedDTO> needs;
     private List<VolunteerDTO> volunteers;
+    @Setter
     private Integer catastropheId;
 
     public TaskDTO(String name , String description, LocalDateTime startTimeDate, LocalDateTime estimatedEndTimeDate, TaskType type, Priority priority, EmergencyLevel emergencyLevel,
@@ -50,8 +52,4 @@ public class TaskDTO {
         this.catastropheId = catastropheId;
     }
 
-    // Setter específico para el ID de catástrofe
-    public void setCatastropheId(Integer catastropheId) {
-        this.catastropheId = catastropheId;
-    }
 }
