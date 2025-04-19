@@ -47,6 +47,7 @@ public class TaskComponent extends VerticalLayout {
         footer.setAlignItems(Alignment.CENTER);
         footer.add(getPriorityLevel(), getSettings());
 
+        setWidthFull();
         add(
             header, new HorizontalLayout(getImg(), getTaskDescription()),
             footer

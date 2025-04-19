@@ -50,14 +50,21 @@ vaadin-button{
     text-align: center;
 }
 
-.centered-checkbox-group {
-    margin: auto;
+.suggested-tasks-layout {
+    margin: 1rem 0
 }
 
-.centered-container {
-    display: flex;
-    justify-content: center;
+.suggested-tasks-buttons{
+    width: unset;
+    margin-left: auto;
+}
+
+.suggested-task{
     align-items: center;
-    width: 100%;
-    margin: 5rem 0
+    justify-content: center;
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: var(--card-border-radius);
+    background-color: var(--background-color);
+    box-shadow: var(--card-shadow);
 }
