@@ -98,20 +98,25 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             starDateTimePicker.setMin(LocalDateTime.now());
         }
 
-        endDateTimePicker.setValue(task.getEstimatedEndTimeDate());
-
-        Set<String> needDescriptions = task.getNeeds().stream()
+        List<String> needs = new ArrayList<>(needService.getNeeds().stream()
+                .filter(n -> n.getTaskId() == -1)
                 .map(NeedDTO::getDescription)
-                .collect(Collectors.toSet());
-        needsMultiSelectComboBox.setItems(needDescriptions);
-        needsMultiSelectComboBox.select(needDescriptions);
-        needsMultiSelectComboBox.setHelperText("Este campo no se puede modificar");
+                .toList());
+        List<String> taskNeeds = task.getNeeds().stream()
+                .map(NeedDTO::getDescription)
+                .toList();
+        needs.addAll(taskNeeds);
+
+        needsMultiSelectComboBox.setItems(needs);
+        needsMultiSelectComboBox.select(taskNeeds);
+
+        endDateTimePicker.setValue(task.getEstimatedEndTimeDate());
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
                 .collect(Collectors.toSet());
 
-        //Cambiar cuando este implementado el patron
+
         if (volunteerNames.isEmpty()) {
             volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
             volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
@@ -119,9 +124,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             volunteerMultiSelectComboBox.setItems(volunteerNames);
             volunteerMultiSelectComboBox.select(volunteerNames);
         }
-        volunteerMultiSelectComboBox.setHelperText("Este campo no se puede modificar");
 
-        // Actualizar la vista previa
         taskPreview.updateName(task.getName());
         taskPreview.updateDescription(task.getDescription());
         taskPreview.updateDate(formatDate(task.getStartTimeDate()));
@@ -151,44 +154,46 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return buttons;
     }
 
-    @Override
-    protected Component getNeedsForm() {
-        needsMultiSelectComboBox.setReadOnly(true);
-        needsMultiSelectComboBox.setRequired(false);
-        needsMultiSelectComboBox.setRequiredIndicatorVisible(false);
-
-        needsMultiSelectComboBox.getElement().removeAttribute("clickable");
-        return needsMultiSelectComboBox;
-    }
-
-    @Override
-    protected Component getVolunteersForm() {
-        volunteerMultiSelectComboBox.setReadOnly(true);
-        volunteerMultiSelectComboBox.setRequired(false);
-        volunteerMultiSelectComboBox.setRequiredIndicatorVisible(false);
-
-        volunteerMultiSelectComboBox.getElement().removeAttribute("clickable");
-        return volunteerMultiSelectComboBox;
-    }
-
     //===============================Modify task=========================================
     private void updateTask() {
         if (validateForm()) {
             try {
-                List<NeedDTO> originalNeeds = originalTask.getNeeds();
-                List<VolunteerDTO> originalVolunteers = originalTask.getVolunteers();
+                List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+                List<NeedDTO> needs = new ArrayList<>();
+                for (String need : selectedNeeds) {
+                    needService.getNeeds().stream()
+                            .filter(n -> n.getDescription().equals(need))
+                            .findFirst().ifPresent(needs::add);
+                }
+
+                List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
+                List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
+                selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
+                        .map(name -> {
+                            if (name.equals("Elegir voluntarios automáticamente")) {
+                                finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
+                            }
+                            return volunteerService.getVolunteers("", new TaskDTO()).stream()
+                                    .filter(v -> v.getFirstName().equals(name))
+                                    .findFirst()
+                                    .orElse(null);
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+
+
 
                 TaskDTO updatedTaskDTO = new TaskDTO(
                         taskName.getValue(),
                         taskDescription.getValue(),
                         starDateTimePicker.getValue(),
                         endDateTimePicker.getValue(),
-                        originalTask.getType(),
+                        needs.getFirst().getTaskType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
                         originalTask.getStatus(),
-                        originalNeeds,
-                        originalVolunteers,
+                        needs,
+                        selectedVolunteers,
                         selectedCatastrophe.getId()
                 );
 

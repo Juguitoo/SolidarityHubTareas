@@ -234,7 +234,6 @@ public class AddTaskView extends VerticalLayout {
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
         volunteerMultiSelectComboBox.setRequired(true);
-        volunteerMultiSelectComboBox.setHelperText("Los voluntarios no se podrán modificar una vez creada la tarea");
         volunteerMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
         Dialog selectVolunteersDialog = getVolunteersDialogContent();
@@ -361,7 +360,6 @@ public class AddTaskView extends VerticalLayout {
         needsMultiSelectComboBox.setReadOnly(true);
         needsMultiSelectComboBox.setRequiredIndicatorVisible(true);
         needsMultiSelectComboBox.setRequired(true);
-        needsMultiSelectComboBox.setHelperText("Las necesidades no se podrán modificar una vez creada la tarea");
         needsMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
         Dialog selectNeedsDialog = getNeedsDialogContent();

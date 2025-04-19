@@ -21,7 +21,7 @@ public class NeedDTO {
 
     private GPSCoordinates location;
     private int taskId;
-    private int catastropheId; // Añadido para saber a qué catástrofe pertenece la necesidad
+    private int catastropheId;
 
     public NeedDTO(Need need) {
         this.id = need.getId();
@@ -41,7 +41,6 @@ public class NeedDTO {
         }
     }
 
-    // Constructor para uso en pruebas o ejemplos
     public NeedDTO(int id, String description, UrgencyLevel urgency, TaskType taskType,
                    GPSCoordinates location, int taskId, int catastropheId) {
         this.id = id;
@@ -51,9 +50,5 @@ public class NeedDTO {
         this.location = location;
         this.taskId = taskId;
         this.catastropheId = catastropheId;
-    }
-
-    public int getCatastropheId() {
-        return this.catastropheId;
     }
 }

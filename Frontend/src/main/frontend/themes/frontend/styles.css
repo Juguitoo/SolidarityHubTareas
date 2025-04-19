@@ -51,6 +51,7 @@ vaadin-button{
 }
 
 .suggested-tasks-layout {
+    max-width: 80%;
     margin: 1rem 0
 }
 
