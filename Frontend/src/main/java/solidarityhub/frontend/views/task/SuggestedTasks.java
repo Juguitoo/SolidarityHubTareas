@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.html.Div;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.service.TaskService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @PageTitle("Suggested Tasks")
@@ -44,80 +46,62 @@ public class SuggestedTasks extends VerticalLayout {
 
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
-        add(header, getSuggestedTasks(), getButtons());
+        add(header, getSuggestedTasks());
     }
 
-    private Component getButtons() {
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.addClassName("buttons-layout");
+    private VerticalLayout getButtons() {
+        VerticalLayout buttonsLayout = new VerticalLayout();;
+        buttonsLayout.addClassName("suggested-tasks-buttons");
 
-        Button acceptButton = new Button("Confirmar");
-        acceptButton.addClickListener(event -> {
-            // Handle acceptance of suggested tasks
-            getUI().ifPresent(ui -> ui.navigate("tasks"));
-        });
+        buttonsLayout.setSpacing(true);
+        buttonsLayout.setPadding(false);
+        buttonsLayout.setSizeUndefined();
+        buttonsLayout.setAlignItems(Alignment.CENTER);
 
-        Button cancelButton = new Button("Rechazar");
-        cancelButton.addClickListener(event -> {
-            // Handle cancellation
-            getUI().ifPresent(ui -> ui.navigate("tasks"));
-        });
+        Button acceptButton = new Button(new Icon("vaadin", "check"));
+        acceptButton.getStyle().set("color", "green");
+        acceptButton.addClickListener(event -> {getUI().ifPresent(ui -> ui.navigate("tasks"));});
 
-        buttonsLayout.add(cancelButton, acceptButton);
+        Button cancelButton = new Button(new Icon("vaadin", "close"));
+        cancelButton.getStyle().set("color", "red");
+        cancelButton.addClickListener(event -> {getUI().ifPresent(ui -> ui.navigate("tasks"));});
+
+        buttonsLayout.add(acceptButton, cancelButton);
         return buttonsLayout;
     }
 
-    private HorizontalLayout getSuggestedTasks() {
-        HorizontalLayout suggestedTasksLayout = new HorizontalLayout();
-        suggestedTasksLayout.addClassName("centered-container");
-        CheckboxGroup<TaskComponent> suggestedTasksCheckBox = new CheckboxGroup<>();
+    private VerticalLayout getSuggestedTasks() {
+        VerticalLayout suggestedTasksLayout = new VerticalLayout();
+        suggestedTasksLayout.addClassName("suggested-tasks-layout");
 
-        List<TaskComponent> suggestedTasks;
+        List<HorizontalLayout> suggestedTasks = new ArrayList<>();
         try {
-            suggestedTasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId()).stream()
+            List<TaskComponent> tasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId()).stream()
                     .map(TaskComponent::new).toList();
+            tasks.forEach(task -> {
+                VerticalLayout buttons = getButtons();
+                HorizontalLayout suggestedTask = new HorizontalLayout(task, buttons);
+                suggestedTask.setWidthFull();
+                suggestedTask.setAlignItems(Alignment.CENTER);
+                suggestedTask.setSpacing(true);
+
+                suggestedTasks.add(suggestedTask);
+                suggestedTask.addClassName("suggested-task");
+                suggestedTask.setFlexGrow(1, task);
+            });
 
             if (suggestedTasks.isEmpty()) {
-                suggestedTasksLayout.add(new Span("No hay tareas pendientes para esta catástrofe."));
+                suggestedTasksLayout.add(new Span("No hay tareas sugeridas para esta catástrofe."));
             } else {
-                suggestedTasksCheckBox.setItems(suggestedTasks);
-                suggestedTasksCheckBox.setRenderer(getTaskRenderer());
+                suggestedTasks.forEach(suggestedTasksLayout::add);
             }
         } catch (Exception e) {
-            suggestedTasksCheckBox.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            suggestedTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
         }
 
-        suggestedTasksCheckBox.setThemeName("vertical");
-        suggestedTasksCheckBox.addClassName("centered-checkbox-group");
-
-        suggestedTasksLayout.add(suggestedTasksCheckBox);
         suggestedTasksLayout.setAlignItems(Alignment.CENTER);
-        suggestedTasksLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+        suggestedTasksLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
         return suggestedTasksLayout;
-    }
-
-    private ComponentRenderer<Component, TaskComponent> getTaskRenderer() {
-        return new ComponentRenderer<>(t -> {
-            VerticalLayout card = new VerticalLayout();
-            card.addClassName("task-card");
-            HorizontalLayout header = new HorizontalLayout();
-            header.setWidthFull();
-            header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-            header.setAlignItems(Alignment.CENTER);
-            header.add(t.getTaskName(), t.getStartDateTime());
-
-            HorizontalLayout footer = new HorizontalLayout();
-            footer.setWidthFull();
-            footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
-            footer.setAlignItems(Alignment.CENTER);
-            footer.add(t.getPriorityLevel(), t.getSettings());
-
-            card.add(
-                    header, new HorizontalLayout(t.getImg(), t.getTaskDescription()),
-                    footer
-            );
-            return card;
-        });
     }
 }
