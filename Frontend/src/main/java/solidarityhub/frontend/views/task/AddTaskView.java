@@ -39,6 +39,8 @@ import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.service.VolunteerService;
+import solidarityhub.frontend.views.headerComponent;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -53,7 +55,7 @@ public class AddTaskView extends VerticalLayout {
     protected final NeedService needService;
     protected final CatastropheDTO selectedCatastrophe;
 
-    protected final TaskComponent taskPreview;
+    protected TaskComponent taskPreview;
 
     protected final TextField taskName = new TextField("Nombre de la tarea");
     protected final TextArea taskDescription = new TextArea("Descripción de la tarea");
@@ -71,28 +73,7 @@ public class AddTaskView extends VerticalLayout {
         this.needService = new NeedService();
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
-        this.taskPreview = new TaskComponent(
-                0,
-                "Nombre de la tarea",
-                "Descripccion de la tarea",
-                formatDate(LocalDateTime.now()),
-                "Prioridad",
-                "Nivel de peligrosidad"
-        );
-        taskPreview.enabledEditButton(false);
-
-        //Header
-        Div header = new Div();
-        header.addClassName("header");
-
-        Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("tasks")));
-        backButton.addClassName("back-button");
-
-        H1 title = new H1("Añadir tarea");
-        title.addClassName("title");
-
-        header.add(backButton, title);
+        headerComponent header = new headerComponent("Añadir tarea", "tasks");
 
         add(
             header,
@@ -100,6 +81,8 @@ public class AddTaskView extends VerticalLayout {
             getForms(),
             getButtons()
         );
+
+        setAlignItems(Alignment.CENTER);
     }
 
 
@@ -153,14 +136,23 @@ public class AddTaskView extends VerticalLayout {
     private Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
         preview.addClassName("previewContainer");
+        preview.setPadding(false);
+        preview.setWidth("40%");
 
-        H3 previewTitle = new H3("Previsualización:");
-
-        setAlignSelf(Alignment.CENTER, previewTitle, taskPreview);
+        taskPreview = new TaskComponent(
+                0,
+                "Nombre de la tarea",
+                "Descripción de la tarea",
+                formatDate(LocalDateTime.now()),
+                "Prioridad",
+                "Nivel de peligrosidad"
+        );
+        taskPreview.enabledEditButton(false);
+        setAlignSelf(Alignment.CENTER, taskPreview);
 
         setupFormListeners();
 
-        preview.add(previewTitle, taskPreview);
+        preview.add(taskPreview);
         return preview;
     }
 
@@ -440,28 +432,7 @@ public class AddTaskView extends VerticalLayout {
 
         Button cancel = new Button("Cancelar");
         cancel.addClickListener(e -> {
-            if (isFormFilled()) {
-                Dialog confirmDialog = new Dialog();
-                confirmDialog.setHeaderTitle("Confirmación");
-
-                VerticalLayout dialogContent = new VerticalLayout();
-                dialogContent.add(new Span("¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."));
-
-                Button confirmButton = new Button("Confirmar", event -> {
-                    confirmDialog.close();
-                    getUI().ifPresent(ui -> ui.navigate(""));
-                });
-                confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-                Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
-                cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-
-                confirmDialog.getFooter().add(cancelButton, confirmButton);
-                confirmDialog.add(dialogContent);
-                confirmDialog.open();
-            } else {
-                getUI().ifPresent(ui -> ui.navigate(""));
-            }
+            exitWithoutSavingDialog();
         });
 
         buttons.add(cancel, saveTaskButton);
@@ -517,30 +488,46 @@ public class AddTaskView extends VerticalLayout {
         return !taskName.isEmpty() || !taskDescription.isEmpty() || taskPriority.getValue() != null || taskEmergency.getValue() != null || needsMultiSelectComboBox.getValue() != null || starDateTimePicker.getValue() != null || !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
     }
 
+    protected void exitWithoutSavingDialog() {
+        if (isFormFilled()) {
+            Dialog confirmDialog = new Dialog();
+            confirmDialog.setHeaderTitle("Confirmación");
+
+            VerticalLayout dialogContent = new VerticalLayout();
+            dialogContent.add(new Span("¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."));
+
+            Button confirmButton = new Button("Confirmar", event -> {
+                confirmDialog.close();
+                getUI().ifPresent(ui -> ui.navigate(""));
+            });
+            confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
+            cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+            confirmDialog.getFooter().add(cancelButton, confirmButton);
+            confirmDialog.add(dialogContent);
+            confirmDialog.open();
+        } else {
+            getUI().ifPresent(ui -> ui.navigate(""));
+        }
+    }
+
     //===============================Modify Preview=========================================
     protected void setupFormListeners() {
-        // Listener para el nombre de la tarea
         taskName.addValueChangeListener(e ->
-                updatePreview(e.getValue(), taskDescription.getValue(),
-                        taskPriority.getValue(), taskEmergency.getValue())
+                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue())
         );
 
-        // Listener para la descripción
         taskDescription.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), e.getValue(),
-                        taskPriority.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue()));
 
-        // Listener para la prioridad
         taskPriority.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(),
-                        e.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue()));
 
-        // Listener para el nivel de peligrosidad
         taskEmergency.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(),
-                        taskPriority.getValue(), e.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue()));
 
-        // Listener para la fecha
         starDateTimePicker.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 updatePreviewDate(e.getValue());

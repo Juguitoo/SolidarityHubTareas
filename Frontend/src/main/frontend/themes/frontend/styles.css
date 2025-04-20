@@ -18,6 +18,12 @@
     --default-priority: #e0e0e0;
 }
 
+div, h1, h2, p, span, a, label, input, button, select, textarea, ul, li, img, section, header, footer, nav, main {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 vaadin-button{
     cursor: pointer;
 }
@@ -50,22 +56,14 @@ vaadin-button{
     text-align: center;
 }
 
-.suggested-tasks-layout {
-    max-width: 80%;
-    margin: 1rem 0
+.centered-checkbox-group {
+    margin: auto;
 }
 
-.suggested-tasks-buttons{
-    width: unset;
-    margin-left: auto;
-}
-
-.suggested-task{
-    align-items: center;
+.centered-container {
+    display: flex;
     justify-content: center;
-    padding: 1rem;
-    margin: 0.5rem;
-    border-radius: var(--card-border-radius);
-    background-color: var(--background-color);
-    box-shadow: var(--card-shadow);
+    align-items: center;
+    width: 100%;
+    margin: 5rem 0
 }
