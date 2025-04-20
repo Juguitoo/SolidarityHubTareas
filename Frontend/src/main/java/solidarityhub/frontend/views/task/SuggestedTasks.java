@@ -17,6 +17,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.views.headerComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,17 +33,8 @@ public class SuggestedTasks extends VerticalLayout {
         this.taskService = taskService;
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
-        Div header = new Div();
-        header.addClassName("header");
-
-        Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("tasks")));
-        backButton.addClassName("back-button");
-
-        H1 title = new H1("Tareas sugeridas");
-        title.addClassName("title");
-
-        header.add(backButton, title);
+        //Header
+        headerComponent header = new headerComponent("Tareas sugeridas", "tasks");
 
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);

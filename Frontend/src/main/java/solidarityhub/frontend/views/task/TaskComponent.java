@@ -3,6 +3,7 @@ package solidarityhub.frontend.views.task;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -23,7 +24,7 @@ public class TaskComponent extends VerticalLayout {
     private String startTimeDate;
     private String priority;
     private String emergencyLevel;
-    private Button editButton;
+    public Button editButton;
 
     public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel) {
         this.taskId = taskId;
@@ -33,25 +34,7 @@ public class TaskComponent extends VerticalLayout {
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
 
-        addClassName("task-card");
-
-        HorizontalLayout header = new HorizontalLayout();
-        header.setWidthFull();
-        header.setJustifyContentMode(JustifyContentMode.BETWEEN);
-        header.setAlignItems(Alignment.CENTER);
-        header.add(getTaskName(), getStartDateTime());
-
-        HorizontalLayout footer = new HorizontalLayout();
-        footer.setWidthFull();
-        footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
-        footer.setAlignItems(Alignment.CENTER);
-        footer.add(getPriorityLevel(), getSettings());
-
-        setWidthFull();
-        add(
-            header, new HorizontalLayout(getImg(), getTaskDescription()),
-            footer
-        );
+        creatComponent();
     }
 
     public TaskComponent(TaskDTO taskDTO) {
@@ -62,13 +45,16 @@ public class TaskComponent extends VerticalLayout {
         this.priority = taskDTO.getPriority().toString();
         this.emergencyLevel = taskDTO.getEmergencyLevel().toString();
 
+        creatComponent();
+    }
+
+    private void creatComponent() {
         addClassName("task-card");
 
         HorizontalLayout header = new HorizontalLayout();
-        header.setWidthFull();
+        header.add(getTaskName(), getStartDateTime());
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
         header.setAlignItems(Alignment.CENTER);
-        header.add(getTaskName(), getStartDateTime());
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setWidthFull();
@@ -77,33 +63,34 @@ public class TaskComponent extends VerticalLayout {
         footer.add(getPriorityLevel(), getSettings());
 
         add(
-                header, new HorizontalLayout(getImg(), getTaskDescription()),
-                footer
+            header,
+            new HorizontalLayout(getImg(), getTaskDescription()),
+            footer
         );
     }
 
+    //===============================Get Components=========================================
     public Image getImg() {
-        switch (emergencyLevel) {
-            case "low", "Baja":
-                Image imgLow = new Image("images/task_low.png", "Tarea de peligrosidad baja");
-                imgLow.addClassName("task-icon");
-                return imgLow;
-            case "medium", "Media":
-                Image imgMedium = new Image("images/task_medium.png", "Tarea de peligrosidad media");
-                imgMedium.addClassName("task-icon");
-                return imgMedium;
-            case "high", "Alta":
-                Image imgHigh = new Image("images/task_high.png", "Tarea de peligrosidad alta");
-                imgHigh.addClassName("task-icon");
-                return imgHigh;
-            case "veryHigh", "Muy alta":
-                Image imgVeryHigh = new Image("images/task_veryHigh.png", "Tarea de peligrosidad muy alta");
-                imgVeryHigh.addClassName("task-icon");
-                return imgVeryHigh;
-        }
-        Image img = new Image("images/task_default.png", "Icono tarea");
-        img.addClassName("task-icon");
-        return img;
+        Image taskImg = new Image("images/task_default.png", "Icono tarea");
+        return switch (emergencyLevel) {
+            case "low", "Baja" -> {
+                taskImg = new Image("images/task_low.png", "Tarea de emergencia baja");
+                yield taskImg;
+            }
+            case "medium", "Media" -> {
+                taskImg = new Image("images/task_medium.png", "Tarea de emergencia media");
+                yield taskImg;
+            }
+            case "high", "Alta" -> {
+                taskImg = new Image("images/task_high.png", "Tarea de emergencia alta");
+                yield taskImg;
+            }
+            case "veryHigh", "Muy alta" -> {
+                taskImg = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
+                yield taskImg;
+            }
+            default -> taskImg;
+        };
     }
 
     public Component getTaskName() {
@@ -113,39 +100,24 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getTaskDescription() {
-        Span taskDescriptionSpan = new Span(taskDescription);
+        Div taskDescriptionSpan = new Div(taskDescription);
         taskDescriptionSpan.addClassName("task-description");
         return taskDescriptionSpan;
     }
 
-    public Component getTaskInfo() {
-        VerticalLayout textLayout = new VerticalLayout();
-        textLayout.setSizeFull();
-        textLayout.addClassName("task-info");
-
-
-        H2 taskNameTitle = new H2(taskName);
-        taskNameTitle.addClassName("task-title");
-
-        Span taskDescriptionSpan = new Span(taskDescription);
-        taskDescriptionSpan.addClassName("task-description");
-
-        textLayout.add(taskNameTitle, taskDescriptionSpan);
-        return textLayout;
-    }
-
     public Component getPriorityLevel() {
-        Span prioritySpan = new Span(priority);
-        prioritySpan.addClassName("task-priority");
-        return prioritySpan;
+        Span emergencyLevelSpan = new Span(priority);
+        emergencyLevelSpan.addClassName("task-priority");
+        return emergencyLevelSpan;
     }
 
     public Component getSettings() {
         VerticalLayout buttonLayout = new VerticalLayout();
-        buttonLayout.addClassName("settings");
+        buttonLayout.setPadding(false);
+        buttonLayout.setAlignItems(Alignment.END);
 
-        Icon icon = VaadinIcon.COG.create();
-        editButton = new Button(icon);
+        Icon editTaskIcon = VaadinIcon.COG.create();
+        editButton = new Button(editTaskIcon);
         editButton.addClassName("edit-button");
 
         editButton.addClickListener(event -> UI.getCurrent().navigate("editTask", QueryParameters.simple(
@@ -161,12 +133,7 @@ public class TaskComponent extends VerticalLayout {
         return startDateTimeSpan;
     }
 
-
-    public void enabledEditButton(Boolean enabled) {
-        editButton.setEnabled(enabled);
-    }
-
-    //Update component methods
+    //===============================Update Components=========================================
     public void updateName(String name) {
         this.taskName = name;
         updateComponent();
@@ -194,12 +161,10 @@ public class TaskComponent extends VerticalLayout {
 
     private void updateComponent() {
         removeAll();
-        add(
-                getImg(),
-                getTaskInfo(),
-                getPriorityLevel(),
-                getSettings()
-        );
+        creatComponent();
     }
 
+    public void enabledEditButton(Boolean enabled) {
+        editButton.setEnabled(enabled);
+    }
 }

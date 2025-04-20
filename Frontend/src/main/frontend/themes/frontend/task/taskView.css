@@ -8,22 +8,19 @@
     min-height: 100vh;
 }
 
-/* Título principal */
 .task-title {
     color: #424242;
     font-size: 2rem;
     text-align: center;
 }
 
-/* Contenedor de listas de tareas */
-.tasks-lists {
+.tasksLists__layout {
     display: flex;
     align-items: center;
     width: 100%;
-    justify-content: space-evenly;
+    justify-content: space-between;
 }
 
-/* Secciones de tareas (Por hacer, En proceso, Terminadas) */
 .task-section {
     flex: 1;
     background-color: white;
@@ -33,12 +30,18 @@
     max-width: 450px;
 }
 
-.task-section .section-title {
+.section-title {
     margin-top: 0;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #e0e0e0;
     color: #424242;
     text-align: center;
+}
+
+.task-list__container{
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .more-tasks-button{
@@ -67,19 +70,21 @@
     background-color: #0056b3;
 }
 
-.suggested-tasks-icon{
-    width: 48px;
-    height: 48px;
+.suggested-tasks__icon{
+    width: 44px;
+    height: 44px;
     color: blue;
 }
 
-.suggested-tasks{
+.suggested-tasks__button{
+    align-self: end;
+    margin-left: auto;
     background: transparent;
 }
 
 .suggested-tasks:hover{
     background: transparent;
-    .suggested-tasks-icon{
+    .suggested-tasks__icon{
         color: #0056b3;
     }
 }
@@ -90,27 +95,6 @@
     align-items: center;
     padding: 0.5rem 6rem;
     width: 100%;
-}
-
-@keyframes bounce {
-    0% {
-        transform: translateY(0);
-    }
-    20% {
-        transform: translateY(-5px);
-    }
-    40% {
-        transform: translateY(0);
-    }
-    60% {
-        transform: translateY(-3px);
-    }
-    80% {
-        transform: translateY(0);
-    }
-    100% {
-        transform: translateY(0);
-    }
 }
 
 .v-dragged {
