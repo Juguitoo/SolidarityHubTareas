@@ -1,4 +1,3 @@
-/* Contenedor principal */
 .tasks-container {
     display: flex;
     flex-direction: column;
@@ -44,49 +43,33 @@
     gap: 1.5rem;
 }
 
-.more-tasks-button{
+.action-buttons__layout{
+    width: 100%;
+    margin-left: 15px;
+}
+
+.tasks-button{
     background-color: blue;
     color: #fff;
-    cursor: pointer;
-
 }
-.more-tasks-button:hover {
+.tasks-button:hover {
     background-color: #0056b3;
 }
 
-.add-task-button{
-    position: sticky;
-    bottom: 20px;
-    left: 20px;
-    background-color: blue;
-    color: #fff;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.add-task-button:hover {
-    background-color: #0056b3;
-}
-
-.suggested-tasks__icon{
-    width: 44px;
-    height: 44px;
+.notification-task__icon{
+    width: 40px;
+    height: 40px;
     color: blue;
 }
 
-.suggested-tasks__button{
+.notification-task__button{
     align-self: end;
     margin-left: auto;
     background: transparent;
 }
 
-.suggested-tasks:hover{
-    background: transparent;
-    .suggested-tasks__icon{
-        color: #0056b3;
-    }
+.notification-task__button:hover .notification-task__icon{
+    color: #0056b3;
 }
 
 .tasks-header{

@@ -20,11 +20,7 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -41,6 +37,7 @@ import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.service.VolunteerService;
 import solidarityhub.frontend.views.headerComponent;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -62,7 +59,8 @@ public class AddTaskView extends VerticalLayout {
     protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
     protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de peligrosidad");
     protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
-    protected final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
+    protected final DatePicker endDatePicker = new DatePicker("Fecha y hora estimada de finalización");
+    protected final TextField taskLocation = new TextField("Punto de reunión ");
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
@@ -112,6 +110,7 @@ public class AddTaskView extends VerticalLayout {
                     .filter(n -> n.getDescription().equals(need))
                     .findFirst().ifPresent(needs::add);
         }
+
         List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
         List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
         selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
@@ -128,7 +127,7 @@ public class AddTaskView extends VerticalLayout {
                 .collect(Collectors.toList());
 
         TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
-        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
+        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDatePicker.getValue().atTime(23, 59),
                 taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
     }
 
@@ -142,7 +141,7 @@ public class AddTaskView extends VerticalLayout {
         taskPreview = new TaskComponent(
                 0,
                 "Nombre de la tarea",
-                "Descripción de la tarea",
+                "Descripción de la tarea...",
                 formatDate(LocalDateTime.now()),
                 "Prioridad",
                 "Nivel de peligrosidad"
@@ -160,6 +159,7 @@ public class AddTaskView extends VerticalLayout {
         FormLayout addTaskForm = new FormLayout();
         addTaskForm.addClassName("addTaskForm");
 
+        //Forms
         taskName.setRequiredIndicatorVisible(true);
         taskName.setRequired(true);
 
@@ -183,34 +183,40 @@ public class AddTaskView extends VerticalLayout {
         starDateTimePicker.setRequiredIndicatorVisible(true);
         starDateTimePicker.setMin(LocalDateTime.now());
         starDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        starDateTimePicker.setHelperText("Sirva, además, como fecha de encuentro con los voluntarios ");
 
-        endDateTimePicker.setRequiredIndicatorVisible(true);
-        endDateTimePicker.setMin(LocalDateTime.now().plusHours(1));
-        endDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
-        endDateTimePicker.setHelperText("La fecha debe ser posterior a la fecha de comienzo");
+        endDatePicker.setRequiredIndicatorVisible(true);
+        endDatePicker.setMin(LocalDate.now());
+        endDatePicker.setI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        endDatePicker.setHelperText("Esta fecha debe ser posterior a la fecha de comienzo");
 
-        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
+        taskLocation.setRequiredIndicatorVisible(true);
+        taskLocation.setRequired(true);
+
+        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation);
 
         //Update endDateTimePicker min value when startDateTimePicker changes
         starDateTimePicker.addValueChangeListener(event -> {
-            LocalDateTime startValue;
+            LocalDate startValue;
             try {
-                startValue = event.getValue();
+                startValue = event.getValue().toLocalDate();
                 if (startValue != null) {
-                    endDateTimePicker.setMin(startValue);
+                    endDatePicker.setMin(startValue);
 
-                    if (endDateTimePicker.getValue() != null &&
-                            endDateTimePicker.getValue().isBefore(startValue)) {
-                        endDateTimePicker.setValue(startValue.plusHours(1));
-                    } else if (endDateTimePicker.getValue().isBefore(startValue)) {
-                        endDateTimePicker.setValue(null);
+                    if (endDatePicker.getValue() != null &&
+                            endDatePicker.getValue().isBefore(startValue)) {
+                        endDatePicker.setValue(startValue);
+                    } else if (endDatePicker.getValue().isBefore(startValue)) {
+                        endDatePicker.setValue(null);
                     }
                 }
             } catch (Exception e) {
-                endDateTimePicker.setMin(LocalDateTime.now().plusHours(1));
+                endDatePicker.setMin(LocalDate.now());
             }
         });
 
+
+        //Responsive
         addTaskForm.setColspan(taskDescription, 2);
         addTaskForm.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1),
@@ -282,7 +288,7 @@ public class AddTaskView extends VerticalLayout {
                     }
                     break;
                 case "Disponibilidad":
-                    if(starDateTimePicker.isEmpty() || endDateTimePicker.isEmpty()){
+                    if(starDateTimePicker.isEmpty() || endDatePicker.isEmpty()){
                         Notification.show("Por favor, seleccione primero una fecha de inicio y de fin de la tarea.", 3000, Notification.Position.MIDDLE);
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
@@ -431,9 +437,7 @@ public class AddTaskView extends VerticalLayout {
         saveTaskButton.addClickListener(e -> saveNewTask());
 
         Button cancel = new Button("Cancelar");
-        cancel.addClickListener(e -> {
-            exitWithoutSavingDialog();
-        });
+        cancel.addClickListener(e -> exitWithoutSavingDialog());
 
         buttons.add(cancel, saveTaskButton);
         setAlignSelf(Alignment.END, buttons);
@@ -477,15 +481,23 @@ public class AddTaskView extends VerticalLayout {
         return !taskName.isEmpty() &&
                 !taskDescription.isEmpty() &&
                 starDateTimePicker.getValue() != null &&
-                endDateTimePicker.getValue() != null &&
+                endDatePicker.getValue() != null &&
                 taskPriority.getValue() != null &&
                 taskEmergency.getValue() != null &&
                 !needsMultiSelectComboBox.getSelectedItems().isEmpty() &&
-                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
+                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() &&
+                !taskLocation.isEmpty();
     }
 
     protected boolean isFormFilled() {
-        return !taskName.isEmpty() || !taskDescription.isEmpty() || taskPriority.getValue() != null || taskEmergency.getValue() != null || needsMultiSelectComboBox.getValue() != null || starDateTimePicker.getValue() != null || !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
+        return !taskName.isEmpty() ||
+                !taskDescription.isEmpty() ||
+                taskPriority.getValue() != null ||
+                taskEmergency.getValue() != null ||
+                needsMultiSelectComboBox.getValue() != null ||
+                starDateTimePicker.getValue() != null ||
+                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
+                !taskLocation.isEmpty();
     }
 
     protected void exitWithoutSavingDialog() {
