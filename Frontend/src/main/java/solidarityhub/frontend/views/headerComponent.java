@@ -28,12 +28,12 @@ public class headerComponent extends Div {
         H1 title = new H1(titleText);
         title.addClassName("title");
 
-        Icon lightbulbIcon = new Icon("vaadin", "lightbulb");
-        lightbulbIcon.addClassNames("suggested-tasks__icon");
+        Icon bellIcon = new Icon("vaadin", "bell-o");
+        bellIcon.addClassNames("notification-task__icon");
 
-        Button suggestedTasksButton = new Button(lightbulbIcon);
+        Button suggestedTasksButton = new Button(bellIcon);
         suggestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
-        suggestedTasksButton.addClassNames("suggested-tasks__button");
+        suggestedTasksButton.addClassName("notification-task__button");
 
         add(title, suggestedTasksButton);
     }

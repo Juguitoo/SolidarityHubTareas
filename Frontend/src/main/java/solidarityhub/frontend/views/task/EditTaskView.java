@@ -110,7 +110,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         needsMultiSelectComboBox.setItems(needs);
         needsMultiSelectComboBox.select(taskNeeds);
 
-        endDateTimePicker.setValue(task.getEstimatedEndTimeDate());
+        endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
@@ -187,7 +187,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         taskName.getValue(),
                         taskDescription.getValue(),
                         starDateTimePicker.getValue(),
-                        endDateTimePicker.getValue(),
+                        endDatePicker.getValue().atTime(23, 59),
                         needs.getFirst().getTaskType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),

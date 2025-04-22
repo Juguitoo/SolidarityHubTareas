@@ -16,7 +16,6 @@ import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -73,23 +72,35 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private void buildView() {
         removeAll();
 
-        //Header
         headerComponent header = new headerComponent("Tareas: " + selectedCatastrophe.getName());
-
-        Button addTask = new Button(new Icon("vaadin", "plus"));
-        addTask.addClickListener(e -> UI.getCurrent().navigate("addtask"));
-        addTask.addClassNames("button", "add-task-button");
-
-        Button moreTasks = new Button("Ver todas las tareas");
-        moreTasks.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
-        moreTasks.addClassName("more-tasks-button");
 
         add(
             header,
-            getTasks(),
-            moreTasks,
-            addTask
+            getActionButtons(),
+            getTasks()
         );
+    }
+
+    private Component getActionButtons() {
+        HorizontalLayout actionButtonsLayout = new HorizontalLayout();
+        actionButtonsLayout.addClassName("action-buttons__layout");
+
+        Button addTaskButton = new Button("Añadir tarea", new Icon("vaadin", "plus"));
+        addTaskButton.addClickListener(e -> UI.getCurrent().navigate("addtask"));
+        addTaskButton.addClassNames("tasks-button");
+
+        Button moreTasksButton = new Button("Ver todas las tareas", new Icon("vaadin", "clipboard"));
+        moreTasksButton.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
+        moreTasksButton.addClassName("tasks-button");
+
+        Button sugestedTasksButton = new Button("Tareas sugeridas", new Icon("vaadin", "lightbulb"));
+        sugestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
+        sugestedTasksButton.addClassName("tasks-button");
+
+        actionButtonsLayout.setAlignItems(Alignment.CENTER);
+
+        actionButtonsLayout.add(addTaskButton, moreTasksButton, sugestedTasksButton);
+        return actionButtonsLayout;
     }
 
     //===============================Get Tasks=========================================
