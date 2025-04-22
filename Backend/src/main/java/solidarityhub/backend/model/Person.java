@@ -43,6 +43,9 @@ public abstract class Person {
     @Column(nullable = false)
     private String password;
 
+    @Setter
+    private String notificationToken;
+
     public Person(String dni, String firstName, String lastName, String email,
                      int phone, String address, String password) {
         this.dni = dni;

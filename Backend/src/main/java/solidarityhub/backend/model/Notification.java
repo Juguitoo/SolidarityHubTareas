@@ -18,6 +18,9 @@ public class Notification {
     private String body;
 
     @Setter
+    private boolean seen;
+
+    @Setter
     @OneToOne
     @JoinColumn(name = "task_id")
     private Task task;
@@ -32,5 +35,6 @@ public class Notification {
         this.body = body;
         this.task = task;
         this.volunteer = volunteer;
+        this.seen = false;
     }
 }

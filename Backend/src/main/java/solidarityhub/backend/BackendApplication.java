@@ -3,6 +3,7 @@ package solidarityhub.backend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 import solidarityhub.backend.model.*;
 import solidarityhub.backend.model.enums.*;
 import solidarityhub.backend.service.*;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @SpringBootApplication
+@EnableAsync
 public class BackendApplication {
 
 	public static void main(String[] args) {
@@ -31,10 +33,6 @@ public class BackendApplication {
 		needService.saveNeed(need1);
 		needService.saveNeed(need2);
 		needService.saveNeed(need3);*/
-
-
-
-
 
 	}
 }
