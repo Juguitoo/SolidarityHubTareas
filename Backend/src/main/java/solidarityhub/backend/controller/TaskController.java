@@ -3,6 +3,7 @@ package solidarityhub.backend.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import solidarityhub.backend.config.FcmService;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.dto.VolunteerDTO;
@@ -25,7 +26,7 @@ public class TaskController {
     private final CatastropheService catastropheService;
 
 
-    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService) {
+    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService, FcmService fcmService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
         this.needService = needService;
@@ -88,11 +89,11 @@ public class TaskController {
         if (catastrophe != null) {
             task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(),
                     taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(),
-                    taskDTO.getStatus(), volunteers, catastrophe);
+                    taskDTO.getStatus(), volunteers, taskDTO.getMeetingDirection(), catastrophe);
         } else {
             task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(),
                     taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(),
-                    taskDTO.getStatus(), volunteers);
+                    taskDTO.getStatus(), volunteers, taskDTO.getMeetingDirection());
 
             // Si no se especificó una catástrofe, utilizar la de la primera necesidad
             if (!needs.isEmpty() && needs.getFirst().getCatastrophe() != null) {
@@ -118,6 +119,10 @@ public class TaskController {
                     "Prioridad: " + task.getPriority() + "\n" +
                     "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
                     "Estado: " + task.getStatus());
+
+            notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
+                    "Se le ha asignado una nueva tarea: " + task.getTaskName());
+
             volunteerService.saveVolunteer(volunteer);
         }
 
@@ -185,7 +190,7 @@ public class TaskController {
                 volunteer.getTasks().add(task);
                 volunteerService.saveVolunteer(volunteer);
             }
-            boolean emailSent = notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
+            notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
                     "Se ha actualizado una tarea que se le había asignado. " + "\n" +
                             "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
                             "Nombre de la tarea: " + task.getTaskName() + "\n" +
@@ -195,9 +200,10 @@ public class TaskController {
                             "Prioridad: " + task.getPriority() + "\n" +
                             "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
                             "Estado: " + task.getStatus());
-            if (!emailSent) {
-                System.out.println("Correo no enviado a " + volunteer.getEmail());
-            }
+
+            notificationService.notifyApp(volunteer.getNotificationToken(),
+                    "Tarea actualizada",
+                    "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
@@ -226,6 +232,10 @@ public class TaskController {
                             "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
                             "Estado: " + task.getStatus());
             volunteer.getTasks().remove(task);
+
+            notificationService.notifyApp(volunteer.getNotificationToken(), "Tarea eliminada",
+                    "Se ha eliminado la tarea " + task.getTaskName() + " que se le había asignado.");
+
             volunteerService.saveVolunteer(volunteer);
         }
         taskService.deleteTask(task);
