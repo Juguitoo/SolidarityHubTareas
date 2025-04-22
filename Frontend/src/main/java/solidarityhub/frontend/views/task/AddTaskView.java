@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.service.CoordinatesService;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Component;
@@ -51,6 +52,7 @@ public class AddTaskView extends VerticalLayout {
     protected final VolunteerService volunteerService;
     protected final NeedService needService;
     protected final CatastropheDTO selectedCatastrophe;
+    protected final CoordinatesService coordinatesService;
 
     protected TaskComponent taskPreview;
 
@@ -59,7 +61,7 @@ public class AddTaskView extends VerticalLayout {
     protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
     protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de peligrosidad");
     protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
-    protected final DatePicker endDatePicker = new DatePicker("Fecha y hora estimada de finalización");
+    protected final DatePicker endDatePicker = new DatePicker("Fecha estimada de finalización");
     protected final TextField taskLocation = new TextField("Punto de reunión ");
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
@@ -69,6 +71,7 @@ public class AddTaskView extends VerticalLayout {
         this.taskService = taskService;
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
+        this.coordinatesService = new CoordinatesService();
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         headerComponent header = new headerComponent("Añadir tarea", "tasks");
@@ -106,7 +109,7 @@ public class AddTaskView extends VerticalLayout {
         List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
         List<NeedDTO> needs = new ArrayList<>();
         for (String need : selectedNeeds) {
-            needService.getNeeds().stream()
+            needService.getNeedsWithoutTask(selectedCatastrophe.getId()).stream()
                     .filter(n -> n.getDescription().equals(need))
                     .findFirst().ifPresent(needs::add);
         }
@@ -127,8 +130,9 @@ public class AddTaskView extends VerticalLayout {
                 .collect(Collectors.toList());
 
         TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
+
         return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDatePicker.getValue().atTime(23, 59),
-                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
+                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
     }
 
     //===============================Get Components=========================================
@@ -183,7 +187,7 @@ public class AddTaskView extends VerticalLayout {
         starDateTimePicker.setRequiredIndicatorVisible(true);
         starDateTimePicker.setMin(LocalDateTime.now());
         starDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
-        starDateTimePicker.setHelperText("Sirva, además, como fecha de encuentro con los voluntarios ");
+        starDateTimePicker.setHelperText("Sirve, además, como fecha de encuentro con los voluntarios ");
 
         endDatePicker.setRequiredIndicatorVisible(true);
         endDatePicker.setMin(LocalDate.now());
@@ -192,6 +196,7 @@ public class AddTaskView extends VerticalLayout {
 
         taskLocation.setRequiredIndicatorVisible(true);
         taskLocation.setRequired(true);
+        taskLocation.setHelperText("Indique la dirección de encuentro de los voluntarios");
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation);
 
@@ -212,6 +217,26 @@ public class AddTaskView extends VerticalLayout {
                 }
             } catch (Exception e) {
                 endDatePicker.setMin(LocalDate.now());
+            }
+        });
+
+        taskLocation.addBlurListener(event -> {
+            String address = taskLocation.getValue();
+            if(address != null && !address.isEmpty()){
+                Map<String, Double> coordinatesMap = coordinatesService.getCoordinates(address);
+                if(coordinatesMap != null){
+                    if(coordinatesMap.get("lat") != null && coordinatesMap.get("lon") != null){
+                        taskLocation.setInvalid(false);
+                    }else {
+                        taskLocation.setInvalid(true);
+                        taskLocation.setValue("");
+                        Notification.show("La dirección ingresada no es válida. Por favor, intentelo de nuevo.", 3000, Notification.Position.MIDDLE);
+                    }
+                }else{
+                    taskLocation.setInvalid(true);
+                    taskLocation.setValue("");
+                    Notification.show("La dirección ingresada no es válida. Por favor, intentelo de nuevo.", 3000, Notification.Position.MIDDLE);
+                }
             }
         });
 
@@ -375,7 +400,7 @@ public class AddTaskView extends VerticalLayout {
         dialogContent.setPadding(false);
 
         MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getCatastropheId() == selectedCatastrophe.getId()).toList());
+        needsListBox.setItems(needService.getNeedsWithoutTask(selectedCatastrophe.getId()));
 
         needsListBox.setRenderer(
                 new ComponentRenderer<>(need -> {

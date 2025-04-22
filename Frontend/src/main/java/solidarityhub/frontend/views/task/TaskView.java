@@ -258,7 +258,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                         newStatus, // Aquí actualizamos el estado
                         originalTask.getNeeds(),
                         originalTask.getVolunteers(),
-                        originalTask.getCatastropheId()
+                        originalTask.getCatastropheId(),
+                        originalTask.getMeetingDirection()
                 );
 
                 // Actualizar la tarea en el servicio

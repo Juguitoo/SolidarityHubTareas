@@ -52,8 +52,11 @@ public class Task {
     @Setter
     private List<Volunteer> volunteers;
 
+    @Setter
+    private String meetingDirection;
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
-                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers) {
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers, String meetingDirection) {
         this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
@@ -64,5 +67,6 @@ public class Task {
         this.status = status;
         this.volunteers= volunteers;
         this.type = needs.getFirst().getTaskType();
+        this.meetingDirection = meetingDirection;
     }
 }

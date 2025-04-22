@@ -98,8 +98,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             starDateTimePicker.setMin(LocalDateTime.now());
         }
 
-        List<String> needs = new ArrayList<>(needService.getNeeds().stream()
-                .filter(n -> n.getTaskId() == -1)
+        List<String> needs = new ArrayList<>(needService.getNeedsWithoutTask(task.getCatastropheId()).stream()
                 .map(NeedDTO::getDescription)
                 .toList());
         List<String> taskNeeds = task.getNeeds().stream()
@@ -111,6 +110,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         needsMultiSelectComboBox.select(taskNeeds);
 
         endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
+        taskLocation.setValue(task.getMeetingDirection());
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
@@ -161,7 +161,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                 List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
                 List<NeedDTO> needs = new ArrayList<>();
                 for (String need : selectedNeeds) {
-                    needService.getNeeds().stream()
+                    needService.getAllNeeds(selectedCatastrophe.getId()).stream()
                             .filter(n -> n.getDescription().equals(need))
                             .findFirst().ifPresent(needs::add);
                 }
@@ -194,7 +194,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         originalTask.getStatus(),
                         needs,
                         selectedVolunteers,
-                        selectedCatastrophe.getId()
+                        selectedCatastrophe.getId(),
+                        taskLocation.getValue()
                 );
 
                 taskService.updateTask(taskId, updatedTaskDTO);

@@ -69,8 +69,11 @@ public class Task {
 
     private LocalDate creationDate;
 
+    @Setter
+    private String meetingDirection;
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
-                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers) {
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers, String meetingDirection) {
         this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
@@ -82,11 +85,12 @@ public class Task {
         this.volunteers= volunteers;
         this.type = needs.getFirst().getTaskType();
         this.creationDate = LocalDate.now();
+        this.meetingDirection = meetingDirection;
     }
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel,
-                Status status, List<Volunteer> volunteers, Catastrophe catastrophe) {
-        this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers);
+                Status status, List<Volunteer> volunteers, String meetingDirection, Catastrophe catastrophe) {
+        this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers, meetingDirection);
         this.catastrophe = catastrophe;
     }
 }
