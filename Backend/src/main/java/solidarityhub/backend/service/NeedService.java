@@ -17,5 +17,6 @@ public class NeedService {
         return needRepository.findById(id).get();
     }
 
-    public List<Need> getAllNeeds() {return needRepository.findAll();}
+    public List<Need> getAllNeeds(Integer id) {return needRepository.getAllNeeds(id);}
+    public List<Need> getNeedsWithoutTask(Integer id) {return needRepository.getNeedsWithoutTask(id);}
 }

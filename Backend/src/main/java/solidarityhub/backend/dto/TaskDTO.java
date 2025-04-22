@@ -28,6 +28,7 @@ public class TaskDTO {
     private List<NeedDTO> needs;
     private List<VolunteerDTO> volunteers;
     private Integer catastropheId;
+    private String meetingDirection;
 
     public TaskDTO(Task task) {
         this.needs = new ArrayList<>();
@@ -47,6 +48,7 @@ public class TaskDTO {
         if (task.getCatastrophe() != null) {
             this.catastropheId = task.getCatastrophe().getId();
         }
+        this.meetingDirection = task.getMeetingDirection();
     }
 
     @JsonCreator
@@ -62,7 +64,8 @@ public class TaskDTO {
             @JsonProperty("status") Status status,
             @JsonProperty("needs") List<NeedDTO> needs,
             @JsonProperty("volunteers") List<VolunteerDTO> volunteers,
-            @JsonProperty("catastropheId") Integer catastropheId
+            @JsonProperty("catastropheId") Integer catastropheId,
+            @JsonProperty("meetingDirection") String meetingDirection
     ) {
         this.id = id;
         this.name = name;
@@ -75,6 +78,7 @@ public class TaskDTO {
         this.status = status;
         this.needs = needs != null ? needs : new ArrayList<>();
         this.volunteers = volunteers != null ? volunteers : new ArrayList<>();
+        this.meetingDirection = meetingDirection;
         this.catastropheId = catastropheId;
     }
 }

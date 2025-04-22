@@ -161,7 +161,8 @@ public class TaskService {
                     EmergencyLevel.HIGH,
                     Status.IN_PROGRESS,
                     needs,
-                    volunteers
+                    volunteers,
+                    null
             );
             exampleTasks.add(taskDTO);
         }
@@ -177,7 +178,8 @@ public class TaskService {
                     EmergencyLevel.HIGH,
                     Status.TO_DO,
                     needs,
-                    volunteers
+                    volunteers,
+                    null
             );
             exampleTasks.add(taskDTO);
         }
@@ -193,7 +195,8 @@ public class TaskService {
                     EmergencyLevel.HIGH,
                     Status.FINISHED,
                     needs,
-                    volunteers
+                    volunteers,
+                    null
             );
             exampleTasks.add(taskDTO);
         }
