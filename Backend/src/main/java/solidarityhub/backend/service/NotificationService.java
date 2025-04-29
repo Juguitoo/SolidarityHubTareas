@@ -7,9 +7,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import solidarityhub.backend.config.FcmService;
+import solidarityhub.backend.model.Notification;
+import solidarityhub.backend.repository.NotificationRepository;
 
 @Service
 public class NotificationService {
+
+    private final NotificationRepository notificationRepository;
 
     private final FcmService fcmService;
 
@@ -22,19 +26,20 @@ public class NotificationService {
     private String password;
 
     @Autowired
-    public NotificationService(JavaMailSender sender, FcmService fcmService) {
+    public NotificationService(JavaMailSender sender, FcmService fcmService, NotificationRepository notificationRepository) {
         this.sender = sender;
         this.fcmService = fcmService;
+        this.notificationRepository = notificationRepository;
     }
 
     @Async
-    public void notifyEmail(String receiver, String subject, String body) {
+    public void notifyEmail(String receiver, Notification notification) {
         try{
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(user);
             message.setTo(receiver);
-            message.setSubject(subject);
-            message.setText(body);
+            message.setSubject(notification.getTitle());
+            message.setText(notification.getBody());
 
             sender.send(message);
         } catch (Exception e) {
@@ -48,6 +53,15 @@ public class NotificationService {
             fcmService.sendNotification(token, title, body);
         } catch (Exception e) {
             System.out.println("NotificationService: Error al enviar el correo: " + e.getMessage());
+        }
+    }
+
+    @Async
+    public void saveNotification(Notification notification) {
+        try {;
+            notificationRepository.save(notification);
+        } catch (Exception e) {
+            System.out.println("NotificationService: Error al guardar la notificación: " + e.getMessage());
         }
     }
 }
