@@ -7,10 +7,7 @@ import solidarityhub.backend.config.FcmService;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.dto.VolunteerDTO;
-import solidarityhub.backend.model.Catastrophe;
-import solidarityhub.backend.model.Need;
-import solidarityhub.backend.model.Task;
-import solidarityhub.backend.model.Volunteer;
+import solidarityhub.backend.model.*;
 import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
@@ -110,8 +107,11 @@ public class TaskController {
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
-            notificationService.notifyEmail(volunteer.getEmail(),"Nueva tarea -> " + task.getCatastrophe().getName(),
-            "Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
+
+            Notification notification = new Notification();
+
+            notification.setTitle("Nueva tarea -> " + task.getTaskName());
+            notification.setBody("Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
                     "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
                     "Descripción: " + task.getTaskDescription() + "\n" +
                     "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
@@ -120,8 +120,10 @@ public class TaskController {
                     "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
                     "Estado: " + task.getStatus());
 
+            notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
                     "Se le ha asignado una nueva tarea: " + task.getTaskName());
+            notificationService.saveNotification(notification);
 
             volunteerService.saveVolunteer(volunteer);
         }
@@ -190,17 +192,22 @@ public class TaskController {
                 volunteer.getTasks().add(task);
                 volunteerService.saveVolunteer(volunteer);
             }
-            notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
-                    "Se ha actualizado una tarea que se le había asignado. " + "\n" +
-                            "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                            "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                            "Descripción: " + task.getTaskDescription() + "\n" +
-                            "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                            "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                            "Prioridad: " + task.getPriority() + "\n" +
-                            "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                            "Estado: " + task.getStatus());
 
+            Notification notification = new Notification();
+
+            notification.setTitle("Tarea actualizada -> " + task.getTaskName());
+            notification.setBody("Se ha actualizado una tarea que se le había asignado. " + "\n" +
+                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                    "Nombre de la tarea: " + task.getTaskName() + "\n" +
+                    "Descripción: " + task.getTaskDescription() + "\n" +
+                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                    "Prioridad: " + task.getPriority() + "\n" +
+                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                    "Estado: " + task.getStatus());
+
+            notificationService.notifyEmail(volunteer.getEmail(), notification);
+            notificationService.saveNotification(notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
@@ -221,21 +228,26 @@ public class TaskController {
             needService.saveNeed(need);
         }
         for (Volunteer volunteer : task.getVolunteers()) {
-            notificationService.notifyEmail(volunteer.getEmail(), "Tarea eliminada -> " + task.getTaskName(),
-                    "Se ha eliminado una tarea que se le había asignado. " + "\n" +
-                            "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                            "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                            "Descripción: " + task.getTaskDescription() + "\n" +
-                            "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                            "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                            "Prioridad: " + task.getPriority() + "\n" +
-                            "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                            "Estado: " + task.getStatus());
-            volunteer.getTasks().remove(task);
 
+            Notification notification = new Notification();
+
+            notification.setTitle("Tarea eliminada -> " + task.getTaskName());
+            notification.setBody("Se ha eliminado una tarea que se le había asignado. " + "\n" +
+                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                    "Nombre de la tarea: " + task.getTaskName() + "\n" +
+                    "Descripción: " + task.getTaskDescription() + "\n" +
+                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                    "Prioridad: " + task.getPriority() + "\n" +
+                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                    "Estado: " + task.getStatus());
+
+            notificationService.notifyEmail(volunteer.getEmail(),notification);
+            notificationService.saveNotification(notification);
             notificationService.notifyApp(volunteer.getNotificationToken(), "Tarea eliminada",
                     "Se ha eliminado la tarea " + task.getTaskName() + " que se le había asignado.");
 
+            volunteer.getTasks().remove(task);
             volunteerService.saveVolunteer(volunteer);
         }
         taskService.deleteTask(task);
