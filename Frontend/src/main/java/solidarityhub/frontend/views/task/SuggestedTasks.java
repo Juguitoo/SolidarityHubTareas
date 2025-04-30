@@ -16,6 +16,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.headerComponent;
 
@@ -26,11 +27,13 @@ import java.util.List;
 @Route("suggested-tasks")
 public class SuggestedTasks extends VerticalLayout {
     private final TaskService taskService;
+    private final NeedService needService;
     private final CatastropheDTO selectedCatastrophe;
 
     @Autowired
-    public SuggestedTasks(TaskService taskService) {
+    public SuggestedTasks(TaskService taskService, NeedService needService) {
         this.taskService = taskService;
+        this.needService = needService;
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         //Header
@@ -67,28 +70,30 @@ public class SuggestedTasks extends VerticalLayout {
         suggestedTasksLayout.addClassName("suggested-tasks-layout");
 
         List<HorizontalLayout> suggestedTasks = new ArrayList<>();
-        try {
-            List<TaskComponent> tasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId()).stream()
-                    .map(TaskComponent::new).toList();
-            tasks.forEach(task -> {
-                VerticalLayout buttons = getButtons();
-                HorizontalLayout suggestedTask = new HorizontalLayout(task, buttons);
-                suggestedTask.setWidthFull();
-                suggestedTask.setAlignItems(Alignment.CENTER);
-                suggestedTask.setSpacing(true);
+        if (needService.getNeedsWithoutTaskCount(selectedCatastrophe.getId()) > 5) {
+            try {
+                List<TaskComponent> tasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId()).stream()
+                        .map(TaskComponent::new).toList();
+                tasks.forEach(task -> {
+                    VerticalLayout buttons = getButtons();
+                    HorizontalLayout suggestedTask = new HorizontalLayout(task, buttons);
+                    suggestedTask.setWidthFull();
+                    suggestedTask.setAlignItems(Alignment.CENTER);
+                    suggestedTask.setSpacing(true);
 
-                suggestedTasks.add(suggestedTask);
-                suggestedTask.addClassName("suggested-task");
-                suggestedTask.setFlexGrow(1, task);
-            });
-
-            if (suggestedTasks.isEmpty()) {
-                suggestedTasksLayout.add(new Span("No hay tareas sugeridas para esta catástrofe."));
-            } else {
-                suggestedTasks.forEach(suggestedTasksLayout::add);
+                    suggestedTasks.add(suggestedTask);
+                    suggestedTask.addClassName("suggested-task");
+                    suggestedTask.setFlexGrow(1, task);
+                });
+            } catch (Exception e) {
+                suggestedTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
             }
-        } catch (Exception e) {
-            suggestedTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
+        }
+
+        if (suggestedTasks.isEmpty()) {
+            suggestedTasksLayout.add(new Span("No hay tareas sugeridas para esta catástrofe."));
+        } else {
+            suggestedTasks.forEach(suggestedTasksLayout::add);
         }
 
         suggestedTasksLayout.setAlignItems(Alignment.CENTER);

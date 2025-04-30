@@ -2,6 +2,7 @@ package solidarityhub.frontend.service;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.NeedDTO;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class NeedService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
@@ -83,5 +85,14 @@ public class NeedService {
             ));
         }
         return needs;
+    }
+
+    public int getNeedsWithoutTaskCount(Integer id) {
+        try {
+            ResponseEntity<Integer> response = restTemplate.exchange(baseUrl + "/countWithoutTask?catastropheid=" + id, HttpMethod.GET, null, Integer.class);
+            return response.getBody();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

@@ -25,7 +25,7 @@ public class Notification {
     private boolean seen;
 
     @Setter
-    @OneToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "task_id")
     private Task task;
 
