@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -16,6 +18,8 @@ public class Notification {
     private String title;
     @Setter
     private String body;
+
+    private LocalDateTime creationDateTime;
 
     @Setter
     private boolean seen;
@@ -36,5 +40,6 @@ public class Notification {
         this.task = task;
         this.volunteer = volunteer;
         this.seen = false;
+        this.creationDateTime = LocalDateTime.now();
     }
 }
