@@ -65,7 +65,7 @@ public class TaskService {
                     taskCache = new ArrayList<>();
                 }
             } catch (RestClientException e) {
-                return getExampleTasks(5);
+                return new ArrayList<>();
             }
         }
         return taskCache;
@@ -140,67 +140,5 @@ public class TaskService {
     public TaskDTO getTaskById(int id) {
         ResponseEntity<TaskDTO> response = restTemplate.exchange(baseUrl + "/" + id, HttpMethod.GET, null, TaskDTO.class);
         return response.getBody();
-    }
-
-    //GET EXAMPLE TASKS
-    private List<TaskDTO> getExampleTasks(int limit) {
-        List<NeedDTO> needs = needService.getExampleNeeds();
-        List<VolunteerDTO> volunteers = volunteerService.getExampleVolunteers();
-
-        List<TaskDTO> exampleTasks = new ArrayList<>();
-
-        for (int i = 0; i < limit; i++) {
-            // Convertir a DTO para devolver
-            TaskDTO taskDTO = new TaskDTO(
-                    "Tarea de ejemplo " + i,
-                    "Descripcion de ejemplo " + i,
-                    LocalDateTime.now().plusHours(i),
-                    LocalDateTime.now().plusDays(3),
-                    TaskType.OTHER,
-                    Priority.LOW,
-                    EmergencyLevel.HIGH,
-                    Status.IN_PROGRESS,
-                    needs,
-                    volunteers,
-                    null
-            );
-            exampleTasks.add(taskDTO);
-        }
-        for (int i = 0; i < limit; i++) {
-            // Convertir a DTO para devolver
-            TaskDTO taskDTO = new TaskDTO(
-                    "Tarea de ejemplo " + i,
-                    "Descripcion de ejemplo " + i,
-                    LocalDateTime.now().plusHours(i),
-                    LocalDateTime.now().plusDays(3),
-                    TaskType.OTHER,
-                    Priority.LOW,
-                    EmergencyLevel.HIGH,
-                    Status.TO_DO,
-                    needs,
-                    volunteers,
-                    null
-            );
-            exampleTasks.add(taskDTO);
-        }
-        for (int i = 0; i < limit; i++) {
-            // Convertir a DTO para devolver
-            TaskDTO taskDTO = new TaskDTO(
-                    "Tarea de ejemplo " + i,
-                    "Descripcion de ejemplo " + i,
-                    LocalDateTime.now().plusHours(i),
-                    LocalDateTime.now().plusDays(3),
-                    TaskType.OTHER,
-                    Priority.LOW,
-                    EmergencyLevel.HIGH,
-                    Status.FINISHED,
-                    needs,
-                    volunteers,
-                    null
-            );
-            exampleTasks.add(taskDTO);
-        }
-
-        return exampleTasks;
     }
 }

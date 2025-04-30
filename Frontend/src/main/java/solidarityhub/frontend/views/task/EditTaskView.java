@@ -31,10 +31,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private TaskDTO originalTask;
     private int taskId;
 
-    @Autowired
-    public EditTaskView(TaskService taskService) {
-        super(taskService);
-        this.taskService = taskService;
+    public EditTaskView() {
+        super();
+        this.taskService = new TaskService();
 
         // Cambiar el título de la vista
         getElement().getChildren()

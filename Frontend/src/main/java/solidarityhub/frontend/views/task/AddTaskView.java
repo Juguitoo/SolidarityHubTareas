@@ -37,6 +37,7 @@ import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.service.VolunteerService;
 import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.volunteer.VolunteerInfo;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,9 +67,8 @@ public class AddTaskView extends VerticalLayout {
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
-    @Autowired
-    public AddTaskView(TaskService taskService) {
-        this.taskService = taskService;
+    public AddTaskView() {
+        this.taskService = new TaskService();
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
@@ -131,7 +131,13 @@ public class AddTaskView extends VerticalLayout {
 
         TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
 
-        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDatePicker.getValue().atTime(23, 59),
+        // Verificar que endDatePicker.getValue() no sea nulo antes de llamar a atTime()
+        LocalDateTime endDateTime = null;
+        if (endDatePicker.getValue() != null) {
+            endDateTime = endDatePicker.getValue().atTime(23, 59);
+        }
+
+        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
                 taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
     }
 
@@ -265,119 +271,6 @@ public class AddTaskView extends VerticalLayout {
         return volunteerMultiSelectComboBox;
     }
 
-    private Dialog getVolunteersDialogContent() {
-        Dialog volunteerDialog = new Dialog();
-        volunteerDialog.setHeaderTitle("Seleccione los voluntarios");
-
-        VerticalLayout dialogContent = new VerticalLayout();
-
-        Checkbox volunteerCheckbox = new Checkbox();
-        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
-
-        // Obtener los nombres de voluntarios
-        List<String> allVolunteers = volunteerService.getVolunteers("None", new TaskDTO()).stream()
-                .map(VolunteerDTO::getFirstName)
-                .collect(Collectors.toList());
-
-
-        MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
-        volunteersListBox.setItems(allVolunteers);
-
-        Tabs tabs = new Tabs(
-                new Tab("Todos"),
-                new Tab("Distancia"),
-                new Tab("Disponibilidad"),
-                new Tab("Habilidades")
-        );
-
-        tabs.setSelectedIndex(0);
-
-        // Listener para el cambio de pestañas
-        tabs.addSelectedChangeListener(event -> {
-            String selectedTabName = tabs.getSelectedTab().getLabel();
-            switch (selectedTabName) {
-                case "Todos":
-                    allVolunteers.clear();
-                    volunteerService.getVolunteers("None", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
-                    volunteersListBox.setItems(allVolunteers);
-                    break;
-                case "Distancia":
-                    if(needsMultiSelectComboBox.getSelectedItems().isEmpty()){
-                        Notification.show("Por favor, seleccione una necesidad primero para poder calcular las distancias.", 3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    }else{
-                        allVolunteers.clear();
-                        volunteerService.getVolunteers("distancia", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
-                        volunteersListBox.setItems(allVolunteers);
-                    }
-                    break;
-                case "Disponibilidad":
-                    if(starDateTimePicker.isEmpty() || endDatePicker.isEmpty()){
-                        Notification.show("Por favor, seleccione primero una fecha de inicio y de fin de la tarea.", 3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    }else{
-                        allVolunteers.clear();
-                        volunteerService.getVolunteers("disponibilidad", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
-                        volunteersListBox.setItems(allVolunteers);
-                    }
-                    break;
-                case "Habilidades":
-                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
-                        Notification.show("Por favor, seleccione una necesidad primero para indicar el tipo de la tarea.", 3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    }else{
-                        allVolunteers.clear();
-                        volunteerService.getVolunteers("habilidades", getTaskDTO()).forEach(v -> allVolunteers.add(v.getFirstName()));
-                        volunteersListBox.setItems(allVolunteers);
-                    }
-
-                    break;
-            }
-        });
-
-        volunteerCheckbox.addClickListener(checkboxClickEvent -> volunteersListBox.setEnabled(!volunteerCheckbox.getValue()));
-
-        // Añadir todos los componentes
-        dialogContent.add(volunteerCheckbox, tabs, volunteersListBox);
-
-        //Footer
-        Button saveButton = new Button("Guardar", e -> {
-            if (volunteerCheckbox.getValue()) {
-                volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
-                volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
-            } else {
-                volunteerMultiSelectComboBox.setItems(volunteersListBox.getSelectedItems());
-                volunteerMultiSelectComboBox.updateSelection(volunteersListBox.getSelectedItems(), new HashSet<>());
-            }
-            volunteerDialog.close();
-        });
-
-        Button cancelButton = new Button("Cancelar", e -> {
-            volunteersListBox.select(volunteerMultiSelectComboBox.getSelectedItems());
-            volunteersListBox.getSelectedItems().stream()
-                    .filter(item -> !volunteerMultiSelectComboBox.getSelectedItems().contains(item))
-                    .forEach(volunteersListBox::deselect);
-            if (volunteerMultiSelectComboBox.getSelectedItems().contains("Elegir voluntarios automáticamente")) {
-                volunteerCheckbox.setValue(true);
-                volunteersListBox.setEnabled(false);
-            } else {
-                volunteerCheckbox.setValue(false);
-                volunteersListBox.setEnabled(true);
-            }
-
-            volunteerDialog.close();
-        });
-
-        volunteerDialog.getFooter().add(cancelButton, saveButton);
-
-        volunteerDialog.add(dialogContent);
-
-        return volunteerDialog;
-    }
-
     protected Component getNeedsForm() {
         needsMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
         needsMultiSelectComboBox.setReadOnly(true);
@@ -389,70 +282,6 @@ public class AddTaskView extends VerticalLayout {
         needsMultiSelectComboBox.getElement().addEventListener("click", e -> selectNeedsDialog.open());
 
         return needsMultiSelectComboBox;
-    }
-
-    private Dialog getNeedsDialogContent() {
-        Dialog needsDialog = new Dialog();
-
-        needsDialog.setHeaderTitle("Seleccione las necesidades a cubrir");
-
-        VerticalLayout dialogContent = new VerticalLayout();
-        dialogContent.setPadding(false);
-
-        MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeedsWithoutTask(selectedCatastrophe.getId()));
-
-        needsListBox.setRenderer(
-                new ComponentRenderer<>(need -> {
-                    VerticalLayout needContent = new VerticalLayout();
-                    needContent.addClassName("needContent");
-
-                    Span needDescription = new Span(need.getDescription());
-                    needDescription.addClassName("needContent--description");
-                    Span needType = new Span(formatTaskType(need.getTaskType()));
-                    needType.addClassName("needContent--type");
-
-                    needContent.add(needDescription, needType);
-                    needContent.setPadding(false);
-                    needContent.setSpacing(false);
-
-                    return needContent;
-                })
-        );
-
-        Span infoText = new Span("Al seleccionar una necesidad, solo podrá elegir necesidades adicionales del mismo tipo.");
-        infoText.addClassName("needsDialog--infoText");
-
-        dialogContent.add(infoText, needsListBox);
-
-        //Needs type filter
-        needsListBox.addSelectionListener(event -> {
-            Set<NeedDTO> selectedNeeds = event.getValue();
-            if (!selectedNeeds.isEmpty()) {
-                TaskType selectedType = selectedNeeds.iterator().next().getTaskType();
-                needsListBox.setItemEnabledProvider(needDTO -> selectedType.equals(needDTO.getTaskType()));
-            } else {
-                needsListBox.setItemEnabledProvider(needDTO -> true);
-            }
-        });
-
-        // Footer
-        Button saveButton = new Button("Guardar", e -> {
-            Set<String> selectedNeedDescriptions = needsListBox.getSelectedItems().stream()
-                    .map(NeedDTO::getDescription)
-                    .collect(Collectors.toSet());
-
-            needsMultiSelectComboBox.clear();
-            needsMultiSelectComboBox.setItems(selectedNeedDescriptions);
-            needsMultiSelectComboBox.select(selectedNeedDescriptions);
-            needsDialog.close();
-        });
-        Button cancelButton = new Button("Cancelar", e -> needsDialog.close());
-        needsDialog.getFooter().add(cancelButton, saveButton);
-
-        needsDialog.add(dialogContent);
-
-        return needsDialog;
     }
 
     protected Component getButtons(){
@@ -501,12 +330,225 @@ public class AddTaskView extends VerticalLayout {
         };
     }
 
+    //=============================== Dialogs =========================================
+    private Dialog getVolunteersDialogContent() {
+        Dialog volunteerDialog = new Dialog();
+        volunteerDialog.setHeaderTitle("Seleccione los voluntarios");
+
+        VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
+
+        Checkbox volunteerCheckbox = new Checkbox();
+        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
+
+        Tabs tabs = new Tabs(
+                new Tab("Todos"),
+                new Tab("Distancia"),
+                new Tab("Disponibilidad"),
+                new Tab("Habilidades")
+        );
+
+        MultiSelectListBox<VolunteerDTO> volunteersListBox = new MultiSelectListBox<>();
+
+        //No volunteers message
+        Span noVolunteersMessage = new Span("No se encontraron voluntarios con las habilidades requeridas");
+        noVolunteersMessage.setVisible(false);
+
+        //Volunteers list
+        List<VolunteerDTO> allVolunteers = new ArrayList<>(volunteerService.getVolunteers("None", getTaskDTO()));
+        List<VolunteerDTO> distanceVolunteers = new ArrayList<>();
+        List<VolunteerDTO> availabilityVolunteers = new ArrayList<>();
+        List<VolunteerDTO> skillsVolunteers = new ArrayList<>();
+
+        // Utilizando la nueva clase VolunteerInfo para el renderer
+        volunteersListBox.setRenderer(new ComponentRenderer<>(volunteer ->
+                new VolunteerInfo(volunteer, tabs.getSelectedTab() != null ? tabs.getSelectedTab().getLabel() : "Todos")
+        ));
+
+        tabs.setSelectedIndex(0);
+        volunteersListBox.setItems(allVolunteers);
+
+        // Listener para el cambio de pestañas
+        tabs.addSelectedChangeListener(event -> {
+            String selectedTabName = tabs.getSelectedTab().getLabel();
+            TaskDTO currentTaskDTO = getTaskDTO();
+
+            // Ocultar mensaje de error por defecto
+            noVolunteersMessage.setVisible(false);
+
+            switch (selectedTabName) {
+                case "Todos":
+                    volunteerCheckbox.clear();
+                    if(allVolunteers.isEmpty()){
+                        allVolunteers.addAll(volunteerService.getVolunteers("None", currentTaskDTO));
+                    }
+                    volunteersListBox.setItems(allVolunteers);
+                    break;
+
+                case "Distancia":
+                    if(needsMultiSelectComboBox.getSelectedItems().isEmpty()){
+                        Notification.show("Por favor, seleccione una necesidad primero para poder calcular las distancias.",
+                                3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    } else {
+                        if(distanceVolunteers.isEmpty()){
+                            distanceVolunteers.addAll(volunteerService.getVolunteers("distancia", currentTaskDTO));
+                        }
+                        volunteersListBox.setItems(distanceVolunteers);
+
+                        if(distanceVolunteers.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios cercanos a la ubicación de la tarea");
+                            noVolunteersMessage.setVisible(true);
+                        }
+                    }
+                    break;
+
+                case "Disponibilidad":
+                    if(starDateTimePicker.isEmpty() || endDatePicker.isEmpty()){
+                        Notification.show("Por favor, seleccione primero una fecha de inicio y de fin de la tarea.",
+                                3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    } else {
+                        if(availabilityVolunteers.isEmpty()){
+                            availabilityVolunteers.addAll(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+                        }
+                        volunteersListBox.setItems(availabilityVolunteers);
+
+                        if(availabilityVolunteers.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles en las fechas seleccionadas");
+                            noVolunteersMessage.setVisible(true);
+                        }
+                    }
+                    break;
+
+                case "Habilidades":
+                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
+                        Notification.show("Por favor, seleccione una necesidad primero para indicar el tipo de la tarea.",
+                                3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    } else {
+                        if (skillsVolunteers.isEmpty()) {
+                            skillsVolunteers.addAll(volunteerService.getVolunteers("habilidades", currentTaskDTO));
+                        }
+                        volunteersListBox.setItems(skillsVolunteers);
+
+                        if(skillsVolunteers.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios con la habilidad requerida para esta tarea");
+                            noVolunteersMessage.setVisible(true);
+                        }
+                    }
+                    break;
+            }
+
+            // Actualizar el renderer cuando cambia la pestaña para actualizar la información mostrada
+            volunteersListBox.setRenderer(new ComponentRenderer<>(volunteer ->
+                    new VolunteerInfo(volunteer, selectedTabName)
+            ));
+        });
+
+        volunteerCheckbox.addClickListener(checkboxClickEvent ->
+                volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
+        );
+
+        dialogContent.add(volunteerCheckbox, tabs, noVolunteersMessage, volunteersListBox);
+
+        //Footer
+        Button saveButton = new Button("Guardar", e -> {
+            if (volunteerCheckbox.getValue()) {
+                volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
+                volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
+            } else {
+                Set<String> selectedVolunteersNames = volunteersListBox.getSelectedItems().stream()
+                        .map(v -> v.getFirstName() + " " + v.getLastName())
+                        .collect(Collectors.toSet());
+
+                volunteerMultiSelectComboBox.clear();
+                volunteerMultiSelectComboBox.setItems(selectedVolunteersNames);
+                volunteerMultiSelectComboBox.select(selectedVolunteersNames);
+            }
+            volunteerDialog.close();
+        });
+        Button cancelButton = new Button("Cancelar", e -> volunteerDialog.close());
+
+        volunteerDialog.getFooter().add(cancelButton, saveButton);
+        volunteerDialog.add(dialogContent);
+
+        return volunteerDialog;
+    }
+
+    private Dialog getNeedsDialogContent() {
+        Dialog needsDialog = new Dialog();
+
+        needsDialog.setHeaderTitle("Seleccione las necesidades a cubrir");
+
+        VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
+
+        MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
+        needsListBox.setItems(needService.getNeedsWithoutTask(selectedCatastrophe.getId()));
+
+        needsListBox.setRenderer(
+                new ComponentRenderer<>(need -> {
+                    HorizontalLayout needContent = new HorizontalLayout();
+                    needContent.addClassName("listBox__item");
+
+                    Span needDescription = new Span(need.getDescription());
+                    needDescription.addClassName("needContent--description");
+                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    needType.addClassName("listBox__item-detail");
+
+                    needContent.add(needDescription, needType);
+                    needContent.setPadding(false);
+                    needContent.setSpacing(false);
+
+                    return needContent;
+                })
+        );
+
+        Span infoText = new Span("Al seleccionar una necesidad, solo podrá elegir necesidades adicionales del mismo tipo.");
+        infoText.addClassName("needsDialog--infoText");
+
+        dialogContent.add(infoText, needsListBox);
+
+        //Needs type filter
+        needsListBox.addSelectionListener(event -> {
+            Set<NeedDTO> selectedNeeds = event.getValue();
+            if (!selectedNeeds.isEmpty()) {
+                TaskType selectedType = selectedNeeds.iterator().next().getTaskType();
+                needsListBox.setItemEnabledProvider(needDTO -> selectedType.equals(needDTO.getTaskType()));
+            } else {
+                needsListBox.setItemEnabledProvider(needDTO -> true);
+            }
+        });
+
+        // Footer
+        Button saveButton = new Button("Guardar", e -> {
+            Set<String> selectedNeedDescriptions = needsListBox.getSelectedItems().stream()
+                    .map(NeedDTO::getDescription)
+                    .collect(Collectors.toSet());
+
+            needsMultiSelectComboBox.clear();
+            needsMultiSelectComboBox.setItems(selectedNeedDescriptions);
+            needsMultiSelectComboBox.select(selectedNeedDescriptions);
+            needsDialog.close();
+        });
+        Button cancelButton = new Button("Cancelar", e -> needsDialog.close());
+        needsDialog.getFooter().add(cancelButton, saveButton);
+
+        needsDialog.add(dialogContent);
+
+        return needsDialog;
+    }
+
     //===============================Validate Form=========================================
     protected boolean validateForm() {
         return !taskName.isEmpty() &&
                 !taskDescription.isEmpty() &&
                 starDateTimePicker.getValue() != null &&
-                endDatePicker.getValue() != null &&
+                endDatePicker.getValue() != null &&  // Esto ya está, pero es importante verificarlo
                 taskPriority.getValue() != null &&
                 taskEmergency.getValue() != null &&
                 !needsMultiSelectComboBox.getSelectedItems().isEmpty() &&

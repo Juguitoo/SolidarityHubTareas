@@ -8,20 +8,25 @@
     padding: 0 50px;
 }
 
-.needContent{
-    gap: 6px;
+.listBox__item{
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
 }
 
-.needContent--description{
-    font-size: 1.1em;
-}
-
-.needContent--type{
+.listBox__item-detail{
     background-color: #DADFE4;
     border-radius: 4px;
     padding: 4px;
     text-align: center;
     font-size: 0.8em;
+    height: fit-content;
+}
+
+.needContent--description{
+    font-size: 1.1em;
 }
 
 .needsDialog--infoText{
@@ -29,6 +34,14 @@
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
     margin-bottom: 10px;
+}
+
+.volunteerContent--name{
+    font-weight: bold;
+}
+
+.skills-container {
+    gap: 6px;
 }
 
 .addTaskForm--multiSelectComboBox::part(input-field) {

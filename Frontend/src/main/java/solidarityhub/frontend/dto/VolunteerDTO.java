@@ -1,6 +1,7 @@
 package solidarityhub.frontend.dto;
 
 import lombok.Getter;
+import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.frontend.model.Volunteer;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,7 @@ public class VolunteerDTO {
     private String lastName;
     private String email;
     private List<Integer> tasks;
+    private List<TaskType> taskTypes;
 
     public VolunteerDTO(Volunteer volunteer) {
         this.tasks = new ArrayList<>();
@@ -22,6 +24,7 @@ public class VolunteerDTO {
         this.firstName = volunteer.getFirstName();
         this.lastName = volunteer.getLastName();
         this.email = volunteer.getEmail();
+        this.taskTypes = volunteer.getTaskTypes();
         volunteer.getTasks().forEach(t ->{tasks.add(t.getId());});
     }
 }
