@@ -103,18 +103,16 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         filterLayout.setWidthFull();
         filterLayout.setJustifyContentMode(JustifyContentMode.START);
 
-
         // Grid para mostrar los recursos
         resourceGrid = new Grid<>(ResourceDTO.class, false);
         resourceGrid.addColumn(ResourceDTO::getId).setHeader("ID");
         resourceGrid.addColumn(ResourceDTO::getType).setHeader("Tipo");
         resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre");
-        resourceGrid.addColumn(ResourceDTO::getQuantity).setHeader("Cantidad");
+        resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad");
         resourceGrid.addColumn(ResourceDTO::getStorage).setHeader("Almacén");
         //resourceGrid.addComponentColumn(this::createStatusBadge).setHeader("Estado");
 
         resourceGrid.setItems(loadResources());
-
 
 
         // Agregar componentes a la vista
@@ -122,7 +120,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
     }
 
 
-
+    // a implementar más adelante
     private Span createStatusBadge(String status) {
         Span badge = new Span();
         badge.addClassName("status-badge");
