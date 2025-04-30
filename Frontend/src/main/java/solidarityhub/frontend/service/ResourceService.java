@@ -70,8 +70,18 @@ public class ResourceService {
     private List<ResourceDTO> getExampleResources(int limit) {
         List<ResourceDTO> exampleResources = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
-            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), "Tipo " + (i + 1), i * 10));
+            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), "Tipo " + (i + 1), i * 10, null));
         }
         return exampleResources;
+    }
+
+    public List<ResourceDTO> getResourcesByType(Integer id, String type) {
+        List<ResourceDTO> filteredResources = new ArrayList<>();
+        for (ResourceDTO resource : resourceChache) {
+            if (resource.getCatastropheId() == id && resource.getType().equals(type)) {
+                filteredResources.add(resource);
+            }
+        }
+        return filteredResources;
     }
 }
