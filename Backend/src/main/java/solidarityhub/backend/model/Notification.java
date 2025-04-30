@@ -25,7 +25,7 @@ public class Notification {
     private boolean seen;
 
     @Setter
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "task_id")
     private Task task;
 
