@@ -224,14 +224,29 @@ public class TaskController {
 
     private static Notification getNotification(Volunteer volunteer, Task task, String tipo) {
         String title = tipo + " -> " + task.getTaskName();
-        String body = "Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
+        String intro = "";
+
+        switch (tipo) {
+            case "Nueva tarea" -> {
+                intro = "Se le ha asignado una nueva tarea: ";
+            }
+            case "Tarea actualizada" -> {
+                intro = "Se ha actualizado la tarea que tenía asignada: ";
+            }
+            case "Tarea eliminada" -> {
+                intro = "Se ha eliminado la tarea que tenía asignada: ";
+            }
+        }
+
+        String body = intro + task.getTaskName() + "\n" +
                 "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
                 "Descripción: " + task.getTaskDescription() + "\n" +
                 "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
                 "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
                 "Prioridad: " + task.getPriority() + "\n" +
                 "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                "Estado: " + task.getStatus();
+                "Estado: " + task.getStatus() + "\n" +
+                "Punto de encuentro: " + task.getMeetingDirection();
 
         return new Notification(title, body, task, volunteer);
     }

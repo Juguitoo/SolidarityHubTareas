@@ -1,7 +1,7 @@
 package solidarityhub.backend.dto;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,6 +17,7 @@ public class ResourceDTO {
 
     private String name;
 
+    @Enumerated(EnumType.STRING)
     private ResourceType type;
 
     private int quantity;
