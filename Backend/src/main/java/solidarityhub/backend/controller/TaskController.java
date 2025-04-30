@@ -108,17 +108,7 @@ public class TaskController {
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
 
-            Notification notification = new Notification();
-
-            notification.setTitle("Nueva tarea -> " + task.getTaskName());
-            notification.setBody("Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
-                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                    "Descripción: " + task.getTaskDescription() + "\n" +
-                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                    "Prioridad: " + task.getPriority() + "\n" +
-                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                    "Estado: " + task.getStatus());
+            Notification notification = getNotification(volunteer, task, "Nueva tarea");
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
@@ -193,18 +183,7 @@ public class TaskController {
                 volunteerService.saveVolunteer(volunteer);
             }
 
-            Notification notification = new Notification();
-
-            notification.setTitle("Tarea actualizada -> " + task.getTaskName());
-            notification.setBody("Se ha actualizado una tarea que se le había asignado. " + "\n" +
-                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                    "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                    "Descripción: " + task.getTaskDescription() + "\n" +
-                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                    "Prioridad: " + task.getPriority() + "\n" +
-                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                    "Estado: " + task.getStatus());
+            Notification notification = getNotification(volunteer, task, "Tarea actualizada");
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.saveNotification(notification);
@@ -229,18 +208,7 @@ public class TaskController {
         }
         for (Volunteer volunteer : task.getVolunteers()) {
 
-            Notification notification = new Notification();
-
-            notification.setTitle("Tarea eliminada -> " + task.getTaskName());
-            notification.setBody("Se ha eliminado una tarea que se le había asignado. " + "\n" +
-                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                    "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                    "Descripción: " + task.getTaskDescription() + "\n" +
-                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                    "Prioridad: " + task.getPriority() + "\n" +
-                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                    "Estado: " + task.getStatus());
+            Notification notification = getNotification(volunteer, task, "Tarea eliminada");
 
             notificationService.notifyEmail(volunteer.getEmail(),notification);
             notificationService.saveNotification(notification);
@@ -252,5 +220,19 @@ public class TaskController {
         }
         taskService.deleteTask(task);
         return ResponseEntity.ok().build();
+    }
+
+    private static Notification getNotification(Volunteer volunteer, Task task, String tipo) {
+        String title = tipo + " -> " + task.getTaskName();
+        String body = "Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
+                "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                "Descripción: " + task.getTaskDescription() + "\n" +
+                "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                "Prioridad: " + task.getPriority() + "\n" +
+                "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                "Estado: " + task.getStatus();
+
+        return new Notification(title, body, task, volunteer);
     }
 }

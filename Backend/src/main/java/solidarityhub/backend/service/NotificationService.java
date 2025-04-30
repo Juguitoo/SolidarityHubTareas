@@ -52,7 +52,7 @@ public class NotificationService {
         try{
             fcmService.sendNotification(token, title, body);
         } catch (Exception e) {
-            System.out.println("NotificationService: Error al enviar el correo: " + e.getMessage());
+            System.out.println("NotificationService: Error al notificar a la app: " + e.getMessage());
         }
     }
 
