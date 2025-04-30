@@ -57,7 +57,7 @@ public class NotificationService {
     }
 
     @Async
-    public void saveNotification(Notification notification) {
+    public void save(Notification notification) {
         try {;
             notificationRepository.save(notification);
         } catch (Exception e) {

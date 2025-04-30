@@ -19,4 +19,5 @@ public class NeedService {
 
     public List<Need> getAllNeeds(Integer id) {return needRepository.getAllNeeds(id);}
     public List<Need> getNeedsWithoutTask(Integer id) {return needRepository.getNeedsWithoutTask(id);}
+    public int getNeedWithoutTaskCount(Integer id) {return needRepository.getNeedWithoutTaskCount(id);}
 }

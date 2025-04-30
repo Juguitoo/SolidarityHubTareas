@@ -113,7 +113,7 @@ public class TaskController {
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
                     "Se le ha asignado una nueva tarea: " + task.getTaskName());
-            notificationService.saveNotification(notification);
+            notificationService.save(notification);
 
             volunteerService.saveVolunteer(volunteer);
         }
@@ -186,7 +186,7 @@ public class TaskController {
             Notification notification = getNotification(volunteer, task, "Tarea actualizada");
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
-            notificationService.saveNotification(notification);
+            notificationService.save(notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
@@ -211,7 +211,7 @@ public class TaskController {
             Notification notification = getNotification(volunteer, task, "Tarea eliminada");
 
             notificationService.notifyEmail(volunteer.getEmail(),notification);
-            notificationService.saveNotification(notification);
+            notificationService.save(notification);
             notificationService.notifyApp(volunteer.getNotificationToken(), "Tarea eliminada",
                     "Se ha eliminado la tarea " + task.getTaskName() + " que se le había asignado.");
 

@@ -33,4 +33,9 @@ public class NeedController {
         needService.getNeedsWithoutTask(catastropheid).forEach(n -> {needDTOList.add(new NeedDTO(n));});
         return ResponseEntity.ok(needDTOList);
     }
+
+    @GetMapping("/countWithoutTask")
+    public ResponseEntity<?> getNeedWithoutTaskCount(@RequestParam Integer catastropheid) {
+        return ResponseEntity.ok(needService.getNeedWithoutTaskCount(catastropheid));
+    }
 }
