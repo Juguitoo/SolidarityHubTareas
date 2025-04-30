@@ -24,12 +24,15 @@ public class ResourceDTO {
 
     private Storage storage;
 
+    private Integer catastropheId;
+
     public ResourceDTO(Resource resource) {
         this.id = resource.getId();
         this.name = resource.getName();
         this.type = resource.getType();
         this.quantity = (int) resource.getQuantity();
         this.storage = resource.getStorage();
+        this.catastropheId = resource.getCatastrophe().getId();
     }
 
 

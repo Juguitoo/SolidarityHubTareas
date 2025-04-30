@@ -37,17 +37,26 @@ public class Resource {
     @JoinColumn(name = "storage_id")
     private Storage storage;
 
-    public Resource(String name, ResourceType type, double quantity, Storage storage) {
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "catastrophe_id")
+    private Catastrophe catastrophe;
+
+
+    public Resource(String name, ResourceType type, double quantity, Storage storage, Catastrophe catastrophe) {
         this.name = name;
         this.type = type;
         this.quantity = quantity;
         this.storage = storage;
+        this.catastrophe = catastrophe;
     }
-    public Resource(String name, ResourceType type, double quantity) {
+    public Resource(String name, ResourceType type, double quantity, Catastrophe catastrophe) {
         this.name = name;
         this.type = type;
         this.quantity = quantity;
         this.storage = null;
+        this.catastrophe = null;
     }
+
 
 }

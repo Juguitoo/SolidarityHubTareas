@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.ResourceDTO;
 import solidarityhub.backend.model.Resource;
+import solidarityhub.backend.service.CatastropheService;
 import solidarityhub.backend.service.ResourceService;
 
 import java.util.ArrayList;
@@ -15,9 +16,11 @@ import java.util.List;
 public class ResourceController {
 
     private final ResourceService resourceService;
+    private final CatastropheService catastropheService;
 
-    public ResourceController(ResourceService resourceService) {
+    public ResourceController(ResourceService resourceService, CatastropheService catastropheService) {
         this.resourceService = resourceService;
+        this.catastropheService = catastropheService;
     }
 
     @GetMapping
@@ -37,7 +40,7 @@ public class ResourceController {
 
     @PostMapping
     public ResponseEntity<?> createResource(@RequestBody ResourceDTO resourceDTO) {
-        Resource resource = new Resource(resourceDTO.getName(), resourceDTO.getType(), resourceDTO.getQuantity());
+        Resource resource = new Resource(resourceDTO.getName(), resourceDTO.getType(), resourceDTO.getQuantity(), catastropheService.getCatastrophe(resourceDTO.getCatastropheId()));
         resourceService.saveResource(resource);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

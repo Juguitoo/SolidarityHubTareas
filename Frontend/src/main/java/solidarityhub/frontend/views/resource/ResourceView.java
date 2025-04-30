@@ -1,9 +1,19 @@
 package solidarityhub.frontend.views.resource;
 
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
@@ -13,7 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
+import solidarityhub.frontend.dto.ResourceDTO;
+import solidarityhub.frontend.views.headerComponent;
 
+import java.util.List;
 
 
 @PageTitle("Recursos")
@@ -22,6 +35,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
 
     private final ResourceService resourceService;
     private CatastropheDTO selectedCatastrophe;
+    private Grid<ResourceDTO> resourceGrid;
 
     @Autowired
     public ResourceView(ResourceService resourceService) {
@@ -51,7 +65,87 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
     }
 
     private void buildView() {
+        // Limpiar la vista actual
         removeAll();
+
+        // Header
+        headerComponent title = new headerComponent("Recursos para la catástrofe: " + selectedCatastrophe.getName());
+
+        // Filtros
+        Select<String> typeFilter = new Select<>();
+        typeFilter.setLabel("Filtrar por tipo");
+        typeFilter.setItems("Todos los tipos", "Alimentos", "Medicina", "Ropa", "Refugio", "Herramientas",
+                "Combustible", "Higiene", "Comunicación", "Transporte", "Construcción", "Donaciones",
+                "Papelería", "Logística", "Otros");
+        typeFilter.setValue("Todos los tipos");
+
+        // Crear tabs para cada tipo de recurso
+        Tab tab1 = new Tab("DONACIONES");
+        Tab tab2 = new Tab("RECURSOS");
+
+        // Agregar tabs al TabSheet
+        Tabs tabs = new Tabs(tab2, tab1);
+        tabs.setWidthFull();
+
+        Button applyFilterButton = new Button("Aplicar", e -> applyFilter(typeFilter.getValue()));
+
+        HorizontalLayout filterLayout = new HorizontalLayout(typeFilter, applyFilterButton);
+        filterLayout.setAlignItems(Alignment.BASELINE);
+
+        // Botón para registrar nuevo recurso
+        Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
+        addResourceButton.addClickListener(e -> {
+            // Lógica para registrar un nuevo suministro
+            AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, resourceGrid);
+            addResourceDialog.openAddResourceDialog();
+        });
+        addResourceButton.addClassName("add-resource-button");
+
+        // Grid para mostrar los recursos
+        resourceGrid = new Grid<>(ResourceDTO.class, false);
+        resourceGrid.addColumn(ResourceDTO::getId).setHeader("ID");
+        resourceGrid.addColumn(ResourceDTO::getType).setHeader("Tipo");
+        resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre");
+        resourceGrid.addColumn(ResourceDTO::getQuantity).setHeader("Cantidad");
+        resourceGrid.addColumn(ResourceDTO::getStorage).setHeader("Almacén");
+        //resourceGrid.addComponentColumn(this::createStatusBadge).setHeader("Estado");
+
+        resourceGrid.setItems(loadResources());
+
+
+
+        // Agregar componentes a la vista
+        add(title, tabs, typeFilter, applyFilterButton, addResourceButton, resourceGrid);
+    }
+
+
+
+    private Span createStatusBadge(String status) {
+        Span badge = new Span();
+        badge.addClassName("status-badge");
+        switch (status) {
+            case "Stock bajo":
+                badge.getElement().getThemeList().add("error");
+                break;
+            case "Stock medio":
+                badge.getElement().getThemeList().add("warning");
+                break;
+            case "Stock alto":
+                badge.getElement().getThemeList().add("success");
+                break;
+        }
+        return badge;
+    }
+
+    private List<ResourceDTO> loadResources() {
+        return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
+    }
+    private void applyFilter(String type) {
+        if ("Todos los tipos".equals(type)) {
+            resourceGrid.setItems(loadResources());
+        } else {
+            resourceGrid.setItems(resourceService.getResourcesByType(selectedCatastrophe.getId(), type));
+        }
     }
 
 }
