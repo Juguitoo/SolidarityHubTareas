@@ -89,9 +89,6 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
 
         Button applyFilterButton = new Button("Aplicar", e -> applyFilter(typeFilter.getValue()));
 
-        HorizontalLayout filterLayout = new HorizontalLayout(typeFilter, applyFilterButton);
-        filterLayout.setAlignItems(Alignment.BASELINE);
-
         // Botón para registrar nuevo recurso
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
         addResourceButton.addClickListener(e -> {
@@ -100,6 +97,12 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
             addResourceDialog.openAddResourceDialog();
         });
         addResourceButton.addClassName("add-resource-button");
+
+        HorizontalLayout filterLayout = new HorizontalLayout(typeFilter, applyFilterButton, addResourceButton);
+        filterLayout.setAlignItems(Alignment.BASELINE);
+        filterLayout.setWidthFull();
+        filterLayout.setJustifyContentMode(JustifyContentMode.START);
+
 
         // Grid para mostrar los recursos
         resourceGrid = new Grid<>(ResourceDTO.class, false);
@@ -115,7 +118,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
 
 
         // Agregar componentes a la vista
-        add(title, tabs, typeFilter, applyFilterButton, addResourceButton, resourceGrid);
+        add(title, tabs, filterLayout, resourceGrid);
     }
 
 
