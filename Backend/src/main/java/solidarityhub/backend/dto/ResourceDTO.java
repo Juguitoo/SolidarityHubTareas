@@ -20,7 +20,11 @@ public class ResourceDTO {
     @Enumerated(EnumType.STRING)
     private ResourceType type;
 
-    private int quantity;
+    private double quantity;
+
+    private String unit;
+
+    private String cantidad;
 
     private Storage storage;
 
@@ -30,7 +34,9 @@ public class ResourceDTO {
         this.id = resource.getId();
         this.name = resource.getName();
         this.type = resource.getType();
-        this.quantity = (int) resource.getQuantity();
+        this.quantity = resource.getQuantity();
+        this.unit = resource.getUnit();
+        this.cantidad = resource.getCantidad();
         this.storage = resource.getStorage();
         this.catastropheId = resource.getCatastrophe().getId();
     }

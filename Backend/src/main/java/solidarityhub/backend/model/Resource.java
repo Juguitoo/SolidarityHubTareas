@@ -28,6 +28,12 @@ public class Resource {
     private double quantity;
 
     @Setter
+    private String unit;
+
+    @Setter
+    private String cantidad;
+
+    @Setter
     @ManyToOne
     @JoinColumn(name = "donation_id")
     private Donation donation;
@@ -43,17 +49,21 @@ public class Resource {
     private Catastrophe catastrophe;
 
 
-    public Resource(String name, ResourceType type, double quantity, Storage storage, Catastrophe catastrophe) {
+    public Resource(String name, ResourceType type, double quantity, String unit, Storage storage, Catastrophe catastrophe) {
         this.name = name;
         this.type = type;
         this.quantity = quantity;
+        this.unit = unit;
+        this.cantidad = String.valueOf(quantity) + " " + unit;
         this.storage = storage;
         this.catastrophe = catastrophe;
     }
-    public Resource(String name, ResourceType type, double quantity, Catastrophe catastrophe) {
+    public Resource(String name, ResourceType type, double quantity, String unit, Catastrophe catastrophe) {
         this.name = name;
         this.type = type;
         this.quantity = quantity;
+        this.unit = unit;
+        this.cantidad = String.valueOf(quantity) + " " + unit;
         this.storage = null;
         this.catastrophe = null;
     }

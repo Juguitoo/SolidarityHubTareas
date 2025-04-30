@@ -23,15 +23,23 @@ public class Resource {
     private double quantity;
 
     @Setter
+    private String unit;
+
+    @Setter
+    private String cantidad;
+
+    @Setter
     private Donation donation;
 
     @Setter
     private Storage storage;
 
-    public Resource(String name, ResourceType type, double quantity, Storage storage) {
+    public Resource(String name, ResourceType type, double quantity, String unit, Storage storage) {
         this.name = name;
         this.type = type;
         this.quantity = quantity;
+        this.unit = unit;
+        this.cantidad = String.valueOf(quantity) + " " + unit;
         this.storage = storage;
     }
 }
