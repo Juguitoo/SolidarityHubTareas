@@ -98,8 +98,6 @@ public class TaskController {
             }
         }
 
-        taskService.saveTask(task);
-
         for (Need need : needs) {
             need.setTask(task);
             needService.saveNeed(need);
@@ -109,6 +107,7 @@ public class TaskController {
             volunteer.getTasks().add(task);
 
             Notification notification = getNotification(volunteer, task, "Nueva tarea");
+            task.addNotification(notification);
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
@@ -117,6 +116,7 @@ public class TaskController {
 
             volunteerService.saveVolunteer(volunteer);
         }
+        taskService.saveTask(task);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -168,8 +168,6 @@ public class TaskController {
         task.setNeeds(needs);
         task.setType(taskDTO.getType());
 
-        taskService.saveTask(task);
-
         for (Need need : needs) {
             if(need.getTask() == null){
                 need.setTask(task);
@@ -184,6 +182,7 @@ public class TaskController {
             }
 
             Notification notification = getNotification(volunteer, task, "Tarea actualizada");
+            task.addNotification(notification);
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.save(notification);
@@ -191,6 +190,7 @@ public class TaskController {
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
         }
+        taskService.saveTask(task);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
@@ -211,7 +211,6 @@ public class TaskController {
             Notification notification = getNotification(volunteer, task, "Tarea eliminada");
 
             notificationService.notifyEmail(volunteer.getEmail(),notification);
-            notificationService.save(notification);
             notificationService.notifyApp(volunteer.getNotificationToken(), "Tarea eliminada",
                     "Se ha eliminado la tarea " + task.getTaskName() + " que se le había asignado.");
 
