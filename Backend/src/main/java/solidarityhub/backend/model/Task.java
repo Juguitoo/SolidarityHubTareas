@@ -68,6 +68,10 @@ public class Task {
     @Setter
     private String meetingDirection;
 
+    @Setter
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers, String meetingDirection) {
         this.needs = needs;
@@ -88,5 +92,9 @@ public class Task {
                 Status status, List<Volunteer> volunteers, String meetingDirection, Catastrophe catastrophe) {
         this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers, meetingDirection);
         this.catastrophe = catastrophe;
+    }
+
+    public void addNotification(Notification notification) {
+        this.notifications.add(notification);
     }
 }
