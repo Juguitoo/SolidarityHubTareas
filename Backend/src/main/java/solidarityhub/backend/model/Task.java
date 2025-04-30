@@ -59,10 +59,6 @@ public class Task {
     private Zone zone;
 
     @Setter
-    @OneToOne(cascade = CascadeType.ALL)
-    private Notification notification;
-
-    @Setter
     @ManyToOne
     @JoinColumn(name = "catastrophe_id")
     private Catastrophe catastrophe;
