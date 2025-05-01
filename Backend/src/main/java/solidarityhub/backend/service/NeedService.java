@@ -10,7 +10,7 @@ import java.util.List;
 public class NeedService {
     private final NeedRepository needRepository;
     public NeedService(NeedRepository needRepository) {this.needRepository = needRepository;}
-    public Need saveNeed(Need need) {
+    public Need save(Need need) {
         return needRepository.save(need);
     }
     public Need findNeed(Integer id) {

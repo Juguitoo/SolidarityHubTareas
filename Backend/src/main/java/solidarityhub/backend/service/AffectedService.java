@@ -8,6 +8,6 @@ import org.springframework.stereotype.Service;
 public class AffectedService {
     private final AffectedRepository AffectedRepository;
     public AffectedService(AffectedRepository AffectedRepository) {this.AffectedRepository = AffectedRepository;}
-    public Affected saveAffected(Affected Affected) {return AffectedRepository.save(Affected);}
+    public Affected save(Affected Affected) {return AffectedRepository.save(Affected);}
     public Affected getAffectedById(String id) {return AffectedRepository.findById(id).get();}
 }

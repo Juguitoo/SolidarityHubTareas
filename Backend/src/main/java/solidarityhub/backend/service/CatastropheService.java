@@ -10,7 +10,7 @@ import java.util.List;
 public class CatastropheService {
     private final CatastropheRepository catastropheRepository;
     public CatastropheService(CatastropheRepository catastropheRepository) {this.catastropheRepository = catastropheRepository;}
-    public Catastrophe saveCatastrophe(Catastrophe catastrophe) {return catastropheRepository.save(catastrophe);}
+    public Catastrophe save(Catastrophe catastrophe) {return catastropheRepository.save(catastrophe);}
 
     public List<Catastrophe> getAllCatastrophes() {return catastropheRepository.findAll();}
     public Catastrophe getCatastrophe(Integer id) {return catastropheRepository.findById(id).orElse(null);}

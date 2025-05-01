@@ -10,31 +10,29 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.dto.VolunteerDTO;
 import solidarityhub.frontend.service.TaskService;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import solidarityhub.frontend.dto.NeedDTO;
-import solidarityhub.frontend.dto.VolunteerDTO;
 import java.util.*;
+import java.util.stream.Collectors;
 
-@Route("editTask")
+@Route("editSuggestedTask")
 @PageTitle("Editar tarea")
-public class EditTaskView extends AddTaskView implements HasUrlParameter<String> {
+public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<String> {
 
-    private final TaskService taskService;
-
-    private TaskDTO originalTask;
-    private int taskId;
+    private TaskDTO selectedTask;
+    protected final CatastropheDTO selectedCatastrophe;
 
     @Autowired
-    public EditTaskView(TaskService taskService) {
+    public EditSuggestedTask(TaskService taskService) {
         super(taskService);
-        this.taskService = new TaskService();
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         // Cambiar el título de la vista
         getElement().getChildren()
@@ -42,7 +40,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         .anyMatch(child -> child.getTag().equals("h1")))
                 .findFirst().flatMap(header -> header.getChildren()
                         .filter(child -> child.getTag().equals("h1"))
-                        .findFirst()).ifPresent(title -> title.setText("Editar tarea"));
+                        .findFirst()).ifPresent(title -> title.setText("Editar tarea sugerida"));
 
         taskPreview.enabledEditButton(false);
     }
@@ -50,37 +48,22 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     //===============================Load data=========================================
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String parameter) {
-
-        QueryParameters queryParameters = beforeEvent.getLocation().getQueryParameters();
-        Map<String, List<String>> parameterMap = queryParameters.getParameters();
-
-        if (parameterMap.containsKey("id") && !parameterMap.get("id").isEmpty()) {
-            try {
-                taskId = Integer.parseInt(parameterMap.get("id").getFirst());
-                loadTaskData();
-            } catch (NumberFormatException e) {
-                Notification.show("ID de tarea inválido");
-                UI.getCurrent().navigate("tasks");
-            }
+        selectedTask = (TaskDTO) VaadinSession.getCurrent().getAttribute("selectedSuggestedTask");
+        if (selectedTask != null) {
+            loadTaskData();
         } else {
-            Notification.show("No se especificó ID de tarea");
-            UI.getCurrent().navigate("tasks");
+            Notification.show("No se seleccionó ninguna tarea sugerida a editar");
+            UI.getCurrent().navigate("suggested-tasks");
         }
     }
 
     private void loadTaskData() {
         try {
-            originalTask = taskService.getTaskById(taskId);
-            if (originalTask != null) {
-                setFormValues(originalTask);
+                setFormValues(selectedTask);
                 Notification.show("Tarea cargada correctamente");
-            } else {
-                Notification.show("No se pudo encontrar la tarea");
-                UI.getCurrent().navigate("tasks");
-            }
         } catch (Exception e) {
             Notification.show("Error al cargar la tarea: " + e.getMessage());
-            UI.getCurrent().navigate("tasks");
+            UI.getCurrent().navigate("suggested-tasks");
         }
     }
 
@@ -110,7 +93,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         needsMultiSelectComboBox.select(taskNeeds);
 
         endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
-        taskLocation.setValue(task.getMeetingDirection());
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
@@ -138,15 +120,15 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     protected Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button updateButton = new Button("Actualizar");
+        Button updateButton = new Button("Aceptar");
         updateButton.addClickListener(e -> updateTask());
 
-        Button deleteButton = new Button("Eliminar");
+        Button deleteButton = new Button("Denegar");
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         deleteButton.addClickListener(e -> deleteTask());
 
         Button cancelButton = new Button("Salir");
-        cancelButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("tasks")));
+        cancelButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("suggested-task")));
 
         buttons.add(cancelButton, deleteButton, updateButton);
         setAlignSelf(Alignment.END, buttons);
@@ -183,7 +165,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
 
 
-                TaskDTO updatedTaskDTO = new TaskDTO(
+                TaskDTO suggestedTaskDTO = new TaskDTO(
                         taskName.getValue(),
                         taskDescription.getValue(),
                         starDateTimePicker.getValue(),
@@ -191,15 +173,16 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         needs.getFirst().getTaskType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
-                        originalTask.getStatus(),
+                        selectedTask.getStatus(),
                         needs,
                         selectedVolunteers,
                         selectedCatastrophe.getId(),
                         taskLocation.getValue()
                 );
 
-                taskService.updateTask(taskId, updatedTaskDTO);
+                taskService.addTask(suggestedTaskDTO);
                 taskService.taskCache = null;
+                taskService.suggestedTasksCache.remove(selectedTask);
                 Notification.show("Tarea actualizada correctamente");
                 UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
@@ -217,17 +200,17 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         confirmDialog.setHeaderTitle("Confirmar eliminación");
 
         VerticalLayout dialogContent = new VerticalLayout();
-        dialogContent.add(new Span("¿Está seguro de que desea eliminar esta tarea? Esta acción no se puede deshacer."));
+        dialogContent.add(new Span("¿Está seguro de que desea no crear esta tarea? Esta acción no se puede deshacer."));
 
         confirmDialog.add(dialogContent);
 
         Button confirmButton = new Button("Eliminar", event -> {
             try {
-                taskService.deleteTask(taskId);
                 taskService.taskCache = null;
+                taskService.suggestedTasksCache.remove(selectedTask);
                 confirmDialog.close();
                 Notification.show("Tarea eliminada correctamente");
-                UI.getCurrent().navigate("tasks");
+                UI.getCurrent().navigate("suggested-tasks");
             } catch (Exception e) {
                 Notification.show("Error al eliminar la tarea: " + e.getMessage());
             }

@@ -19,9 +19,7 @@ public class VolunteerService {
         this.volunteerRepository = volunteerRepository;
         this.volunteerAssigner = new VolunteerAssigner();
     }
-    public Volunteer saveVolunteer(Volunteer volunteer) {
-        return volunteerRepository.save(volunteer);
-    }
+    public Volunteer save(Volunteer volunteer) {return volunteerRepository.save(volunteer);}
 
     public Volunteer getVolunteer(String volunteerId) {
         return volunteerRepository.findById(volunteerId).orElse(null);
@@ -39,7 +37,7 @@ public class VolunteerService {
                         v.setLocation(new GPSCoordinates(coordinatesMap.get("lat"), coordinatesMap.get("lon")));
                     }
                 }
-                saveVolunteer(v);
+                save(v);
             }
             volunteersWithCoords.add(v);
         });

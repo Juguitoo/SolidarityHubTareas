@@ -98,9 +98,11 @@ public class TaskController {
             }
         }
 
+        taskService.save(task);
+
         for (Need need : needs) {
             need.setTask(task);
-            needService.saveNeed(need);
+            needService.save(need);
         }
 
         for (Volunteer volunteer : volunteers) {
@@ -114,9 +116,9 @@ public class TaskController {
                     "Se le ha asignado una nueva tarea: " + task.getTaskName());
             notificationService.save(notification);
 
-            volunteerService.saveVolunteer(volunteer);
+            volunteerService.save(volunteer);
         }
-        taskService.saveTask(task);
+        taskService.save(task);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -128,8 +130,8 @@ public class TaskController {
             return ResponseEntity.notFound().build();
         }
 
-        task.getVolunteers().forEach(volunteer -> {volunteer.getTasks().remove(task); volunteerService.saveVolunteer(volunteer);});
-        task.getNeeds().forEach(need -> {need.setTask(null); needService.saveNeed(need);});
+        task.getVolunteers().forEach(volunteer -> {volunteer.getTasks().remove(task); volunteerService.save(volunteer);});
+        task.getNeeds().forEach(need -> {need.setTask(null); needService.save(need);});
 
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
@@ -171,14 +173,14 @@ public class TaskController {
         for (Need need : needs) {
             if(need.getTask() == null){
                 need.setTask(task);
-                needService.saveNeed(need);
+                needService.save(need);
             }
         }
 
         for (Volunteer volunteer : volunteers) {
             if(!volunteer.getTasks().contains(task)) {
                 volunteer.getTasks().add(task);
-                volunteerService.saveVolunteer(volunteer);
+                volunteerService.save(volunteer);
             }
 
             Notification notification = getNotification(volunteer, task, "Tarea actualizada");
@@ -190,7 +192,7 @@ public class TaskController {
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
         }
-        taskService.saveTask(task);
+        taskService.save(task);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
@@ -204,7 +206,7 @@ public class TaskController {
         // Desasociar la tarea de las necesidades y voluntarios
         for (Need need : task.getNeeds()) {
             need.setTask(null);
-            needService.saveNeed(need);
+            needService.save(need);
         }
         for (Volunteer volunteer : task.getVolunteers()) {
 
@@ -215,7 +217,7 @@ public class TaskController {
                     "Se ha eliminado la tarea " + task.getTaskName() + " que se le había asignado.");
 
             volunteer.getTasks().remove(task);
-            volunteerService.saveVolunteer(volunteer);
+            volunteerService.save(volunteer);
         }
         taskService.deleteTask(task);
         return ResponseEntity.ok().build();
@@ -251,13 +253,10 @@ public class TaskController {
     }
 
     @GetMapping("/suggestedTasks")
-    public ResponseEntity<?> getSuggestedTasks(@RequestParam List<Integer> needIds) {
-        List<Need> needs = new ArrayList<>();
-        for (Integer id : needIds) {
-            Need need = needService.findNeed(id);
-            if (need != null) {
-                needs.add(need);
-            }
+    public ResponseEntity<?> getSuggestedTasks(@RequestParam Integer catastropheId) {
+        List<Need> needs = needService.getNeedsWithoutTask(catastropheId);
+        if(needs.size()> 3) {
+            needs = needs.subList(0, 3);
         }
 
         if (needs.isEmpty()) {

@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -26,6 +28,7 @@ public class TaskService {
     private final VolunteerService volunteerService;
     private final NeedService needService;
     public List<TaskDTO> taskCache;
+    public List<TaskDTO> suggestedTasksCache;
 
     public TaskService() {
         this.restTemplate = new RestTemplate();
@@ -33,6 +36,7 @@ public class TaskService {
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.taskCache = new ArrayList<>();
+        this.suggestedTasksCache = new ArrayList<>();
     }
 
     //CRUD METHODS
@@ -140,5 +144,18 @@ public class TaskService {
     public TaskDTO getTaskById(int id) {
         ResponseEntity<TaskDTO> response = restTemplate.exchange(baseUrl + "/" + id, HttpMethod.GET, null, TaskDTO.class);
         return response.getBody();
+    }
+
+    public List<TaskDTO> getSuggestedTasks(Integer catastropheId) {
+        try {
+            ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl + "/suggestedTasks?catastropheId=" + catastropheId, HttpMethod.GET, null, TaskDTO[].class);
+            TaskDTO[] suggestedTasks = response.getBody();
+            if (suggestedTasks != null) {
+                return List.of(suggestedTasks);
+            }
+            return new ArrayList<>();
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 }

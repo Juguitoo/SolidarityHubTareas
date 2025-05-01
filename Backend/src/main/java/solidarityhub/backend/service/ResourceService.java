@@ -13,7 +13,7 @@ public class ResourceService {
         this.resourceRepository = resourceRepository;
     }
     public List<Resource> getResources() {return resourceRepository.findAll();}
-    public Resource saveResource(Resource resource) {return resourceRepository.save(resource);}
+    public Resource save(Resource resource) {return resourceRepository.save(resource);}
     public Resource getResourceById(Integer id) {return resourceRepository.findById(id).orElse(null);}
     public void deleteResource(Resource resource) {resourceRepository.delete(resource);}
 

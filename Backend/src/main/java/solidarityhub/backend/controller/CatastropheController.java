@@ -48,7 +48,7 @@ public class CatastropheController {
 
         Catastrophe catastrophe = new Catastrophe(name, description, new GPSCoordinates(locationX, locationY), startDate, emergencyLevel);
 
-        return ResponseEntity.ok(catastropheService.saveCatastrophe(catastrophe));
+        return ResponseEntity.ok(catastropheService.save(catastrophe));
     }
 
     @PutMapping("/{id}")
@@ -64,7 +64,7 @@ public class CatastropheController {
         catastrophe.setStartDate(catastropheDTO.getStartDate());
         catastrophe.setEmergencyLevel(catastropheDTO.getEmergencyLevel());
 
-        return ResponseEntity.ok(catastropheService.saveCatastrophe(catastrophe));
+        return ResponseEntity.ok(catastropheService.save(catastrophe));
     }
 
     @DeleteMapping("/{id}")

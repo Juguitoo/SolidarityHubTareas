@@ -5,10 +5,12 @@ public class TaskDirector {
         taskBuilder.setTitle();
         taskBuilder.setDescription();
         taskBuilder.setStartDate();
+        taskBuilder.setEndDate();
         taskBuilder.setPriority();
         taskBuilder.setEmergencyLevel();
         taskBuilder.setStatus();
-        taskBuilder.setVolunteers();
+        taskBuilder.setCatastrophe();
         taskBuilder.setNeed();
+        taskBuilder.setVolunteers();
     }
 }

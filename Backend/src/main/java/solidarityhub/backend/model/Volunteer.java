@@ -86,7 +86,6 @@ public class Volunteer extends Person {
             }
 
         }
-        System.out.println(this.getFirstName() + " " + available);
         return available;
     }
 

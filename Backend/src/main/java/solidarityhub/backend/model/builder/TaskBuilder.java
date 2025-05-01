@@ -10,6 +10,8 @@ public interface TaskBuilder {
 
     void setStartDate();
 
+    void setEndDate();
+
     void setPriority();
 
     void setEmergencyLevel();
@@ -19,6 +21,8 @@ public interface TaskBuilder {
     void setVolunteers();
 
     void setNeed();
+
+    void setCatastrophe();
 
     Task getResult();
 }

@@ -67,8 +67,9 @@ public class AddTaskView extends VerticalLayout {
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
-    public AddTaskView() {
-        this.taskService = new TaskService();
+    @Autowired
+    public AddTaskView(TaskService taskService) {
+        this.taskService = taskService;
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();

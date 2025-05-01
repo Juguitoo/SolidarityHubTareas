@@ -8,11 +8,11 @@ import solidarityhub.backend.model.enums.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Entity
-@NoArgsConstructor
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,7 +73,8 @@ public class Task {
     private List<Notification> notifications;
 
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
-                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers, String meetingDirection) {
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status,
+                List<Volunteer> volunteers, String meetingDirection) {
         this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
@@ -92,6 +93,11 @@ public class Task {
                 Status status, List<Volunteer> volunteers, String meetingDirection, Catastrophe catastrophe) {
         this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers, meetingDirection);
         this.catastrophe = catastrophe;
+    }
+
+    public Task(){
+        this.creationDate = LocalDate.now();
+        this.notifications = new ArrayList<>();
     }
 
     public void addNotification(Notification notification) {

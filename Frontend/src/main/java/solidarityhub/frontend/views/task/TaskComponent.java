@@ -12,10 +12,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
+import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
 
 import java.util.Collections;
 
+@Getter
 public class TaskComponent extends VerticalLayout {
 
     private final int taskId;
@@ -52,7 +54,7 @@ public class TaskComponent extends VerticalLayout {
         addClassName("task-card");
 
         HorizontalLayout header = new HorizontalLayout();
-        header.add(getTaskName(), getStartDateTime());
+        header.add(getTaskNameComponent(), getStartDateTimeComponent());
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
         header.setAlignItems(Alignment.CENTER);
 
@@ -60,11 +62,11 @@ public class TaskComponent extends VerticalLayout {
         footer.setWidthFull();
         footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
         footer.setAlignItems(Alignment.CENTER);
-        footer.add(getPriorityLevel(), getSettings());
+        footer.add(getPriorityLevelComponent(), getSettingsComponent());
 
         add(
             header,
-            new HorizontalLayout(getImg(), getTaskDescription()),
+            new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
             footer
         );
     }
@@ -93,25 +95,25 @@ public class TaskComponent extends VerticalLayout {
         };
     }
 
-    public Component getTaskName() {
+    public Component getTaskNameComponent() {
         H2 taskNameTitle = new H2(taskName);
         taskNameTitle.addClassName("task-title");
         return taskNameTitle;
     }
 
-    public Component getTaskDescription() {
+    public Component getTaskDescriptionComponent() {
         Div taskDescriptionSpan = new Div(taskDescription);
         taskDescriptionSpan.addClassName("task-description");
         return taskDescriptionSpan;
     }
 
-    public Component getPriorityLevel() {
+    public Component getPriorityLevelComponent() {
         Span emergencyLevelSpan = new Span(priority);
         emergencyLevelSpan.addClassName("task-priority");
         return emergencyLevelSpan;
     }
 
-    public Component getSettings() {
+    public Component getSettingsComponent() {
         VerticalLayout buttonLayout = new VerticalLayout();
         buttonLayout.setPadding(false);
         buttonLayout.setAlignItems(Alignment.END);
@@ -127,7 +129,7 @@ public class TaskComponent extends VerticalLayout {
         return buttonLayout;
     }
 
-    public Component getStartDateTime() {
+    public Component getStartDateTimeComponent() {
         Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
         startDateTimeSpan.addClassName("task-date");
         return startDateTimeSpan;

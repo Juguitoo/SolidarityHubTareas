@@ -41,7 +41,7 @@ public class ResourceController {
     @PostMapping
     public ResponseEntity<?> createResource(@RequestBody ResourceDTO resourceDTO) {
         Resource resource = new Resource(resourceDTO.getName(), resourceDTO.getType(), resourceDTO.getQuantity(), resourceDTO.getUnit(), catastropheService.getCatastrophe(resourceDTO.getCatastropheId()));
-        resourceService.saveResource(resource);
+        resourceService.save(resource);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -58,7 +58,7 @@ public class ResourceController {
         resource.setCantidad(resourceDTO.getCantidad());
         resource.setStorage(resourceDTO.getStorage());
 
-        resourceService.saveResource(resource);
+        resourceService.save(resource);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
