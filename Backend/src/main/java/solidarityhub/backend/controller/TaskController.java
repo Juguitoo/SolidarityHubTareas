@@ -249,4 +249,26 @@ public class TaskController {
 
         return new Notification(title, body, task, volunteer);
     }
+
+    @GetMapping("/suggestedTasks")
+    public ResponseEntity<?> getSuggestedTasks(@RequestParam List<Integer> needIds) {
+        List<Need> needs = new ArrayList<>();
+        for (Integer id : needIds) {
+            Need need = needService.findNeed(id);
+            if (need != null) {
+                needs.add(need);
+            }
+        }
+
+        if (needs.isEmpty()) {
+            return ResponseEntity.badRequest().body("Se debe seleccionar al menos una necesidad");
+        }
+
+        List<Task> suggestedTasks = taskService.getSuggestedTasks(needs);
+        List<TaskDTO> suggestedTaskDTOs = new ArrayList<>();
+        for (Task task : suggestedTasks) {
+            suggestedTaskDTOs.add(new TaskDTO(task));
+        }
+        return ResponseEntity.ok(suggestedTaskDTOs);
+    }
 }
