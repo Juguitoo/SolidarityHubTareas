@@ -10,19 +10,23 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.model.Storage;
 import solidarityhub.frontend.service.ResourceService;
+import solidarityhub.frontend.service.StorageService;
 
 public class AddResourceDialog {
 
     private final ResourceService resourceService;
+    private final StorageService storageService;
     private final Grid<ResourceDTO> resourceGrid;
 
-    public AddResourceDialog(ResourceService resourceService, Grid<ResourceDTO> resourceGrid) {
+    public AddResourceDialog(ResourceService resourceService, StorageService storageService, Grid<ResourceDTO> resourceGrid) {
         this.resourceService = resourceService;
+        this.storageService = storageService;
         this.resourceGrid = resourceGrid;
     }
 
@@ -41,6 +45,23 @@ public class AddResourceDialog {
         NumberField quantityField = new NumberField("Cantidad");
         TextField unitField = new TextField("Unidad de medida");
         TextField storageField = new TextField("Almacén");
+
+        // Crear el desplegable de selección de almacén
+        Select<Storage> storageSelect = new Select<>();
+        storageSelect.setLabel("Almacén");
+        storageSelect.setItemLabelGenerator(storage1 -> {
+            //String address = convertCoordinatesToAddress(storage1.getLatitude(), storage1.getLongitude());
+            return String.format("%s - %s - %s", storage1.getName(), "address", storage1.isFull() ? "Lleno" : "Disponible");
+        });
+
+        // Cargar los almacenes en el desplegable
+        List<Storage> storages = resourceService.getAllStorages();
+        storageSelect.setItems(storages);
+
+        nameField.setRequiredIndicatorVisible(true);
+        typeField.setRequiredIndicatorVisible(true);
+        quantityField.setRequiredIndicatorVisible(true);
+        unitField.setRequiredIndicatorVisible(true);
 
         // Botón para guardar
         Button saveButton = new Button("Guardar", event -> {
@@ -92,10 +113,13 @@ public class AddResourceDialog {
         buttonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         // Agregar componentes al diálogo
-        VerticalLayout dialogLayout = new VerticalLayout(title, nameTypeLayout, quantityUnitLayout, storageField, buttonLayout);
+        VerticalLayout dialogLayout = new VerticalLayout(title, nameTypeLayout, quantityUnitLayout, storageField, storageSelect, buttonLayout);
         dialog.add(dialogLayout);
 
         // Abrir el diálogo
         dialog.open();
     }
+
 }
+
+

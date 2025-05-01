@@ -9,8 +9,8 @@ import java.util.List;
 @Service
 public class ResourceService {
     private final ResourceRepository resourceRepository;
-    public ResourceService(ResourceRepository repository) {
-        this.resourceRepository = repository;
+    public ResourceService(ResourceRepository resourceRepository) {
+        this.resourceRepository = resourceRepository;
     }
     public List<Resource> getResources() {return resourceRepository.findAll();}
     public Resource saveResource(Resource resource) {return resourceRepository.save(resource);}

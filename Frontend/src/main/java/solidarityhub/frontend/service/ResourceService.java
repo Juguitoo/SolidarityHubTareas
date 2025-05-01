@@ -8,19 +8,18 @@ import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.ResourceDTO;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class ResourceService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
-    public List<ResourceDTO> resourceChache;
+    public List<ResourceDTO> resourceCache;
 
     public ResourceService() {
         this.restTemplate = new RestTemplate();
         this.baseUrl = "http://localhost:8082/solidarityhub/resources";
-        this.resourceChache = new ArrayList<>();
+        this.resourceCache = new ArrayList<>();
     }
 
     //CRUD METHODS
@@ -38,30 +37,30 @@ public class ResourceService {
     }
 
     public void clearCache() {
-        resourceChache.clear();
+        resourceCache.clear();
     }
 
     //GET METHODS
 
     public List<ResourceDTO> getResources() {
-        if (resourceChache == null || resourceChache.isEmpty()) {
+        if (resourceCache == null || resourceCache.isEmpty()) {
             try {
                 ResponseEntity<ResourceDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, ResourceDTO[].class);
                 ResourceDTO[] resources = response.getBody();
                 if (resources != null) {
-                    resourceChache = new ArrayList<>(List.of(resources));
+                    resourceCache = new ArrayList<>(List.of(resources));
                 } else {
-                    resourceChache = new ArrayList<>();
+                    resourceCache = new ArrayList<>();
                 }
             } catch (RestClientException e) {
                 return getExampleResources(5);
             }
         }
-        return resourceChache;
+        return resourceCache;
     }
 
     public List<ResourceDTO> getResourcesByCatastropheId(int catastropheId) {
-        return resourceChache.stream()
+        return resourceCache.stream()
                 .filter(resource -> resource.getCatastropheId() == catastropheId).toList();
     }
 
@@ -77,7 +76,7 @@ public class ResourceService {
 
     public List<ResourceDTO> getResourcesByType(Integer id, String type) {
         List<ResourceDTO> filteredResources = new ArrayList<>();
-        for (ResourceDTO resource : resourceChache) {
+        for (ResourceDTO resource : resourceCache) {
             if (resource.getCatastropheId() == id && resource.getType().equals(type)) {
                 filteredResources.add(resource);
             }

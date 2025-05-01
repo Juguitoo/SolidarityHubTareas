@@ -1,10 +1,8 @@
 package solidarityhub.frontend.views.resource;
 
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
@@ -16,14 +14,15 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.service.ResourceService;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 import solidarityhub.frontend.dto.ResourceDTO;
+import solidarityhub.frontend.service.ResourceService;
+import solidarityhub.frontend.service.StorageService;
+import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 import solidarityhub.frontend.views.headerComponent;
 
 import java.util.List;
@@ -34,14 +33,16 @@ import java.util.List;
 public class ResourceView extends VerticalLayout implements BeforeEnterObserver {
 
     private final ResourceService resourceService;
+    private final StorageService storageService;
     private CatastropheDTO selectedCatastrophe;
     private Grid<ResourceDTO> resourceGrid;
 
     @Autowired
-    public ResourceView(ResourceService resourceService) {
+    public ResourceView(ResourceService resourceService, StorageService storageService) {
         this.resourceService = resourceService;
         setSizeFull();
         addClassName("resources-view");
+        this.storageService = storageService;
     }
 
     @Override
@@ -93,7 +94,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
         addResourceButton.addClickListener(e -> {
             // Lógica para registrar un nuevo suministro
-            AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, resourceGrid);
+            AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, storageService, resourceGrid );
             addResourceDialog.openAddResourceDialog();
         });
         addResourceButton.addClassName("add-resource-button");
