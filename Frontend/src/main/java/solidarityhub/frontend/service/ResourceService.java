@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.ResourceDTO;
+import solidarityhub.frontend.model.enums.ResourceType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,7 @@ public class ResourceService {
     private List<ResourceDTO> getExampleResources(int limit) {
         List<ResourceDTO> exampleResources = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
-            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), "Tipo " + (i + 1), i * 10,"unidades", null));
+            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), ResourceType.OTHER, i * 10,"unidades", null));
         }
         return exampleResources;
     }
