@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.model.Storage;
@@ -26,11 +27,13 @@ public class AddResourceDialog {
     private final ResourceService resourceService;
     private final StorageService storageService;
     private final Grid<ResourceDTO> resourceGrid;
+    private final CatastropheDTO selectedCatastrophe;
 
-    public AddResourceDialog(ResourceService resourceService, StorageService storageService, Grid<ResourceDTO> resourceGrid) {
+    public AddResourceDialog(ResourceService resourceService, StorageService storageService, Grid<ResourceDTO> resourceGrid, CatastropheDTO selectedCatastrophe) {
         this.resourceService = resourceService;
         this.storageService = storageService;
         this.resourceGrid = resourceGrid;
+        this.selectedCatastrophe = selectedCatastrophe;
     }
 
     public void openAddResourceDialog() {
@@ -41,6 +44,8 @@ public class AddResourceDialog {
 
         // Título del diálogo
         H3 title = new H3("Añadir nuevo recurso");
+        title.setWidthFull();
+        title.getStyle().set("text-align", "center");
 
         // Campos del formulario
         TextField nameField = new TextField("Nombre del recurso");
@@ -98,8 +103,7 @@ public class AddResourceDialog {
             Double quantity = quantityField.getValue();
             String unit = unitField.getValue();
             String cantidad = String.valueOf(quantity) + " " + unit;
-            Storage storage = new Storage();
-            storage.setName(storageField.getValue().getName());
+            StorageDTO selectedStorage = storageField.getValue();
 
             if (name.isEmpty() || type == null || quantity == null || unit.isEmpty() ) {
                 Notification.show("Por favor, completa todos los campos.", 3000, Notification.Position.MIDDLE)
@@ -107,13 +111,16 @@ public class AddResourceDialog {
                 return;
             }
 
-            ResourceDTO newResource = new ResourceDTO();
-            newResource.setName(name);
-            newResource.setType(type);
-            newResource.setQuantity(quantity);
-            newResource.setUnit(unit);
-            newResource.setCantidad(cantidad);
-            newResource.setStorage(storage);
+
+            ResourceDTO newResource = new ResourceDTO(
+                    name,
+                    type,
+                    quantity,
+                    unit,
+                    // Si se selecciona un almacén, se asigna el ID del almacén al recurso
+                    selectedStorage != null ? selectedStorage.getId() : null,
+                    selectedCatastrophe.getId()
+            );
 
             try {
                 resourceService.addResource(newResource);
@@ -130,10 +137,16 @@ public class AddResourceDialog {
         // Botón para cancelar
         Button cancelButton = new Button("Cancelar", event -> dialog.close());
 
+        // Layouts para organizar los campos
         HorizontalLayout nameTypeLayout = new HorizontalLayout(nameField, typeField);
         nameTypeLayout.setWidthFull();
+        nameTypeLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         HorizontalLayout quantityUnitLayout = new HorizontalLayout(quantityField, unitField);
         quantityUnitLayout.setWidthFull();
+        quantityUnitLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        HorizontalLayout storageFieldLayout = new HorizontalLayout(storageField);
+        storageFieldLayout.setWidthFull();
+        storageFieldLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
         // Layout de botones
         HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
@@ -142,7 +155,7 @@ public class AddResourceDialog {
         buttonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         // Agregar componentes al diálogo
-        VerticalLayout dialogLayout = new VerticalLayout(title, nameTypeLayout, quantityUnitLayout, storageField, buttonLayout);
+        VerticalLayout dialogLayout = new VerticalLayout(title, nameTypeLayout, quantityUnitLayout, storageFieldLayout, buttonLayout);
         dialog.add(dialogLayout);
 
         // Abrir el diálogo
@@ -150,5 +163,3 @@ public class AddResourceDialog {
     }
 
 }
-
-

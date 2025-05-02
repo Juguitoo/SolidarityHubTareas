@@ -22,6 +22,7 @@ public class Resource {
 
     @Setter
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ResourceType type;
 
     @Setter

@@ -94,7 +94,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
         addResourceButton.addClickListener(e -> {
             // Lógica para registrar un nuevo suministro
-            AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, storageService, resourceGrid );
+            AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, storageService, resourceGrid, selectedCatastrophe);
             addResourceDialog.openAddResourceDialog();
         });
         addResourceButton.addClassName("add-resource-button");
@@ -110,7 +110,7 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         resourceGrid.addColumn(ResourceDTO::getType).setHeader("Tipo");
         resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre");
         resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad");
-        resourceGrid.addColumn(ResourceDTO::getStorage).setHeader("Almacén");
+        resourceGrid.addColumn(ResourceDTO::getStorageId).setHeader("Almacén");
         //resourceGrid.addComponentColumn(this::createStatusBadge).setHeader("Estado");
 
         resourceGrid.setItems(loadResources());

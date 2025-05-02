@@ -24,8 +24,6 @@ public class ResourceDTO {
 
     private String unit;
 
-    private String cantidad;
-
     private Storage storage;
 
     private Integer catastropheId;
@@ -36,10 +34,12 @@ public class ResourceDTO {
         this.type = resource.getType();
         this.quantity = resource.getQuantity();
         this.unit = resource.getUnit();
-        this.cantidad = resource.getCantidad();
         this.storage = resource.getStorage();
         this.catastropheId = resource.getCatastrophe().getId();
     }
 
+    public String getCantidad() {
+        return quantity + " " + unit;
+    }
 
 }

@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.ResourceDTO;
+import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.service.CatastropheService;
 import solidarityhub.backend.service.ResourceService;
@@ -40,8 +41,21 @@ public class ResourceController {
 
     @PostMapping
     public ResponseEntity<?> createResource(@RequestBody ResourceDTO resourceDTO) {
-        Resource resource = new Resource(resourceDTO.getName(), resourceDTO.getType(), resourceDTO.getQuantity(), resourceDTO.getUnit(), catastropheService.getCatastrophe(resourceDTO.getCatastropheId()));
+        if (resourceDTO.getCatastropheId() == null) {
+            return ResponseEntity.badRequest().body("El ID de la catástrofe es obligatorio");
+        }
+        Catastrophe catastrophe = catastropheService.getCatastrophe(resourceDTO.getCatastropheId());
+        if (catastrophe == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Resource resource = new Resource(
+                resourceDTO.getName(),
+                resourceDTO.getType(),
+                resourceDTO.getQuantity(),
+                resourceDTO.getUnit(),
+                catastrophe);
         resourceService.save(resource);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

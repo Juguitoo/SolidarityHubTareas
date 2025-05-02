@@ -17,21 +17,21 @@ public class ResourceDTO {
     private double quantity;
     private String unit;
     private String cantidad;
-    private Storage storage;
+    private Integer storageId;
     private Integer catastropheId;
 
-    public ResourceDTO(String name, ResourceType type, double quantity, String unit, Storage storage) {
+    public ResourceDTO(String name, ResourceType type, double quantity, String unit, Integer storageId) {
         this.name = name;
         this.type = type;
         this.quantity = quantity;
         this.unit = unit;
         this.cantidad = String.valueOf(quantity) + " " + unit;
-        this.storage = storage;
+        this.storageId = storageId;
         this.catastropheId = null;
     }
 
-    public ResourceDTO(int id, String name, ResourceType type, double quantity, String unit, Storage storage, Integer catastropheId) {
-        this(name, type, quantity, unit, storage);
+    public ResourceDTO(String name, ResourceType type, double quantity, String unit, Integer storageId, Integer catastropheId) {
+        this(name, type, quantity, unit, storageId);
         this.catastropheId = catastropheId;
     }
 
