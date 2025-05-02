@@ -2,10 +2,8 @@ package solidarityhub.frontend.views.resource.donation;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -30,7 +28,7 @@ import solidarityhub.frontend.model.enums.DonationType;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.DonationService;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
-import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -79,7 +77,7 @@ public class DonationView extends VerticalLayout implements BeforeEnterObserver 
             if (event.getSelectedTab().equals(donacionesTab)) {
                 // Stay on current view
             } else if (event.getSelectedTab().equals(suministrosTab)) {
-                UI.getCurrent().navigate("resources/supplies");
+                UI.getCurrent().navigate("resources");
             } else if (event.getSelectedTab().equals(voluntariosTab)) {
                 UI.getCurrent().navigate("resources/volunteers");
             } else if (event.getSelectedTab().equals(alojamientosTab)) {
@@ -113,7 +111,7 @@ public class DonationView extends VerticalLayout implements BeforeEnterObserver 
         removeAll();
 
         // Add header
-        headerComponent header = new headerComponent("Recursos: " + selectedCatastrophe.getName());
+        HeaderComponent header = new HeaderComponent("Recursos: " + selectedCatastrophe.getName());
 
         // Add components
         add(

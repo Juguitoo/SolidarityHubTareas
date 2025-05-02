@@ -61,7 +61,7 @@ public class ResourceService {
     }
 
     public List<ResourceDTO> getResourcesByCatastropheId(int catastropheId) {
-        return resourceCache.stream()
+        return getResources().stream()
                 .filter(resource -> resource.getCatastropheId() == catastropheId).toList();
     }
 
@@ -70,7 +70,7 @@ public class ResourceService {
     private List<ResourceDTO> getExampleResources(int limit) {
         List<ResourceDTO> exampleResources = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
-            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), ResourceType.OTHER, i * 10,"unidades", null));
+            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), ResourceType.OTHER, i * 10,"unidades", 1, 1));
         }
         return exampleResources;
     }

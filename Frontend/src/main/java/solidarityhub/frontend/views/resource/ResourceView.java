@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resource;
 
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -13,37 +14,36 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
+import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
-import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.HeaderComponent;
 
+import java.util.Collections;
 import java.util.List;
 
 
 @PageTitle("Recursos")
-@Route("/resources/supplies")
+@Route("resources")
 public class ResourceView extends VerticalLayout implements BeforeEnterObserver {
 
     private final ResourceService resourceService;
     private final StorageService storageService;
     private CatastropheDTO selectedCatastrophe;
     private Grid<ResourceDTO> resourceGrid;
+    private ListDataProvider<ResourceDTO> resourceDataProvider;
 
-    @Autowired
-    public ResourceView(ResourceService resourceService, StorageService storageService) {
-        this.resourceService = resourceService;
-        setSizeFull();
-        addClassName("resources-view");
-        this.storageService = storageService;
+    public ResourceView() {
+        this.resourceService = new ResourceService();
+        this.storageService = new StorageService();
+
+        this.resourceGrid = new Grid<>(ResourceDTO.class, false);
     }
 
     @Override
@@ -67,43 +67,77 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
     }
 
     private void buildView() {
-        // Limpiar la vista actual
         removeAll();
 
-        // Header
-        headerComponent title = new headerComponent("Recursos para la catástrofe: " + selectedCatastrophe.getName());
+        setSizeFull();
+        addClassName("resources-view");
 
-        // Filtros
+        // Header
+        HeaderComponent title = new HeaderComponent("Recursos para la catástrofe: " + selectedCatastrophe.getName());
+
+        Tab resouseTab = new Tab("RECURSOS");
+        Tab donationsTab = new Tab("DONACIONES");
+        Tab volunteerTab = new Tab("VOLUNTARIOS");
+        Tab accommodationTab = new Tab("ALOJAMIENTOS");
+
+        Tabs tabs = new Tabs(resouseTab, donationsTab, volunteerTab, accommodationTab);
+        tabs.setWidthFull();
+
+        tabs.addSelectedChangeListener(event -> {
+            if (event.getSelectedTab().equals(donationsTab)) {
+                UI.getCurrent().navigate("resources/donations");
+            } else if (event.getSelectedTab().equals(volunteerTab)) {
+                UI.getCurrent().navigate("resources/volunteers");
+            } else if (event.getSelectedTab().equals(accommodationTab)) {
+                UI.getCurrent().navigate("resources/lodging");
+            }
+        });
+
+        add(title, tabs, getFilters(), resourceGrid);
+        populateResourceGrid();
+    }
+
+    private List<ResourceDTO> getResourceList() {
+        if (selectedCatastrophe != null) {
+            return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private void populateResourceGrid() {
+        this.resourceDataProvider = new ListDataProvider<>(getResourceList());
+        System.out.println(resourceDataProvider.getItems());
+
+        if (resourceDataProvider.getItems().isEmpty()) {
+            resourceGrid.setVisible(false);
+            add(new Span("No hay recursos disponibles para esta catástrofe."));
+        } else {
+            resourceGrid.setVisible(true);
+            resourceGrid.setDataProvider(resourceDataProvider);
+            resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre");
+            resourceGrid.addColumn(ResourceDTO::getType).setHeader("Tipo");
+            resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad");
+            resourceGrid.addColumn(resource -> {
+                if (resource.getStorageId() != null) {
+                    var storage = storageService.getStorageById(resource.getStorageId());
+                    return storage != null ? storage.getName() : "No disponible";
+                } else {
+                    return "No asignado";
+                }
+            }).setHeader("Almacén");
+            //resourceGrid.addComponentColumn(this::createStatusBadge).setHeader("Estado");
+        }
+    }
+
+    //===============================Get Components=========================================
+    private Component getFilters() {
         Select<String> typeFilter = new Select<>();
         typeFilter.setLabel("Filtrar por tipo");
         typeFilter.setItems("Todos los tipos", "Alimentos", "Medicina", "Ropa", "Refugio", "Herramientas",
                 "Combustible", "Higiene", "Comunicación", "Transporte", "Construcción", "Donaciones",
                 "Papelería", "Logística", "Otros");
         typeFilter.setValue("Todos los tipos");
-
-        // Crear tabs para cada tipo de recurso
-        Tab tab1 = new Tab("DONACIONES");
-        Tab tab2 = new Tab("RECURSOS");
-        Tab tab3 = new Tab("VOLUNTARIOS");
-        Tab tab4 = new Tab("ALOJAMIENTOS");
-
-        // Agregar tabs al TabSheet
-        Tabs tabs = new Tabs(tab2, tab1, tab3, tab4);
-        tabs.setWidthFull();
-
-        // Agregar listener para la navegación entre tabs
-        tabs.addSelectedChangeListener(event -> {
-            if (event.getSelectedTab().equals(tab1)) {
-                // Navegación a la vista de donaciones
-                UI.getCurrent().navigate("resources/donations");
-            } else if (event.getSelectedTab().equals(tab3)) {
-                UI.getCurrent().navigate("resources/volunteers");
-            } else if (event.getSelectedTab().equals(tab4)) {
-                UI.getCurrent().navigate("resources/lodging");
-            }
-        });
-
-        Button applyFilterButton = new Button("Aplicar", e -> applyFilter(typeFilter.getValue()));
 
         // Botón para registrar nuevo recurso
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
@@ -114,25 +148,12 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         });
         addResourceButton.addClassName("add-resource-button");
 
-        HorizontalLayout filterLayout = new HorizontalLayout(typeFilter, applyFilterButton, addResourceButton);
+        HorizontalLayout filterLayout = new HorizontalLayout(typeFilter, addResourceButton);
         filterLayout.setAlignItems(Alignment.BASELINE);
         filterLayout.setWidthFull();
         filterLayout.setJustifyContentMode(JustifyContentMode.START);
 
-        // Grid para mostrar los recursos
-        resourceGrid = new Grid<>(ResourceDTO.class, false);
-        resourceGrid.addColumn(ResourceDTO::getId).setHeader("ID");
-        resourceGrid.addColumn(ResourceDTO::getType).setHeader("Tipo");
-        resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre");
-        resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad");
-        resourceGrid.addColumn(ResourceDTO::getStorageId).setHeader("Almacén");
-        //resourceGrid.addComponentColumn(this::createStatusBadge).setHeader("Estado");
-
-        resourceGrid.setItems(loadResources());
-
-
-        // Agregar componentes a la vista
-        add(title, tabs, filterLayout, resourceGrid);
+        return filterLayout;
     }
 
 
@@ -153,16 +174,4 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         }
         return badge;
     }
-
-    private List<ResourceDTO> loadResources() {
-        return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
-    }
-    private void applyFilter(String type) {
-        if ("Todos los tipos".equals(type)) {
-            resourceGrid.setItems(loadResources());
-        } else {
-            resourceGrid.setItems(resourceService.getResourcesByType(selectedCatastrophe.getId(), type));
-        }
-    }
-
 }

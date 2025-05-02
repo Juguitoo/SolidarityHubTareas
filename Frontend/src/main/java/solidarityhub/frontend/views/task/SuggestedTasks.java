@@ -11,7 +11,7 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
-import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.HeaderComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class SuggestedTasks extends VerticalLayout {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         //Header
-        headerComponent header = new headerComponent("Tareas sugeridas", "tasks");
+        HeaderComponent header = new HeaderComponent("Tareas sugeridas", "tasks");
 
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);

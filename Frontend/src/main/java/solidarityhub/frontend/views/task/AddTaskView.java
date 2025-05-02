@@ -36,7 +36,7 @@ import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.service.VolunteerService;
-import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.HeaderComponent;
 import solidarityhub.frontend.views.volunteer.VolunteerInfo;
 
 import java.time.LocalDate;
@@ -75,7 +75,7 @@ public class AddTaskView extends VerticalLayout {
         this.coordinatesService = new CoordinatesService();
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
-        headerComponent header = new headerComponent("Añadir tarea", "tasks");
+        HeaderComponent header = new HeaderComponent("Añadir tarea", "tasks");
 
         add(
             header,
@@ -343,13 +343,14 @@ public class AddTaskView extends VerticalLayout {
         volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
 
         Tabs tabs = new Tabs(
-                new Tab("Todos"),
-                new Tab("Distancia"),
-                new Tab("Disponibilidad"),
-                new Tab("Habilidades")
+            new Tab("Todos"),
+            new Tab("Distancia"),
+            new Tab("Disponibilidad"),
+            new Tab("Habilidades")
         );
 
         MultiSelectListBox<VolunteerDTO> volunteersListBox = new MultiSelectListBox<>();
+        volunteersListBox.setWidthFull();
 
         //No volunteers message
         Span noVolunteersMessage = new Span("No se encontraron voluntarios con las habilidades requeridas");
@@ -590,7 +591,7 @@ public class AddTaskView extends VerticalLayout {
             confirmDialog.add(dialogContent);
             confirmDialog.open();
         } else {
-            getUI().ifPresent(ui -> ui.navigate(""));
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
         }
     }
 

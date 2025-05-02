@@ -24,9 +24,9 @@ public class DonationComponent extends Div {
         addClassName("donation-card");
 
         add(
-                createHeader(),
-                createContent(),
-                createFooter()
+            createHeader(),
+            createContent(),
+            createFooter()
         );
     }
 

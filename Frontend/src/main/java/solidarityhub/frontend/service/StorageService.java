@@ -21,7 +21,6 @@ public class StorageService {
         this.storageCache = new ArrayList<>();
     }
 
-    // Métodos CRUD
     public List<StorageDTO> getStorages() {
         if (storageCache == null || storageCache.isEmpty()) {
             try {
@@ -38,6 +37,16 @@ public class StorageService {
             }
         }
         return storageCache;
+    }
+
+    public StorageDTO getStorageById(int id) {
+        try {
+            ResponseEntity<StorageDTO> response = restTemplate.getForEntity(baseUrl + "/" + id, StorageDTO.class);
+            return response.getBody();
+        } catch (RestClientException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     // Almacenes de ejemplo

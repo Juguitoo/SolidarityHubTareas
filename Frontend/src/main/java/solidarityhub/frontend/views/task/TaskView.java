@@ -28,7 +28,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
-import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -76,7 +76,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private void buildView() {
         removeAll();
 
-        headerComponent header = new headerComponent("Tareas: " + selectedCatastrophe.getName());
+        HeaderComponent header = new HeaderComponent("Tareas: " + selectedCatastrophe.getName());
 
         add(
             header,

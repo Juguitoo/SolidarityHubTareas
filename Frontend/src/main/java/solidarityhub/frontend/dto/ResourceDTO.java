@@ -25,7 +25,7 @@ public class ResourceDTO {
         this.type = type;
         this.quantity = quantity;
         this.unit = unit;
-        this.cantidad = String.valueOf(quantity) + " " + unit;
+        this.cantidad = quantity + " " + unit;
         this.storageId = storageId;
         this.catastropheId = null;
     }

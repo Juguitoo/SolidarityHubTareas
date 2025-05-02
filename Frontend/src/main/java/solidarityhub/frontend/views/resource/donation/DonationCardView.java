@@ -2,7 +2,6 @@ package solidarityhub.frontend.views.resource.donation;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -25,7 +24,7 @@ import solidarityhub.frontend.model.enums.DonationType;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.DonationService;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
-import solidarityhub.frontend.views.headerComponent;
+import solidarityhub.frontend.views.HeaderComponent;
 
 import java.util.List;
 
@@ -70,7 +69,7 @@ public class DonationCardView extends VerticalLayout implements BeforeEnterObser
                 // Switch to grid view
                 UI.getCurrent().navigate("resources/donations");
             } else if (event.getSelectedTab().equals(suministrosTab)) {
-                UI.getCurrent().navigate("resources/supplies");
+                UI.getCurrent().navigate("resources");
             } else if (event.getSelectedTab().equals(voluntariosTab)) {
                 UI.getCurrent().navigate("resources/volunteers");
             } else if (event.getSelectedTab().equals(alojamientosTab)) {
@@ -104,7 +103,7 @@ public class DonationCardView extends VerticalLayout implements BeforeEnterObser
         removeAll();
 
         // Add header
-        headerComponent header = new headerComponent("Recursos: " + selectedCatastrophe.getName());
+        HeaderComponent header = new HeaderComponent("Recursos: " + selectedCatastrophe.getName());
 
         // Add components
         add(

@@ -6,10 +6,10 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.Icon;
 
-public class headerComponent extends Div {
+public class HeaderComponent extends Div {
     public Button backButton;
 
-    public headerComponent(String titleText, String navigateUrl) {
+    public HeaderComponent(String titleText, String navigateUrl) {
         addClassName("header");
 
         backButton = new Button(new Icon("vaadin", "arrow-left"));
@@ -22,7 +22,7 @@ public class headerComponent extends Div {
         add(backButton, title);
     }
 
-    public headerComponent(String titleText) {
+    public HeaderComponent(String titleText) {
         addClassName("header");
 
         H1 title = new H1(titleText);
