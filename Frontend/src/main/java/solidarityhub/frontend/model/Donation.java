@@ -6,6 +6,7 @@ import lombok.Setter;
 import solidarityhub.frontend.model.enums.DonationType;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 
 @Getter

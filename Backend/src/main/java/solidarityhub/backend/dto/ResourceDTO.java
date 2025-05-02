@@ -35,7 +35,11 @@ public class ResourceDTO {
         this.quantity = resource.getQuantity();
         this.unit = resource.getUnit();
         this.storage = resource.getStorage();
-        this.catastropheId = resource.getCatastrophe().getId();
+        if(resource.getCatastrophe() != null) {
+            this.catastropheId = resource.getCatastrophe().getId();
+        } else {
+            this.catastropheId = null;
+        }
     }
 
     public String getCantidad() {

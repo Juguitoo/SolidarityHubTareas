@@ -126,8 +126,8 @@ public class AddResourceDialog {
                 resourceService.addResource(newResource);
                 Notification.show("Recurso añadido con éxito.", 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                dialog.close();
                 resourceGrid.setItems(resourceService.getResources()); // Actualizar la tabla
+                dialog.close();
             } catch (Exception e) {
                 Notification.show("Error al añadir el recurso: " + e.getMessage(), 3000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
