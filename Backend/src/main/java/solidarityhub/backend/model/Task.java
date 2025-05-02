@@ -75,6 +75,7 @@ public class Task {
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status,
                 List<Volunteer> volunteers, String meetingDirection) {
+        this.notifications = new ArrayList<>();
         this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;

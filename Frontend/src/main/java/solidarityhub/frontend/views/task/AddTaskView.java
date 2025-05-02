@@ -307,7 +307,7 @@ public class AddTaskView extends VerticalLayout {
         confirmDialog.add(
                 new Span("La tarea " + taskName.getValue() + " ha sido creada correctamente.\n" + "¿Que deasea hacer?")
         );
-
+        VaadinSession.getCurrent().setAttribute("cache", true);
         Button addNewTaskButton = new Button("Crear otra tarea", e -> {
             confirmDialog.close();
             getUI().ifPresent(ui -> ui.navigate("addtask"));
@@ -463,7 +463,7 @@ public class AddTaskView extends VerticalLayout {
                 volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
             } else {
                 Set<String> selectedVolunteersNames = volunteersListBox.getSelectedItems().stream()
-                        .map(v -> v.getFirstName() + " " + v.getLastName())
+                        .map(VolunteerDTO::getFirstName)
                         .collect(Collectors.toSet());
 
                 volunteerMultiSelectComboBox.clear();
@@ -578,7 +578,8 @@ public class AddTaskView extends VerticalLayout {
 
             Button confirmButton = new Button("Confirmar", event -> {
                 confirmDialog.close();
-                getUI().ifPresent(ui -> ui.navigate(""));
+                VaadinSession.getCurrent().setAttribute("cache", true);
+                getUI().ifPresent(ui -> ui.navigate("tasks"));
             });
             confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

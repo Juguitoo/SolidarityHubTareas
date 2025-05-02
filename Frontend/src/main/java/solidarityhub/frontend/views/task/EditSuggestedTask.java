@@ -181,9 +181,10 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                 );
 
                 taskService.addTask(suggestedTaskDTO);
-                taskService.taskCache = null;
+                taskService.taskCache.clear();
                 taskService.suggestedTasksCache.remove(selectedTask);
                 Notification.show("Tarea actualizada correctamente");
+                VaadinSession.getCurrent().setAttribute("cache", true);
                 UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
                 Notification.show("Error al actualizar la tarea: " + e.getMessage(),
@@ -192,6 +193,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
         } else {
             Notification.show("Por favor, complete todos los campos obligatorios",
                     3000, Notification.Position.MIDDLE);
+            VaadinSession.getCurrent().setAttribute("cache", false);
         }
     }
 
@@ -206,7 +208,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
 
         Button confirmButton = new Button("Eliminar", event -> {
             try {
-                taskService.taskCache = null;
+                taskService.taskCache.clear();
                 taskService.suggestedTasksCache.remove(selectedTask);
                 confirmDialog.close();
                 Notification.show("Tarea eliminada correctamente");

@@ -48,7 +48,7 @@ public class SuggestedTasks extends VerticalLayout {
             suggestedTasks = taskService.suggestedTasksCache.stream()
                     .filter(task -> Objects.equals(task.getCatastropheId(), selectedCatastrophe.getId()))
                     .toList();
-        }else if (needService.getNeedsWithoutTaskCount(selectedCatastrophe.getId()) >= 0) {
+        }else if (needService.getNeedsWithoutTaskCount(selectedCatastrophe.getId()) > 2) {
             try {
                 suggestedTasks = taskService.getSuggestedTasks(selectedCatastrophe.getId());
                 List<TaskComponent> tasks = suggestedTasks.stream()

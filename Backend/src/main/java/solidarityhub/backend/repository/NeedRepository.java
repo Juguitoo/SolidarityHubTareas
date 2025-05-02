@@ -15,5 +15,5 @@ public interface NeedRepository extends JpaRepository<Need, Integer> {
     public List<Need> getAllNeeds(@Param("catastropheid") Integer id);
 
     @Query("SELECT COUNT(n) FROM Need n WHERE n.task.id IS NULL AND n.catastrophe.id = :catastropheid")
-    public int getNeedWithoutTaskCount(@Param("catastrophe_id") Integer id);
+    public int getNeedWithoutTaskCount(@Param("catastropheid") Integer id);
 }
