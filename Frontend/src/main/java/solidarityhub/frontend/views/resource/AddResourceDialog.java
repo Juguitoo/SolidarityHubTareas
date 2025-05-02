@@ -14,9 +14,12 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import solidarityhub.frontend.dto.ResourceDTO;
+import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.model.Storage;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
+
+import java.util.List;
 
 public class AddResourceDialog {
 
@@ -47,7 +50,7 @@ public class AddResourceDialog {
         TextField storageField = new TextField("Almacén");
 
         // Crear el desplegable de selección de almacén
-        Select<Storage> storageSelect = new Select<>();
+        Select<StorageDTO> storageSelect = new Select<>();
         storageSelect.setLabel("Almacén");
         storageSelect.setItemLabelGenerator(storage1 -> {
             //String address = convertCoordinatesToAddress(storage1.getLatitude(), storage1.getLongitude());
@@ -55,7 +58,7 @@ public class AddResourceDialog {
         });
 
         // Cargar los almacenes en el desplegable
-        List<Storage> storages = resourceService.getAllStorages();
+        List<StorageDTO> storages = storageService.getStorages();
         storageSelect.setItems(storages);
 
         nameField.setRequiredIndicatorVisible(true);
