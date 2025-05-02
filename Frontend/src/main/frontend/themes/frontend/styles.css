@@ -67,3 +67,12 @@ vaadin-button{
     width: 100%;
     margin: 5rem 0
 }
+
+.suggested-task{
+    width: 75%;
+}
+
+.suggested-task:hover{
+    transform: scale(1.05);
+    box\-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}

@@ -51,6 +51,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        if((Boolean) VaadinSession.getCurrent().getAttribute("cache")) {
+            taskService.clearCache();
+        }
+
         // Verificar si hay una catástrofe seleccionada
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
@@ -79,6 +83,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             getActionButtons(),
             getTasks()
         );
+        taskService.clearCache();
+
     }
 
     private Component getActionButtons() {
@@ -86,7 +92,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         actionButtonsLayout.addClassName("action-buttons__layout");
 
         Button addTaskButton = new Button("Añadir tarea", new Icon("vaadin", "plus"));
-        addTaskButton.addClickListener(e -> UI.getCurrent().navigate("addtask"));
+        addTaskButton.addClickListener(e ->{
+            UI.getCurrent().navigate("addtask");
+            taskService.taskCache.clear();} );
         addTaskButton.addClassNames("tasks-button");
 
         Button moreTasksButton = new Button("Ver todas las tareas", new Icon("vaadin", "clipboard"));
@@ -94,7 +102,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         moreTasksButton.addClassName("tasks-button");
 
         Button sugestedTasksButton = new Button("Tareas sugeridas", new Icon("vaadin", "lightbulb"));
-        sugestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
+        sugestedTasksButton.addClickListener(e -> {
+            UI.getCurrent().navigate("suggested-tasks");
+            taskService.taskCache.clear();
+        });
         sugestedTasksButton.addClassName("tasks-button");
 
         actionButtonsLayout.setAlignItems(Alignment.CENTER);

@@ -65,6 +65,7 @@ public class LowPriorityTask implements TaskBuilder {
 
     @Override
     public void setVolunteers() {
+        task.setVolunteers(new ArrayList<>());
         VolunteerAssigner volunteerAssigner = new VolunteerAssigner();
         volunteerAssigner.setStrategy(new AvailabilityStrategy());
 

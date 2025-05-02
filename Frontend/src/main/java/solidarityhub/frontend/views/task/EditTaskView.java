@@ -10,6 +10,8 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.service.TaskService;
@@ -199,8 +201,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                 );
 
                 taskService.updateTask(taskId, updatedTaskDTO);
-                taskService.taskCache = null;
+                taskService.clearCache();
                 Notification.show("Tarea actualizada correctamente");
+                VaadinSession.getCurrent().setAttribute("cache", true);
                 UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
                 Notification.show("Error al actualizar la tarea: " + e.getMessage(),
@@ -224,7 +227,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         Button confirmButton = new Button("Eliminar", event -> {
             try {
                 taskService.deleteTask(taskId);
-                taskService.taskCache = null;
+                VaadinSession.getCurrent().setAttribute("cache", true);
                 confirmDialog.close();
                 Notification.show("Tarea eliminada correctamente");
                 UI.getCurrent().navigate("tasks");
