@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resource;
 
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
@@ -29,7 +30,7 @@ import java.util.List;
 
 
 @PageTitle("Recursos")
-@Route("resources")
+@Route("/resources/supplies")
 public class ResourceView extends VerticalLayout implements BeforeEnterObserver {
 
     private final ResourceService resourceService;
@@ -83,10 +84,24 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         // Crear tabs para cada tipo de recurso
         Tab tab1 = new Tab("DONACIONES");
         Tab tab2 = new Tab("RECURSOS");
+        Tab tab3 = new Tab("VOLUNTARIOS");
+        Tab tab4 = new Tab("ALOJAMIENTOS");
 
         // Agregar tabs al TabSheet
-        Tabs tabs = new Tabs(tab2, tab1);
+        Tabs tabs = new Tabs(tab2, tab1, tab3, tab4);
         tabs.setWidthFull();
+
+        // Agregar listener para la navegación entre tabs
+        tabs.addSelectedChangeListener(event -> {
+            if (event.getSelectedTab().equals(tab1)) {
+                // Navegación a la vista de donaciones
+                UI.getCurrent().navigate("resources/donations");
+            } else if (event.getSelectedTab().equals(tab3)) {
+                UI.getCurrent().navigate("resources/volunteers");
+            } else if (event.getSelectedTab().equals(tab4)) {
+                UI.getCurrent().navigate("resources/lodging");
+            }
+        });
 
         Button applyFilterButton = new Button("Aplicar", e -> applyFilter(typeFilter.getValue()));
 
