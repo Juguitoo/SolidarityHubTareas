@@ -1,0 +1,148 @@
+/* Specific styles for donation views */
+.donations-view {
+    padding: 1.5rem;
+    background-color: var(--background-color);
+    min-height: 100vh;
+}
+
+.donation-tabs {
+    width: 100%;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.donation-card {
+    background-color: #fff;
+    border-radius: 8px;
+    border-left: 4px solid var(--lumo-primary-color);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.donation-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.donation-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.donation-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--lumo-primary-text-color);
+}
+
+.donation-date {
+    color: var(--lumo-secondary-text-color);
+    font-size: 0.9em;
+}
+
+.donation-description {
+    margin: 8px 0;
+    color: var(--lumo-body-text-color);
+}
+
+.donation-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.donation-amount {
+    font-weight: bold;
+    color: var(--lumo-success-color);
+}
+
+.donation-status {
+    padding: 4px 8px;
+    border-radius: 16px;
+    font-size: 0.8em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-completed {
+    background-color: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-color);
+}
+
+.status-in-progress {
+    background-color: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-color);
+}
+
+.status-scheduled {
+    background-color: var(--lumo-contrast-20pct);
+    color: var(--lumo-contrast-90pct);
+}
+
+.status-cancelled {
+    background-color: var(--lumo-error-color-10pct);
+    color: var(--lumo-error-color);
+}
+
+.donation-type {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-right: 8px;
+    background-color: var(--lumo-contrast-10pct);
+}
+
+.donation-grid {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.add-donation-button {
+    margin-bottom: 20px;
+    background-color: var(--lumo-primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+/* Donation form dialog styles */
+.donation-form {
+    padding: 0;
+}
+
+.donation-form-title {
+    margin: 0 0 16px 0;
+    font-size: 1.5em;
+    color: var(--lumo-primary-text-color);
+}
+
+.form-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+}
