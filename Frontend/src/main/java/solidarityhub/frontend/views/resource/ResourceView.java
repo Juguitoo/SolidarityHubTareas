@@ -101,6 +101,8 @@ public class ResourceView extends VerticalLayout{
         });
         addResourceButton.addClassName("add-resource-button");
 
+
+
         HorizontalLayout filterLayout = new HorizontalLayout(//typeFilter,
             addResourceButton);
         filterLayout.setAlignItems(Alignment.BASELINE);
@@ -137,6 +139,17 @@ public class ResourceView extends VerticalLayout{
                     return getResourceStatus(quantity, min, max);
                 }))
                 .setHeader("Estado").setSortable(true).setAutoWidth(true);
+
+        resourceGrid.addItemDoubleClickListener(event -> {
+            ResourceDTO resource = event.getItem();
+            EditResourceDialog dialog = new EditResourceDialog(
+                    resourceService,
+                    storageService,
+                    resourceGrid,
+                    selectedCatastrophe,
+                    resource);
+            dialog.openEditResourceDialog();
+        });
     }
 
     private void getGridFilter(){
@@ -258,4 +271,10 @@ public class ResourceView extends VerticalLayout{
         };
     }
 
+    public void refreshGrid() {
+        List<ResourceDTO> resources = getResourceList();
+        resourceDataProvider = new ListDataProvider<>(resources);
+        resourceGrid.setItems(resources);
+        resourceGrid.getDataProvider().refreshAll();
+    }
 }
