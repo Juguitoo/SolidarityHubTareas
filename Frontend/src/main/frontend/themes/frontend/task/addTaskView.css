@@ -8,12 +8,14 @@
     padding: 0 50px;
 }
 
+
 .listBox__item{
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: center;
     width: 100%;
     gap: 16px;
+    padding: 0;
 }
 
 .listBox__item-detail{

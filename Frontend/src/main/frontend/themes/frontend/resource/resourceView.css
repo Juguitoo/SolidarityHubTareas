@@ -2,3 +2,20 @@
     background-color: blue;
     color: #fff;
 }
+
+.resource__status{
+    border-radius: 16px;
+    padding: 4px 8px;
+}
+
+.status--low{
+    background-color: #ff523c;
+}
+
+.status--medium{
+    background-color: #ffb400;
+}
+
+.status--high{
+    background-color: #00b300;
+}

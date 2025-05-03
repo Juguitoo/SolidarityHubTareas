@@ -14,6 +14,7 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Status;
+import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H3;
@@ -27,7 +28,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.LocalDateTime;
@@ -40,13 +40,15 @@ import java.util.List;
 public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     private final TaskService taskService;
+    private final CatastropheService catastropheService;
     private CatastropheDTO selectedCatastrophe;
 
     @Autowired
     public TaskView(TaskService taskService) {
         this.taskService = taskService;
+        catastropheService = new CatastropheService();
+
         addClassName("tasks-container");
-        beforeEnter(null);
     }
 
     @Override
@@ -55,21 +57,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             taskService.clearCache();
         }
 
-        // Verificar si hay una catástrofe seleccionada
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        catastropheService.isCatastropheSelected(event, selectedCatastrophe);
 
-        // Si no hay catástrofe seleccionada, redireccionar a la pantalla de selección
-        if (selectedCatastrophe == null) {
-            Notification.show("Por favor, selecciona una catástrofe primero",
-                            3000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            if (event != null) {
-                event.forwardTo(CatastropheSelectionView.class);
-            }
-            return;
-        }
-
-        // Construir la vista con la catástrofe seleccionada
         buildView();
     }
 

@@ -9,9 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.service.CoordinatesService;
-import solidarityhub.frontend.service.NeedService;
-import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.service.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -35,9 +33,10 @@ import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
-import solidarityhub.frontend.service.VolunteerService;
 import solidarityhub.frontend.views.HeaderComponent;
 import solidarityhub.frontend.views.volunteer.VolunteerInfo;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,13 +46,15 @@ import java.util.stream.Collectors;
 
 @PageTitle("Añadir tarea")
 @Route("addtask")
-public class AddTaskView extends VerticalLayout {
+public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     protected final TaskService taskService;
     protected final VolunteerService volunteerService;
     protected final NeedService needService;
-    protected final CatastropheDTO selectedCatastrophe;
+
+    protected CatastropheDTO selectedCatastrophe;
     protected final CoordinatesService coordinatesService;
+    protected final CatastropheService catastropheService;
 
     protected TaskComponent taskPreview;
 
@@ -67,26 +68,44 @@ public class AddTaskView extends VerticalLayout {
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
 
+    //Volunteers list
+    protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
+    protected List<VolunteerDTO> distanceVolunteersList = new ArrayList<>();
+    protected List<VolunteerDTO> availabilityVolunteersList = new ArrayList<>();
+    protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
+
     @Autowired
     public AddTaskView(TaskService taskService) {
         this.taskService = taskService;
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
+        this.catastropheService = new CatastropheService();
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        catastropheService.isCatastropheSelected(event, selectedCatastrophe);
+
+        buildView();
+    }
+
+    private void buildView() {
+        removeAll();
 
         HeaderComponent header = new HeaderComponent("Añadir tarea", "tasks");
 
         add(
-            header,
-            getPreview(),
-            getForms(),
-            getButtons()
+                header,
+                getPreview(),
+                getForms(),
+                getButtons()
         );
 
         setAlignItems(Alignment.CENTER);
     }
-
 
     private void saveNewTask(){
         if (validateForm()) {
@@ -356,19 +375,14 @@ public class AddTaskView extends VerticalLayout {
         Span noVolunteersMessage = new Span("No se encontraron voluntarios con las habilidades requeridas");
         noVolunteersMessage.setVisible(false);
 
-        //Volunteers list
-        List<VolunteerDTO> allVolunteers = new ArrayList<>(volunteerService.getVolunteers("None", getTaskDTO()));
-        List<VolunteerDTO> distanceVolunteers = new ArrayList<>();
-        List<VolunteerDTO> availabilityVolunteers = new ArrayList<>();
-        List<VolunteerDTO> skillsVolunteers = new ArrayList<>();
+        allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("None", getTaskDTO()));
 
-        // Utilizando la nueva clase VolunteerInfo para el renderer
         volunteersListBox.setRenderer(new ComponentRenderer<>(volunteer ->
                 new VolunteerInfo(volunteer, tabs.getSelectedTab() != null ? tabs.getSelectedTab().getLabel() : "Todos")
         ));
 
         tabs.setSelectedIndex(0);
-        volunteersListBox.setItems(allVolunteers);
+        volunteersListBox.setItems(allVolunteersList);
 
         // Listener para el cambio de pestañas
         tabs.addSelectedChangeListener(event -> {
@@ -381,10 +395,10 @@ public class AddTaskView extends VerticalLayout {
             switch (selectedTabName) {
                 case "Todos":
                     volunteerCheckbox.clear();
-                    if(allVolunteers.isEmpty()){
-                        allVolunteers.addAll(volunteerService.getVolunteers("None", currentTaskDTO));
+                    if(allVolunteersList.isEmpty()){
+                        allVolunteersList.addAll(volunteerService.getVolunteers("None", currentTaskDTO));
                     }
-                    volunteersListBox.setItems(allVolunteers);
+                    volunteersListBox.setItems(allVolunteersList);
                     break;
 
                 case "Distancia":
@@ -394,12 +408,12 @@ public class AddTaskView extends VerticalLayout {
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
                     } else {
-                        if(distanceVolunteers.isEmpty()){
-                            distanceVolunteers.addAll(volunteerService.getVolunteers("distancia", currentTaskDTO));
+                        if(distanceVolunteersList.isEmpty()){
+                            distanceVolunteersList.addAll(volunteerService.getVolunteers("distancia", currentTaskDTO));
                         }
-                        volunteersListBox.setItems(distanceVolunteers);
+                        volunteersListBox.setItems(distanceVolunteersList);
 
-                        if(distanceVolunteers.isEmpty()) {
+                        if(distanceVolunteersList.isEmpty()) {
                             noVolunteersMessage.setText("No se encontraron voluntarios cercanos a la ubicación de la tarea");
                             noVolunteersMessage.setVisible(true);
                         }
@@ -413,12 +427,12 @@ public class AddTaskView extends VerticalLayout {
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
                     } else {
-                        if(availabilityVolunteers.isEmpty()){
-                            availabilityVolunteers.addAll(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+                        if(availabilityVolunteersList.isEmpty()){
+                            availabilityVolunteersList.addAll(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
                         }
-                        volunteersListBox.setItems(availabilityVolunteers);
+                        volunteersListBox.setItems(availabilityVolunteersList);
 
-                        if(availabilityVolunteers.isEmpty()) {
+                        if(availabilityVolunteersList.isEmpty()) {
                             noVolunteersMessage.setText("No se encontraron voluntarios disponibles en las fechas seleccionadas");
                             noVolunteersMessage.setVisible(true);
                         }
@@ -432,12 +446,12 @@ public class AddTaskView extends VerticalLayout {
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
                     } else {
-                        if (skillsVolunteers.isEmpty()) {
-                            skillsVolunteers.addAll(volunteerService.getVolunteers("habilidades", currentTaskDTO));
+                        if (skillsVolunteersList.isEmpty()) {
+                            skillsVolunteersList.addAll(volunteerService.getVolunteers("habilidades", currentTaskDTO));
                         }
-                        volunteersListBox.setItems(skillsVolunteers);
+                        volunteersListBox.setItems(skillsVolunteersList);
 
-                        if(skillsVolunteers.isEmpty()) {
+                        if(skillsVolunteersList.isEmpty()) {
                             noVolunteersMessage.setText("No se encontraron voluntarios con la habilidad requerida para esta tarea");
                             noVolunteersMessage.setVisible(true);
                         }
@@ -452,7 +466,7 @@ public class AddTaskView extends VerticalLayout {
         });
 
         volunteerCheckbox.addClickListener(checkboxClickEvent ->
-                volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
+            volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
         );
 
         dialogContent.add(volunteerCheckbox, tabs, noVolunteersMessage, volunteersListBox);
@@ -491,26 +505,27 @@ public class AddTaskView extends VerticalLayout {
 
         MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
         needsListBox.setItems(needService.getNeedsWithoutTask(selectedCatastrophe.getId()));
+        needsListBox.setWidthFull();
 
         needsListBox.setRenderer(
-                new ComponentRenderer<>(need -> {
-                    HorizontalLayout needContent = new HorizontalLayout();
-                    needContent.addClassName("listBox__item");
+            new ComponentRenderer<>(need -> {
+                HorizontalLayout needContent = new HorizontalLayout();
+                needContent.addClassName("listBox__item");
 
-                    Span needDescription = new Span(need.getDescription());
-                    needDescription.addClassName("needContent--description");
-                    Span needType = new Span(formatTaskType(need.getTaskType()));
-                    needType.addClassName("listBox__item-detail");
+                Span needDescription = new Span(need.getDescription());
+                needDescription.addClassName("needContent--description");
+                Span needType = new Span(formatTaskType(need.getTaskType()));
+                needType.addClassName("listBox__item-detail");
 
-                    needContent.add(needDescription, needType);
-                    needContent.setPadding(false);
-                    needContent.setSpacing(false);
+                needContent.add(needDescription, needType);
+                needContent.setPadding(false);
+                needContent.setSpacing(false);
 
-                    return needContent;
-                })
+                return needContent;
+            })
         );
 
-        Span infoText = new Span("Al seleccionar una necesidad, solo podrá elegir necesidades adicionales del mismo tipo.");
+        Span infoText = new Span("Solo es posible elegir necesidades de un único tipo.");
         infoText.addClassName("needsDialog--infoText");
 
         dialogContent.add(infoText, needsListBox);
@@ -614,6 +629,16 @@ public class AddTaskView extends VerticalLayout {
             if (e.getValue() != null) {
                 updatePreviewDate(e.getValue());
             }
+            availabilityVolunteersList.clear();
+        });
+
+        endDatePicker.addValueChangeListener(e -> {
+            availabilityVolunteersList.clear();
+        });
+
+        needsMultiSelectComboBox.addSelectionListener(e -> {
+            skillsVolunteersList.clear();
+            distanceVolunteersList.clear();
         });
     }
 

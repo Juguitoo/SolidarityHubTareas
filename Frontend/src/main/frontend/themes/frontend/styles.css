@@ -6,6 +6,7 @@
 @import url('catastrophe/catastropheComponent.css');
 @import url('catastrophe/addCatastrophe.css');
 @import url('catastrophe/catastropheSelectionView.css');
+@import url('resource/resourceView.css');
 
 :root {
     --background-color: #f5f5f5;
