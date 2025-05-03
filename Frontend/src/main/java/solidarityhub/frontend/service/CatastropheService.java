@@ -1,5 +1,6 @@
 package solidarityhub.frontend.service;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -89,14 +90,14 @@ public class CatastropheService {
         }
     }
 
-    public void isCatastropheSelected(BeforeEnterEvent event, CatastropheDTO selectedCatastrophe) {
+    public boolean isCatastropheSelected(BeforeEnterEvent event, CatastropheDTO selectedCatastrophe) {
         if (selectedCatastrophe == null) {
             Notification.show("Por favor, selecciona una catástrofe primero",
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            if (event != null) {
-                event.getUI().navigate(CatastropheSelectionView.class);
-            }
+            event.rerouteTo("");
+            return false;
         }
+        return true;
     }
 }

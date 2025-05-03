@@ -51,11 +51,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final TaskService taskService;
     protected final VolunteerService volunteerService;
     protected final NeedService needService;
-
-    protected CatastropheDTO selectedCatastrophe;
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
 
+    protected CatastropheDTO selectedCatastrophe;
     protected TaskComponent taskPreview;
 
     protected final TextField taskName = new TextField("Nombre de la tarea");
@@ -81,7 +80,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
-        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
     }
 
     @Override

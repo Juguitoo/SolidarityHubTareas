@@ -35,91 +35,38 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @PageTitle("Donaciones")
-@Route("resources/donations")
-@Menu(order = 2, icon = LineAwesomeIconUrl.HAND_HOLDING_HEART_SOLID)
-public class DonationView extends VerticalLayout implements BeforeEnterObserver {
+public class DonationView extends VerticalLayout {
 
     private final DonationService donationService;
     private final CatastropheService catastropheService;
+
     private CatastropheDTO selectedCatastrophe;
-    private final Tabs donationTabs;
-    private final Div donationsContainer;
+
+    private Div donationsContainer;
     private Grid<DonationDTO> donationGrid;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    @Autowired
-    public DonationView(DonationService donationService, CatastropheService catastropheService) {
-        this.donationService = donationService;
-        this.catastropheService = catastropheService;
+    public DonationView(CatastropheDTO catastrophe) {
+        this.donationService = new DonationService();
+        this.catastropheService = new CatastropheService();
 
-        // Add CSS class
-        addClassName("donations-view");
+        this.selectedCatastrophe = catastrophe;
 
-        // Create tabs
-        Tab donacionesTab = new Tab("DONACIONES");
-        Tab suministrosTab = new Tab("RECURSOS");
-        Tab voluntariosTab = new Tab("VOLUNTARIOS");
-        Tab alojamientosTab = new Tab("ALOJAMIENTOS");
-
-        donationTabs = new Tabs(suministrosTab, donacionesTab, voluntariosTab, alojamientosTab);
-        donationTabs.addClassName("donation-tabs");
-
-        // Set the active tab
-        donationTabs.setSelectedTab(donacionesTab);
-
-        // Container for donations
-        donationsContainer = new Div();
-        donationsContainer.setSizeFull();
-
-        // Set up tab change listener
-        donationTabs.addSelectedChangeListener(event -> {
-            if (event.getSelectedTab().equals(donacionesTab)) {
-                // Stay on current view
-            } else if (event.getSelectedTab().equals(suministrosTab)) {
-                UI.getCurrent().navigate("resources");
-            } else if (event.getSelectedTab().equals(voluntariosTab)) {
-                UI.getCurrent().navigate("resources/volunteers");
-            } else if (event.getSelectedTab().equals(alojamientosTab)) {
-                UI.getCurrent().navigate("resources/lodging");
-            }
-        });
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        // Verify if a catastrophe is selected
-        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-
-        // If no catastrophe is selected, redirect to selection page
-        if (selectedCatastrophe == null) {
-            Notification.show("Por favor, selecciona una catástrofe primero",
-                            3000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            if (event != null) {
-                event.forwardTo(CatastropheSelectionView.class);
-            }
-            return;
-        }
-
-        // Build the view with the selected catastrophe
         buildView();
     }
 
     private void buildView() {
-        // Clear previous components
         removeAll();
 
-        // Add header
-        HeaderComponent header = new HeaderComponent("Recursos: " + selectedCatastrophe.getName());
+        donationsContainer = new Div();
+        donationsContainer.setSizeFull();
+        addClassName("donations-view");
 
-        // Add components
         add(
-                header,
-                donationTabs,
-                createFilterSection(),
-                createAddDonationButton(),
-                createDonationsGrid()
+            createFilterSection(),
+            createAddDonationButton(),
+            createDonationsGrid()
         );
     }
 

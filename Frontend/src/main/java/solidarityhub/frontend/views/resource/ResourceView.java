@@ -1,50 +1,41 @@
 package solidarityhub.frontend.views.resource;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinSession;
 import org.apache.commons.lang3.StringUtils;
+import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.model.enums.ResourceType;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
-import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 
 @PageTitle("Recursos")
-@Route("resources")
-public class ResourceView extends VerticalLayout implements BeforeEnterObserver {
+public class ResourceView extends VerticalLayout{
 
     private final ResourceService resourceService;
     private final StorageService storageService;
-    private CatastropheDTO selectedCatastrophe;
+    protected final CatastropheService catastropheService;
 
-    private Grid<ResourceDTO> resourceGrid;
+    protected CatastropheDTO selectedCatastrophe;
+
+    private final Grid<ResourceDTO> resourceGrid;
     private ListDataProvider<ResourceDTO> resourceDataProvider;
 
     private Grid.Column<ResourceDTO> nameColumn;
@@ -54,30 +45,14 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
     private Grid.Column<ResourceDTO> statusColumn;
 
 
-    public ResourceView() {
+    public ResourceView(CatastropheDTO catastrophe) {
         this.resourceService = new ResourceService();
         this.storageService = new StorageService();
+        this.catastropheService = new CatastropheService();
+
+        this.selectedCatastrophe = catastrophe;
 
         this.resourceGrid = new Grid<>(ResourceDTO.class, false);
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        // Verificar si hay una catástrofe seleccionada
-        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-
-        // Si no hay catástrofe seleccionada, redireccionar a la pantalla de selección
-        if (selectedCatastrophe == null) {
-            Notification.show("Por favor, selecciona una catástrofe primero",
-                            3000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            if (event != null) {
-                event.forwardTo(CatastropheSelectionView.class);
-            }
-            return;
-        }
-
-        // Construir la vista con la catástrofe seleccionada
         buildView();
     }
 
@@ -87,15 +62,13 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
         setSizeFull();
         addClassName("resources-view");
 
-        HeaderComponent title = new HeaderComponent("Recursos para la catástrofe: " + selectedCatastrophe.getName());
-
-        add(title, getTabs(), getButtons(), resourceGrid);
+        add(getButtons(), resourceGrid);
         populateResourceGrid();
     }
 
     private List<ResourceDTO> getResourceList() {
         if (selectedCatastrophe != null) {
-//            return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
+            //return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
             return resourceService.getResources();
         } else {
             return Collections.emptyList();
@@ -118,28 +91,6 @@ public class ResourceView extends VerticalLayout implements BeforeEnterObserver 
     }
 
     //===============================Get Components=========================================
-    private Component getTabs(){
-        Tab resouseTab = new Tab("RECURSOS");
-        Tab donationsTab = new Tab("DONACIONES");
-        Tab volunteerTab = new Tab("VOLUNTARIOS");
-        Tab accommodationTab = new Tab("ALOJAMIENTOS");
-
-        Tabs tabs = new Tabs(resouseTab, donationsTab, volunteerTab, accommodationTab);
-        tabs.setWidthFull();
-
-        tabs.addSelectedChangeListener(event -> {
-            if (event.getSelectedTab().equals(donationsTab)) {
-                UI.getCurrent().navigate("resources/donations");
-            } else if (event.getSelectedTab().equals(volunteerTab)) {
-                UI.getCurrent().navigate("resources/volunteers");
-            } else if (event.getSelectedTab().equals(accommodationTab)) {
-                UI.getCurrent().navigate("resources/lodging");
-            }
-        });
-
-        return tabs;
-    }
-
     private Component getButtons() {
         // Botón para registrar nuevo recurso
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
