@@ -150,7 +150,8 @@ public class TaskService {
 
     public List<TaskDTO> getSuggestedTasks(Integer catastropheId) {
         try {
-            ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl + "/suggestedTasks?catastropheId=" + catastropheId, HttpMethod.GET, null, TaskDTO[].class);
+            ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl + "/suggestedTasks?catastropheId=" + catastropheId,
+                    HttpMethod.GET, null, TaskDTO[].class);
             TaskDTO[] suggestedTasks = response.getBody();
             if (suggestedTasks != null) {
                 return List.of(suggestedTasks);

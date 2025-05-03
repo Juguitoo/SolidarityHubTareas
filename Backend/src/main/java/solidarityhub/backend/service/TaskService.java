@@ -31,15 +31,17 @@ public class TaskService {
         TaskBuilder taskBuilder;
         for (Need need : needs) {
             if (need.getUrgency() == UrgencyLevel.URGENT){
-                taskBuilder = new UrgentTask(need, volunteerService);
+                taskBuilder = new UrgentTaskBuilder(need, volunteerService);
                 taskDirector.construct(taskBuilder);
                 suggestedTasks.add(taskBuilder.getResult());
+
             }else if(need.getUrgency() == UrgencyLevel.MODERATE) {
-                taskBuilder = new ModerateTask(need, volunteerService);
+                taskBuilder = new ModerateTaskBuilder(need, volunteerService);
                 taskDirector.construct(taskBuilder);
                 suggestedTasks.add(taskBuilder.getResult());
+
             }else if(need.getUrgency() == UrgencyLevel.LOW) {
-                taskBuilder = new LowPriorityTask(need, volunteerService);
+                taskBuilder = new LowPriorityTaskBuilder(need, volunteerService);
                 taskDirector.construct(taskBuilder);
                 suggestedTasks.add(taskBuilder.getResult());
             }

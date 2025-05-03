@@ -8,7 +8,6 @@ import solidarityhub.backend.model.enums.EmergencyLevel;
 import solidarityhub.backend.model.enums.Priority;
 import solidarityhub.backend.model.enums.Status;
 import solidarityhub.backend.model.strategy.AvailabilityStrategy;
-import solidarityhub.backend.model.strategy.DistanceStrategy;
 import solidarityhub.backend.model.strategy.VolunteerAssigner;
 import solidarityhub.backend.service.VolunteerService;
 
@@ -16,13 +15,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LowPriorityTask implements TaskBuilder {
+public class LowPriorityTaskBuilder implements TaskBuilder {
 
     private final Task task;
     private final Need need;
     private final VolunteerService volunteerService;
 
-    public LowPriorityTask(Need need, VolunteerService volunteerService) {
+    public LowPriorityTaskBuilder(Need need, VolunteerService volunteerService) {
         this.task = new Task();
         this.need = need;
         this.volunteerService = volunteerService;
@@ -40,12 +39,14 @@ public class LowPriorityTask implements TaskBuilder {
 
     @Override
     public void setStartDate() {
-        task.setStartTimeDate(LocalDateTime.now().plusDays(3).toLocalDate().atTime(9,0));
+        task.setStartTimeDate(LocalDateTime.now().plusDays(3)
+                .toLocalDate().atTime(9,0));
     }
 
     @Override
     public void setEndDate() {
-        task.setEstimatedEndTimeDate(LocalDateTime.now().plusDays(5).toLocalDate().atTime(18,0));
+        task.setEstimatedEndTimeDate(LocalDateTime.now().plusDays(5)
+                .toLocalDate().atTime(18,0));
     }
 
     @Override
@@ -71,8 +72,12 @@ public class LowPriorityTask implements TaskBuilder {
 
         List<Volunteer> volunteers = volunteerService.getAllVolunteers();
 
-        List<Volunteer> volunteersToAssign = volunteerAssigner.assignVolunteers(volunteers, new TaskDTO(this.task)).subList(0,1);
-        task.setVolunteers(volunteersToAssign);
+        List<Volunteer> volunteersToAssign = volunteerAssigner.assignVolunteers(volunteers, new TaskDTO(this.task));
+        if(volunteersToAssign.size() > 1) {
+            task.setVolunteers(volunteersToAssign.subList(0, 1));
+        }else{
+            task.setVolunteers(volunteersToAssign);
+        }
     }
 
     @Override
