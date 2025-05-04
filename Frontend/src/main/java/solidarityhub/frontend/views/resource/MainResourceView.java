@@ -44,7 +44,7 @@ public class MainResourceView extends VerticalLayout implements BeforeEnterObser
 
         setSizeFull();
 
-        HeaderComponent title = new HeaderComponent("Recursos para la catástrofe: " + selectedCatastrophe.getName());
+        HeaderComponent title = new HeaderComponent("Recursos: " + selectedCatastrophe.getName());
 
         add(title, getTabs());
     }
@@ -56,10 +56,10 @@ public class MainResourceView extends VerticalLayout implements BeforeEnterObser
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        Tab resouseTab = new Tab("RECURSOS");
-        Tab donationsTab = new Tab("DONACIONES");
-        Tab volunteerTab = new Tab("VOLUNTARIOS");
-        Tab accommodationTab = new Tab("ALOJAMIENTOS");
+        Tab resouseTab = new Tab("Recursos");
+        Tab donationsTab = new Tab("Donaciones");
+        Tab volunteerTab = new Tab("Voluntarios");
+        Tab accommodationTab = new Tab("Almacenes");
 
         tabSheet.add(resouseTab, resourceView);
         tabSheet.add(donationsTab, donationView);

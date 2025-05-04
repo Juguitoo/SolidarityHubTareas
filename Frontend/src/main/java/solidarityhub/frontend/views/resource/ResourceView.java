@@ -40,7 +40,6 @@ public class ResourceView extends VerticalLayout{
 
     private Grid.Column<ResourceDTO> nameColumn;
     private Grid.Column<ResourceDTO> typeColumn;
-    private Grid.Column<ResourceDTO> quantityColumn;
     private Grid.Column<ResourceDTO> storageColumn;
     private Grid.Column<ResourceDTO> statusColumn;
 
@@ -61,6 +60,7 @@ public class ResourceView extends VerticalLayout{
 
         setSizeFull();
         addClassName("resources-view");
+        setPadding(false);
 
         add(getButtons(), resourceGrid);
         populateResourceGrid();
@@ -94,18 +94,12 @@ public class ResourceView extends VerticalLayout{
     private Component getButtons() {
         // Botón para registrar nuevo recurso
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
-        addResourceButton.addClickListener(e -> {
-            // Lógica para registrar un nuevo suministro
-            AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, storageService, resourceGrid, selectedCatastrophe);
-            addResourceDialog.openAddResourceDialog();
-        });
+        AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, storageService, resourceGrid, selectedCatastrophe);
+        addResourceButton.addClickListener(e -> addResourceDialog.openAddResourceDialog());
         addResourceButton.addClassName("add-resource-button");
 
-
-
-        HorizontalLayout filterLayout = new HorizontalLayout(//typeFilter,
-            addResourceButton);
-        filterLayout.setAlignItems(Alignment.BASELINE);
+        HorizontalLayout filterLayout = new HorizontalLayout(addResourceButton);
+        filterLayout.setAlignItems(Alignment.CENTER);
         filterLayout.setWidthFull();
         filterLayout.setJustifyContentMode(JustifyContentMode.START);
 
@@ -114,13 +108,13 @@ public class ResourceView extends VerticalLayout{
 
     private void getGridColumns(){
         nameColumn = resourceGrid.addColumn(ResourceDTO::getName)
-                .setHeader("Nombre").setSortable(true).setAutoWidth(true);
+                .setHeader("Nombre").setAutoWidth(true);
 
         typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType()))
-                .setHeader("Tipo").setSortable(true).setAutoWidth(true);
+                .setHeader("Tipo").setAutoWidth(true);
 
-        quantityColumn = resourceGrid.addColumn(ResourceDTO::getCantidad)
-                .setHeader("Cantidad").setSortable(true).setAutoWidth(true);
+        Grid.Column<ResourceDTO> quantityColumn = resourceGrid.addColumn(ResourceDTO::getCantidad)
+                .setHeader("Cantidad").setAutoWidth(true);
 
         storageColumn = resourceGrid.addColumn(resource -> {
                     if (resource.getStorageId() != null) {
@@ -129,8 +123,7 @@ public class ResourceView extends VerticalLayout{
                     } else {
                         return "No asignado";
                     }
-                })
-                .setHeader("Almacén").setSortable(true).setAutoWidth(true);
+                }).setHeader("Almacén").setAutoWidth(true);
 
         statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(resource -> {
                     double quantity = resource.getQuantity();
@@ -182,27 +175,18 @@ public class ResourceView extends VerticalLayout{
         });
         filterRow.getCell(typeColumn).setComponent(typeFilter);
 
-        TextField quantityFilter = new TextField();
-        quantityFilter.setPlaceholder("Filtrar por cantidad");
-        quantityFilter.addValueChangeListener(event -> {
-            resourceDataProvider.clearFilters();
-            if (!event.getValue().isEmpty()) {
-                resourceDataProvider.setFilter(resource ->
-                        StringUtils.containsIgnoreCase(resource.getCantidad(), event.getValue()));
-            }
-        });
-        filterRow.getCell(quantityColumn).setComponent(quantityFilter);
-
-        TextField storageFilter = new TextField();
+        MultiSelectComboBox<String> storageFilter = new MultiSelectComboBox<>();
         storageFilter.setPlaceholder("Filtrar por almacén");
+        storageFilter.setItems(storageService.getStorageNames());
         storageFilter.addValueChangeListener(event -> {
             resourceDataProvider.clearFilters();
-            if (!event.getValue().isEmpty()) {
+            Set<String> selectedStorages = event.getValue();
+            if (!selectedStorages.isEmpty()) {
                 resourceDataProvider.addFilter(resource -> {
                     String storageName = resource.getStorageId() != null ?
                             storageService.getStorageById(resource.getStorageId()).getName() :
                             "No asignado";
-                    return StringUtils.containsIgnoreCase(storageName, event.getValue());
+                    return selectedStorages.contains(storageName);
                 });
             }
         });
@@ -267,7 +251,6 @@ public class ResourceView extends VerticalLayout{
             case STATIONERY -> "Papelería";
             case LOGISTICS -> "Logística";
             case OTHER -> "Otros";
-            default -> "Desconocido";
         };
     }
 

@@ -58,7 +58,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-        catastropheService.isCatastropheSelected(event, selectedCatastrophe);
+        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
+            return;
+        }
 
         buildView();
     }

@@ -70,7 +70,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
 
         //Header
         HeaderComponent header = new HeaderComponent(
-            "Tareas de la catástrofe " + selectedCatastrophe.getName(), "tasks"
+            "Tareas: " + selectedCatastrophe.getName(), "tasks"
         );
 
 

@@ -9,6 +9,7 @@ import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.model.GPSCoordinates;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StorageService {
@@ -47,6 +48,13 @@ public class StorageService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public List<String> getStorageNames() {
+        return getStorages().stream()
+                .map(StorageDTO::getName)
+                .filter(name -> name != null && !name.isEmpty())
+                .collect(Collectors.toList());
     }
 
     // Almacenes de ejemplo

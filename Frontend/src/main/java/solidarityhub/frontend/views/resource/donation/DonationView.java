@@ -1,38 +1,28 @@
 package solidarityhub.frontend.views.resource.donation;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.Menu;
-import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
+import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import solidarityhub.frontend.model.enums.DonationType;
+import solidarityhub.frontend.model.enums.ResourceType;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.DonationService;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
-import solidarityhub.frontend.views.HeaderComponent;
-
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @PageTitle("Donaciones")
 public class DonationView extends VerticalLayout {
@@ -42,8 +32,14 @@ public class DonationView extends VerticalLayout {
 
     private CatastropheDTO selectedCatastrophe;
 
-    private Div donationsContainer;
-    private Grid<DonationDTO> donationGrid;
+    private final Grid<DonationDTO> donationGrid;
+    private ListDataProvider<DonationDTO> donationDataProvider;
+
+    private Grid.Column<DonationDTO> descriptionColumn;
+    private Grid.Column<DonationDTO> typeColumn;
+    private Grid.Column<DonationDTO> dateColumn;
+    private Grid.Column<DonationDTO> statusColumn;
+    private Grid.Column<DonationDTO> amountColumn;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -53,86 +49,55 @@ public class DonationView extends VerticalLayout {
 
         this.selectedCatastrophe = catastrophe;
 
+        donationGrid = new Grid<>(DonationDTO.class, false);
         buildView();
     }
 
     private void buildView() {
         removeAll();
 
-        donationsContainer = new Div();
-        donationsContainer.setSizeFull();
+        setSizeFull();
         addClassName("donations-view");
+        setPadding(false);
 
-        add(
-            createFilterSection(),
-            createAddDonationButton(),
-            createDonationsGrid()
-        );
+        add(getAddDonationButton(), donationGrid);
+        populateDonationGrid();
     }
 
-    private HorizontalLayout createFilterSection() {
-        HorizontalLayout filterLayout = new HorizontalLayout();
-        filterLayout.addClassName("filter-section");
-
-        // Create type filter
-        Select<String> typeFilter = new Select<>();
-        typeFilter.setLabel("Filtrar por tipo:");
-        typeFilter.setItems("Todas", "Económica", "Material", "Servicio");
-        typeFilter.setValue("Todas");
-
-        typeFilter.addValueChangeListener(event -> {
-            String selectedType = event.getValue();
-            applyTypeFilter(selectedType);
-        });
-
-
-
-        filterLayout.add(typeFilter);
-        return filterLayout;
-    }
-
-
-    private void applyTypeFilter(String typeFilter) {
-        if ("Todas".equals(typeFilter)) {
-            refreshDonations(); // Mostrar todas las donaciones
+    private List<DonationDTO> getDonationList() {
+        if (selectedCatastrophe != null) {
+            //return donationService.getDonationsByCatastrophe(selectedCatastrophe.getId());
+            return donationService.getDonations();
         } else {
-            DonationType type = null;
-            switch (typeFilter) {
-                case "Económica":
-                    type = DonationType.FINANCIAL;
-                    break;
-                case "Material":
-                    type = DonationType.MATERIAL;
-                    break;
-                case "Servicio":
-                    type = DonationType.SERVICE;
-                    break;
-            }
-
-            if (type != null) {
-                // Filtrar donaciones por tipo
-                DonationType finalType = type;
-                List<DonationDTO> filteredDonations = donationService.getDonationsByCatastrophe(selectedCatastrophe.getId())
-                        .stream()
-                        .filter(donation -> donation.getType() == finalType)
-                        .collect(Collectors.toList());
-
-                donationGrid.setItems(filteredDonations);
-            }
+            return Collections.emptyList();
         }
     }
 
+    private void populateDonationGrid() {
+        this.donationDataProvider = new ListDataProvider<>(getDonationList());
 
-    private Button createAddDonationButton() {
+        if (donationDataProvider.getItems().isEmpty()) {
+            donationGrid.setVisible(false);
+            add(new Span("No hay donaciones disponibles para esta catástrofe."));
+        } else {
+            donationGrid.setVisible(true);
+            donationGrid.setDataProvider(donationDataProvider);
+
+            getGridColumns();
+            getGridFilter();
+        }
+    }
+
+    //===============================Get Components=========================================
+    private Button getAddDonationButton() {
         Button addDonationButton = new Button("Registrar nueva donación", new Icon(VaadinIcon.PLUS));
-        addDonationButton.addClassName("add-donation-button");
+        addDonationButton.addClassName("add-resource-button");
         addDonationButton.addClickListener(e -> {
-            // Open the donation form dialog
             DonationFormDialog dialog = new DonationFormDialog(donationService, catastropheService, selectedCatastrophe);
             dialog.open();
             dialog.addOpenedChangeListener(event -> {
                 if (!event.isOpened()) {
-                    refreshDonations();
+                    //refreshDonations();
                 }
             });
         });
@@ -140,44 +105,60 @@ public class DonationView extends VerticalLayout {
         return addDonationButton;
     }
 
-    private Grid<DonationDTO> createDonationsGrid() {
-        donationGrid = new Grid<>(DonationDTO.class, false);
+    private void getGridColumns() {
         donationGrid.addClassName("donation-grid");
 
-        // Configure grid columns
-        donationGrid.addColumn(DonationDTO::getCode).setHeader("Código").setAutoWidth(true);
-        donationGrid.addColumn(donation -> donation.getDate().format(DATE_FORMATTER)).setHeader("Fecha").setAutoWidth(true);
-        donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setHeader("Tipo").setAutoWidth(true);
-        donationGrid.addColumn(DonationDTO::getDescription).setHeader("Descripción").setAutoWidth(true);
-        donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus())).setHeader("Estado").setAutoWidth(true);
+        descriptionColumn = donationGrid.addColumn(DonationDTO::getDescription).setHeader("Descripción").setAutoWidth(true);
+        amountColumn = donationGrid.addColumn(DonationDTO::getAmount).setHeader("Cantidad").setSortable(true).setAutoWidth(true);
+        typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true);
+        dateColumn = donationGrid.addColumn(donation -> donation.getDate().format(DATE_FORMATTER)).setHeader("Fecha").setAutoWidth(true);
+        statusColumn = donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus())).setHeader("Estado").setAutoWidth(true);
 
-        // Set up grid items
-        refreshDonations();
-
-        // Add double-click listener for editing
         donationGrid.addItemDoubleClickListener(event -> {
             DonationDTO donation = event.getItem();
             DonationFormDialog dialog = new DonationFormDialog(donationService, catastropheService, selectedCatastrophe, donation);
             dialog.open();
             dialog.addOpenedChangeListener(dialogEvent -> {
                 if (!dialogEvent.isOpened()) {
-                    refreshDonations();
+                    //refreshDonations();
                 }
             });
         });
 
-        return donationGrid;
     }
 
-    private void refreshDonations() {
-        if (selectedCatastrophe != null) {
-            List<DonationDTO> donations = donationService.getDonationsByCatastrophe(selectedCatastrophe.getId());
-            donationGrid.setItems(donations);
-            if (donations.isEmpty()) {
-                Notification.show("No hay donaciones para esta catástrofe",
-                        3000, Notification.Position.MIDDLE);
+    private void getGridFilter() {
+        MultiSelectComboBox<DonationType> typeFilter = new MultiSelectComboBox<>();
+        typeFilter.setPlaceholder("Filtrar por tipo");
+        typeFilter.setItems(DonationType.values());
+        typeFilter.setItemLabelGenerator(this::translateDonationType);
+        typeFilter.addValueChangeListener(event -> {
+            donationDataProvider.clearFilters();
+            Set<DonationType> selectedTypes = event.getValue();
+            if(!selectedTypes.isEmpty()) {
+                donationDataProvider.addFilter(resource ->
+                        selectedTypes.contains(resource.getType())
+                );
             }
-        }
+        });
+
+        HorizontalLayout filterHeader = new HorizontalLayout();
+        Span filterTitle = new Span("Tipo");
+        filterHeader.setAlignItems(Alignment.CENTER);
+        filterHeader.add(filterTitle, typeFilter);
+
+        typeColumn.setHeader(filterHeader);
+
+    }
+
+    private String translateDonationType (DonationType type) {
+        if (type == null) return "";
+        return switch (type) {
+            case FINANCIAL -> "Económica";
+            case MATERIAL -> "Material";
+            case SERVICE -> "Servicio";
+            default -> "Desconocido";
+        };
     }
 
     private String formatDonationType(DonationType type) {
