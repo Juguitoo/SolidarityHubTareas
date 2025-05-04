@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.ResourceDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Resource;
+import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.service.CatastropheService;
 import solidarityhub.backend.service.ResourceService;
+import solidarityhub.backend.service.StorageService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +20,12 @@ public class ResourceController {
 
     private final ResourceService resourceService;
     private final CatastropheService catastropheService;
+    private final StorageService storageService;
 
-    public ResourceController(ResourceService resourceService, CatastropheService catastropheService) {
+    public ResourceController(ResourceService resourceService, CatastropheService catastropheService, StorageService storageService) {
         this.resourceService = resourceService;
         this.catastropheService = catastropheService;
+        this.storageService = storageService;
     }
 
     @GetMapping
@@ -48,11 +52,13 @@ public class ResourceController {
         if (catastrophe == null) {
             return ResponseEntity.notFound().build();
         }
+        Storage storage = storageService.getStorageById(resourceDTO.getStorageId());
         Resource resource = new Resource(
                 resourceDTO.getName(),
                 resourceDTO.getType(),
                 resourceDTO.getQuantity(),
                 resourceDTO.getUnit(),
+                storage,
                 catastrophe);
         resourceService.save(resource);
 
@@ -65,12 +71,14 @@ public class ResourceController {
         if (resource == null) {
             return ResponseEntity.notFound().build();
         }
+        Storage storage = storageService.getStorageById(resourceDTO.getStorageId());
+
         resource.setName(resourceDTO.getName());
         resource.setType(resourceDTO.getType());
         resource.setQuantity(resourceDTO.getQuantity());
         resource.setUnit(resourceDTO.getUnit());
         resource.setCantidad(resourceDTO.getCantidad());
-        resource.setStorage(resourceDTO.getStorage());
+        resource.setStorage(storage);
 
         resourceService.save(resource);
 

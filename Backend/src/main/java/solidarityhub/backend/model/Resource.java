@@ -55,7 +55,7 @@ public class Resource {
         this.type = type;
         this.quantity = quantity;
         this.unit = unit;
-        this.cantidad = String.valueOf(quantity) + " " + unit;
+        this.cantidad = quantity + " " + unit;
         this.storage = storage;
         this.catastrophe = catastrophe;
     }
@@ -64,7 +64,7 @@ public class Resource {
         this.type = type;
         this.quantity = quantity;
         this.unit = unit;
-        this.cantidad = String.valueOf(quantity) + " " + unit;
+        this.cantidad = quantity + " " + unit;
         this.storage = null;
         this.catastrophe = null;
     }

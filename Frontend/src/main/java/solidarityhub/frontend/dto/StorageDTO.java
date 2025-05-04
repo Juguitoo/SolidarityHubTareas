@@ -16,9 +16,9 @@ public class StorageDTO {
     private String name;
     private GPSCoordinates gpsCoordinates;
     private boolean isFull;
-    private List<ResourceDTO> resources;
+    private List<Integer> resources;
 
-    public StorageDTO(String name, GPSCoordinates gpsCoordinates, boolean isFull, List<ResourceDTO> resources) {
+    public StorageDTO(String name, GPSCoordinates gpsCoordinates, boolean isFull, List<Integer> resources) {
         this.name = name;
         this.gpsCoordinates = gpsCoordinates;
         this.isFull = isFull;

@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.StorageDTO;
+import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.service.ResourceService;
 import solidarityhub.backend.service.StorageService;
@@ -47,11 +48,19 @@ public class StorageController {
         if (storage == null) {
             return ResponseEntity.notFound().build();
         }
+        List<Resource> resources = new ArrayList<>();
+        for (Integer resourceId : storageDTO.getResources()) {
+            Resource resource = resourceService.getResourceById(resourceId);
+            if (resource == null) {
+                return ResponseEntity.notFound().build();
+            }
+            resources.add(resource);
+        }
 
         storage.setName(storageDTO.getName());
         storage.setGpsCoordinates(storageDTO.getGpsCoordinates());
         storage.setFull(storageDTO.isFull());
-        storage.setResources(storageDTO.getResources().stream().map(r -> resourceService.getResourceById(r.getId())).toList());
+        storage.setResources(resources);
 
         storageService.saveStorage(storage);
 
