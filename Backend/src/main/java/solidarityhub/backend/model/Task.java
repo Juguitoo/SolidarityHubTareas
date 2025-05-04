@@ -51,8 +51,12 @@ public class Task {
     private Status status;
 
     @Setter
-    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Volunteer> volunteers;
+
+    @Setter
+    @ManyToMany(mappedBy = "acceptedTasks", cascade = CascadeType.ALL)
+    private List<Volunteer> acceptedVolunteers;
 
     @Setter
     @ManyToOne(cascade = CascadeType.ALL)
@@ -63,7 +67,7 @@ public class Task {
     @JoinColumn(name = "catastrophe_id")
     private Catastrophe catastrophe;
 
-    private LocalDate creationDate;
+    private final LocalDate creationDate;
 
     @Setter
     private String meetingDirection;

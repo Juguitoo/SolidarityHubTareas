@@ -80,17 +80,17 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
+        beforeEnter(null);
+        buildView();
     }
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
         catastropheService.isCatastropheSelected(event, selectedCatastrophe);
-
-        buildView();
     }
 
-    private void buildView() {
+    protected void buildView() {
         removeAll();
 
         HeaderComponent header = new HeaderComponent("Añadir tarea", "tasks");
@@ -160,7 +160,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     //===============================Get Components=========================================
-    private Component getPreview(){
+    protected Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
         preview.addClassName("previewContainer");
         preview.setPadding(false);
@@ -183,7 +183,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return preview;
     }
 
-    private Component getForms(){
+    protected Component getForms(){
         FormLayout addTaskForm = new FormLayout();
         addTaskForm.addClassName("addTaskForm");
 

@@ -123,14 +123,14 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
         Button updateButton = new Button("Aceptar");
         updateButton.addClickListener(e -> updateTask());
 
-        Button deleteButton = new Button("Denegar");
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        deleteButton.addClickListener(e -> deleteTask());
-
         Button cancelButton = new Button("Salir");
-        cancelButton.addClickListener(e -> getUI().ifPresent(ui -> ui.navigate("suggested-task")));
+        cancelButton.addClickListener(e -> {
+            VaadinSession.getCurrent().setAttribute("cache", false);
+            getUI().ifPresent(ui -> ui.navigate("suggested-tasks"));
+        });
 
-        buttons.add(cancelButton, deleteButton, updateButton);
+
+        buttons.add(cancelButton, updateButton);
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;
@@ -196,36 +196,4 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
             VaadinSession.getCurrent().setAttribute("cache", false);
         }
     }
-
-    private void deleteTask() {
-        Dialog confirmDialog = new Dialog();
-        confirmDialog.setHeaderTitle("Confirmar eliminación");
-
-        VerticalLayout dialogContent = new VerticalLayout();
-        dialogContent.add(new Span("¿Está seguro de que desea no crear esta tarea? Esta acción no se puede deshacer."));
-
-        confirmDialog.add(dialogContent);
-
-        Button confirmButton = new Button("Eliminar", event -> {
-            try {
-                taskService.taskCache.clear();
-                taskService.suggestedTasksCache.remove(selectedTask);
-                confirmDialog.close();
-                Notification.show("Tarea eliminada correctamente");
-                UI.getCurrent().navigate("suggested-tasks");
-            } catch (Exception e) {
-                Notification.show("Error al eliminar la tarea: " + e.getMessage());
-            }
-        });
-        confirmButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
-        Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
-
-        confirmDialog.getFooter().add(cancelButton, confirmButton);
-
-        confirmDialog.open();
-    }
-
-
-
 }

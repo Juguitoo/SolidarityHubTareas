@@ -4,7 +4,9 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -14,6 +16,7 @@ import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
 
 import java.time.LocalDateTime;
@@ -33,6 +36,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private TaskDTO originalTask;
     private int taskId;
 
+    protected ComboBox<Status> taskStatusComboBox;
+
     @Autowired
     public EditTaskView(TaskService taskService) {
         super(taskService);
@@ -47,6 +52,23 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         .findFirst()).ifPresent(title -> title.setText("Editar tarea"));
 
         taskPreview.enabledEditButton(false);
+    }
+
+    @Override
+    protected Component getForms() {
+        taskStatusComboBox = new ComboBox<>("Estado de la tarea");
+        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+        taskStatusComboBox.setItemLabelGenerator(status -> switch (status) {
+            case TO_DO -> "Por hacer";
+            case IN_PROGRESS -> "En progreso";
+            case FINISHED -> "Finalizada";
+        });
+        taskStatusComboBox.setRequiredIndicatorVisible(true);
+        taskStatusComboBox.setRequired(true);
+
+        FormLayout addFormLayout = (FormLayout) super.getForms();
+        addFormLayout.add(taskStatusComboBox);
+        return addFormLayout;
     }
 
     //===============================Load data=========================================
@@ -113,6 +135,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
         endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
         taskLocation.setValue(task.getMeetingDirection());
+        taskStatusComboBox.setValue(task.getStatus());
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
@@ -193,7 +216,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         needs.getFirst().getTaskType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
-                        originalTask.getStatus(),
+                        taskStatusComboBox.getValue(),
                         needs,
                         selectedVolunteers,
                         selectedCatastrophe.getId(),

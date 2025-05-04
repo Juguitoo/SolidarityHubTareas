@@ -38,6 +38,9 @@ public class Volunteer extends Person {
     private List<Task> tasks;
 
     @ManyToMany
+    @JoinTable(name = "volunteer_accepted_tasks",
+            joinColumns = @JoinColumn(name = "volunteer_dni"),
+            inverseJoinColumns = @JoinColumn(name = "task_id"))
     private List<Task> acceptedTasks;
 
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
