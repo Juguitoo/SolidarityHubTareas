@@ -43,9 +43,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private final CatastropheService catastropheService;
     private CatastropheDTO selectedCatastrophe;
 
-    @Autowired
-    public TaskView(TaskService taskService) {
-        this.taskService = taskService;
+    public TaskView() {
+        this.taskService = new TaskService();
         catastropheService = new CatastropheService();
 
         addClassName("tasks-container");
@@ -53,7 +52,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        if((Boolean) VaadinSession.getCurrent().getAttribute("cache")) {
+        Boolean cacheAttribute = (Boolean) VaadinSession.getCurrent().getAttribute("cache");
+        if (cacheAttribute != null && cacheAttribute) {
             taskService.clearCache();
         }
 

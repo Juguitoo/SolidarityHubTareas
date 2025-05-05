@@ -59,23 +59,21 @@ public class AddResourceDialog extends Dialog{
         typeField = new Select<>();
         typeField.setLabel("Tipo de recurso");
         typeField.setItems(ResourceType.values());
-        typeField.setItemLabelGenerator(type -> {
-            return switch (type) {
-                case FOOD -> "Alimentos";
-                case MEDICINE -> "Medicina";
-                case CLOTHING -> "Ropa";
-                case SHELTER -> "Refugio";
-                case TOOLS -> "Herramientas";
-                case FUEL -> "Combustible";
-                case SANITATION -> "Higiene";
-                case COMMUNICATION -> "Comunicación";
-                case TRANSPORTATION -> "Transporte";
-                case BUILDING -> "Construcción";
-                case MONETARY -> "Donaciones";
-                case STATIONERY -> "Papelería";
-                case LOGISTICS -> "Logística";
-                case OTHER -> "Otros";
-            };
+        typeField.setItemLabelGenerator(type -> switch (type) {
+            case FOOD -> "Alimentos";
+            case MEDICINE -> "Medicina";
+            case CLOTHING -> "Ropa";
+            case SHELTER -> "Refugio";
+            case TOOLS -> "Herramientas";
+            case FUEL -> "Combustible";
+            case SANITATION -> "Higiene";
+            case COMMUNICATION -> "Comunicación";
+            case TRANSPORTATION -> "Transporte";
+            case BUILDING -> "Construcción";
+            case MONETARY -> "Donaciones";
+            case STATIONERY -> "Papelería";
+            case LOGISTICS -> "Logística";
+            case OTHER -> "Otros";
         });
         typeField.setRequiredIndicatorVisible(true);
 

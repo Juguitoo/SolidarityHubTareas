@@ -4,7 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,8 +22,6 @@ import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.model.enums.ResourceType;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
-
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -75,6 +73,7 @@ public class ResourceView extends VerticalLayout{
         populateResourceGrid();
     }
 
+    //===============================Grid Methods=========================================
     private List<ResourceDTO> getResourceList() {
         if (selectedCatastrophe != null) {
             return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
@@ -96,50 +95,6 @@ public class ResourceView extends VerticalLayout{
             getGridColumns();
             getGridFilter();
         }
-    }
-
-    //===============================Get Components=========================================
-    private Component getButtons() {
-        // Botón para registrar nuevo recurso
-        Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
-        addResourceButton.addClassName("add-resource-button");
-
-        AddResourceDialog addResourceDialog = new AddResourceDialog(selectedCatastrophe);
-        addResourceButton.addClickListener(e -> addResourceDialog.open());
-
-        HorizontalLayout filterLayout = new HorizontalLayout(addResourceButton);
-        filterLayout.setAlignItems(Alignment.CENTER);
-        filterLayout.setWidthFull();
-        filterLayout.setJustifyContentMode(JustifyContentMode.START);
-
-        return filterLayout;
-    }
-
-    private void getGridColumns(){
-        nameColumn = resourceGrid.addColumn(ResourceDTO::getName)
-                .setHeader("Nombre").setAutoWidth(true);
-
-        typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType()))
-                .setHeader("Tipo").setAutoWidth(true);
-
-        Grid.Column<ResourceDTO> quantityColumn = resourceGrid.addColumn(ResourceDTO::getCantidad)
-                .setHeader("Cantidad").setAutoWidth(true);
-
-        storageColumn = resourceGrid.addColumn(resource -> {
-                    if (resource.getStorageId() != null) {
-                        return storageDTOMap.get(resource.getStorageId()).getName();
-                    } else {
-                        return "No asignado";
-                    }
-                }).setHeader("Almacén").setAutoWidth(true);
-
-        statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(resource -> {
-                    double quantity = resource.getQuantity();
-                    int min = 10;
-                    int max = 50;
-                    return getResourceStatus(quantity, min, max);
-                }))
-                .setHeader("Estado").setSortable(true).setAutoWidth(true);
 
         resourceGrid.addItemDoubleClickListener(event -> {
             ResourceDTO resource = event.getItem();
@@ -150,12 +105,70 @@ public class ResourceView extends VerticalLayout{
                     selectedCatastrophe,
                     resource);
             dialog.openEditResourceDialog();
+//            dialog.addOpenedChangeListener(dialogEvent -> {
+//                if (!dialogEvent.isOpened()) {
+//                    refreshResources();
+//                }
+//            });
         });
+
+        resourceGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+        resourceGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+    }
+
+    private void refreshResources() {
+        resourceService.clearCache();
+        resourceGrid.setItems(resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId()));
+        resourceGrid.getDataProvider().refreshAll();
+    }
+
+    //===============================Get Components=========================================
+    private Component getButtons() {
+        Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
+        addResourceButton.addClassName("add-resource-button");
+
+        AddResourceDialog addResourceDialog = new AddResourceDialog(selectedCatastrophe);
+        addResourceButton.addClickListener(e -> {
+            addResourceDialog.open();
+            addResourceDialog.addOpenedChangeListener(event -> {
+                if (!event.isOpened()) {
+                    refreshResources();
+                }
+            });
+        });
+
+        HorizontalLayout filterLayout = new HorizontalLayout(addResourceButton);
+        filterLayout.setAlignItems(Alignment.CENTER);
+        filterLayout.setWidthFull();
+        filterLayout.setJustifyContentMode(JustifyContentMode.START);
+
+        return filterLayout;
+    }
+
+    private void getGridColumns(){
+        nameColumn = resourceGrid.addColumn(ResourceDTO::getName).setAutoWidth(true);
+
+        typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType())).setAutoWidth(true);
+
+        resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad").setAutoWidth(true);
+
+        storageColumn = resourceGrid.addColumn(resource -> {
+                    if (resource.getStorageId() != null) {
+                        return storageDTOMap.get(resource.getStorageId()).getName();
+                    } else {
+                        return "No asignado";
+                    }
+                }).setAutoWidth(true);
+
+        statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(resource -> {
+                    double quantity = resource.getQuantity();
+                    int min = 10;
+                    int max = 50;
+                    return getResourceStatus(quantity, min, max);
+                })).setAutoWidth(true);
     }
 
     private void getGridFilter(){
-        HeaderRow filterRow = resourceGrid.appendHeaderRow();
-
         TextField nameFilter = new TextField();
         nameFilter.setPlaceholder("Buscar recurso");
         nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
@@ -166,7 +179,7 @@ public class ResourceView extends VerticalLayout{
                         StringUtils.containsIgnoreCase(resource.getName(), event.getValue()));
             }
         });
-        filterRow.getCell(nameColumn).setComponent(nameFilter);
+        nameColumn.setHeader(getGridFilterHeader("Nombre", nameFilter));
 
         MultiSelectComboBox<ResourceType> typeFilter = new MultiSelectComboBox<>();
         typeFilter.setPlaceholder("Filtrar por tipo");
@@ -181,7 +194,7 @@ public class ResourceView extends VerticalLayout{
                 );
             }
         });
-        filterRow.getCell(typeColumn).setComponent(typeFilter);
+        typeColumn.setHeader(getGridFilterHeader("Tipo", typeFilter));
 
         MultiSelectComboBox<String> storageFilter = new MultiSelectComboBox<>();
         storageFilter.setPlaceholder("Filtrar por almacén");
@@ -198,7 +211,7 @@ public class ResourceView extends VerticalLayout{
                 });
             }
         });
-        filterRow.getCell(storageColumn).setComponent(storageFilter);
+        storageColumn.setHeader(getGridFilterHeader("Almacén", storageFilter));
 
         MultiSelectComboBox<String> statusFilter = new MultiSelectComboBox<>();
         statusFilter.setPlaceholder("Filtrar por estado");
@@ -216,7 +229,7 @@ public class ResourceView extends VerticalLayout{
                 });
             }
         });
-        filterRow.getCell(statusColumn).setComponent(statusFilter);
+        statusColumn.setHeader(getGridFilterHeader("Estado", statusFilter));
     }
 
     private Span getResourceStatus(double quantity, int min, int max) {
@@ -239,6 +252,18 @@ public class ResourceView extends VerticalLayout{
         }
 
         return badge;
+    }
+
+    private Component getGridFilterHeader(String headerText, Component filterComponent) {
+        HorizontalLayout filterHeader = new HorizontalLayout();
+        Span filterTitle = new Span(headerText);
+        filterHeader.setAlignItems(Alignment.CENTER);
+        filterTitle.addClassName("grid__filter-title");
+        filterHeader.add(filterTitle, filterComponent);
+
+        filterHeader.addClassName("grid__filter-header");
+
+        return filterHeader;
     }
 
 
