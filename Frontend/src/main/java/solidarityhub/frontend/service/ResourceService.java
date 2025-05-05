@@ -61,8 +61,18 @@ public class ResourceService {
     }
 
     public List<ResourceDTO> getResourcesByCatastropheId(int catastropheId) {
-        return getResources().stream()
-                .filter(resource -> resource.getCatastropheId() == catastropheId).toList();
+        try {
+            String url = baseUrl + "/catastrophe/" +  catastropheId;
+            ResponseEntity<ResourceDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, ResourceDTO[].class);
+            ResourceDTO[] resources = response.getBody();
+            if (resources != null) {
+                return new ArrayList<>(List.of(resources));
+            } else {
+                return new ArrayList<>();
+            }
+        } catch (RestClientException e) {
+            return getExampleResources(5);
+        }
     }
 
     //GET EXAMPLE RESOURCES

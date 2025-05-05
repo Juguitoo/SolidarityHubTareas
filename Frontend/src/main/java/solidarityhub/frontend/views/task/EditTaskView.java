@@ -122,7 +122,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             starDateTimePicker.setMin(LocalDateTime.now());
         }
 
-        List<String> needs = new ArrayList<>(needService.getNeedsWithoutTask(task.getCatastropheId()).stream()
+        List<String> needs = new ArrayList<>(allNeedsWithoutTask.stream()
                 .map(NeedDTO::getDescription)
                 .toList());
         List<String> taskNeeds = task.getNeeds().stream()

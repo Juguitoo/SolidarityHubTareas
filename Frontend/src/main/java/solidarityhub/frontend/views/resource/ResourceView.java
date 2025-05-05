@@ -15,15 +15,15 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import org.apache.commons.lang3.StringUtils;
+import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.model.enums.ResourceType;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 
 
 @PageTitle("Recursos")
@@ -43,6 +43,9 @@ public class ResourceView extends VerticalLayout{
     private Grid.Column<ResourceDTO> storageColumn;
     private Grid.Column<ResourceDTO> statusColumn;
 
+    private final HashMap<Integer, StorageDTO> storageDTOMap = new HashMap<>();
+    private final List<String> storageNames = new ArrayList<>();
+
 
     public ResourceView(CatastropheDTO catastrophe) {
         this.resourceService = new ResourceService();
@@ -52,6 +55,10 @@ public class ResourceView extends VerticalLayout{
         this.selectedCatastrophe = catastrophe;
 
         this.resourceGrid = new Grid<>(ResourceDTO.class, false);
+        for (StorageDTO s : storageService.getStorages()){
+            storageDTOMap.put(s.getId(), s);
+            storageNames.add(s.getName());
+        }
         buildView();
     }
 
@@ -68,8 +75,7 @@ public class ResourceView extends VerticalLayout{
 
     private List<ResourceDTO> getResourceList() {
         if (selectedCatastrophe != null) {
-            //return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
-            return resourceService.getResources();
+            return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
         } else {
             return Collections.emptyList();
         }
@@ -118,8 +124,7 @@ public class ResourceView extends VerticalLayout{
 
         storageColumn = resourceGrid.addColumn(resource -> {
                     if (resource.getStorageId() != null) {
-                        var storage = storageService.getStorageById(resource.getStorageId());
-                        return storage != null ? storage.getName() : "No disponible";
+                        return storageDTOMap.get(resource.getStorageId()).getName();
                     } else {
                         return "No asignado";
                     }
@@ -177,14 +182,14 @@ public class ResourceView extends VerticalLayout{
 
         MultiSelectComboBox<String> storageFilter = new MultiSelectComboBox<>();
         storageFilter.setPlaceholder("Filtrar por almacén");
-        storageFilter.setItems(storageService.getStorageNames());
+        storageFilter.setItems(storageNames);
         storageFilter.addValueChangeListener(event -> {
             resourceDataProvider.clearFilters();
             Set<String> selectedStorages = event.getValue();
             if (!selectedStorages.isEmpty()) {
                 resourceDataProvider.addFilter(resource -> {
                     String storageName = resource.getStorageId() != null ?
-                            storageService.getStorageById(resource.getStorageId()).getName() :
+                            storageDTOMap.get(resource.getStorageId()).getName() :
                             "No asignado";
                     return selectedStorages.contains(storageName);
                 });

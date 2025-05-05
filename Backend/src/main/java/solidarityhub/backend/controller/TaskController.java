@@ -1,5 +1,6 @@
 package solidarityhub.backend.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class TaskController {
     private final NotificationService notificationService;
     private final CatastropheService catastropheService;
 
-
+    @Autowired
     public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService, FcmService fcmService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
@@ -169,6 +170,9 @@ public class TaskController {
         task.setVolunteers(volunteers);
         task.setNeeds(needs);
         task.setType(taskDTO.getType());
+        task.setMeetingDirection(taskDTO.getMeetingDirection());
+
+        taskService.save(task);
 
         for (Need need : needs) {
             if(need.getTask() == null){
@@ -184,7 +188,6 @@ public class TaskController {
             }
 
             Notification notification = getNotification(volunteer, task, "Tarea actualizada");
-            task.addNotification(notification);
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.save(notification);
@@ -192,7 +195,6 @@ public class TaskController {
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
         }
-        taskService.save(task);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }

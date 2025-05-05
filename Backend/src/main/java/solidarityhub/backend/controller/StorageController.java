@@ -36,10 +36,11 @@ public class StorageController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getStorage(@PathVariable Integer id) {
-        if (storageService.getStorageById(id) == null) {
+        Storage storage = storageService.getStorageById(id);
+        if (storage == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(new StorageDTO(storageService.getStorageById(id)));
+        return ResponseEntity.ok(new StorageDTO(storage));
     }
 
     @PutMapping("/{id}")
@@ -48,19 +49,9 @@ public class StorageController {
         if (storage == null) {
             return ResponseEntity.notFound().build();
         }
-        List<Resource> resources = new ArrayList<>();
-        for (Integer resourceId : storageDTO.getResources()) {
-            Resource resource = resourceService.getResourceById(resourceId);
-            if (resource == null) {
-                return ResponseEntity.notFound().build();
-            }
-            resources.add(resource);
-        }
 
         storage.setName(storageDTO.getName());
-        storage.setGpsCoordinates(storageDTO.getGpsCoordinates());
         storage.setFull(storageDTO.isFull());
-        storage.setResources(resources);
 
         storageService.saveStorage(storage);
 

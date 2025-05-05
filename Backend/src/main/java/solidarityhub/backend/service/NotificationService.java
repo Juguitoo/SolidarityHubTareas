@@ -58,7 +58,7 @@ public class NotificationService {
 
     @Async
     public void save(Notification notification) {
-        try {;
+        try {
             notificationRepository.save(notification);
         } catch (Exception e) {
             System.out.println("NotificationService: Error al guardar la notificación: " + e.getMessage());

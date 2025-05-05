@@ -14,14 +14,10 @@ import java.util.List;
 public class StorageDTO {
     private int id;
     private String name;
-    private GPSCoordinates gpsCoordinates;
     private boolean isFull;
-    private List<Integer> resources;
 
-    public StorageDTO(String name, GPSCoordinates gpsCoordinates, boolean isFull, List<Integer> resources) {
+    public StorageDTO(String name, boolean isFull) {
         this.name = name;
-        this.gpsCoordinates = gpsCoordinates;
         this.isFull = isFull;
-        this.resources = resources;
     }
 }

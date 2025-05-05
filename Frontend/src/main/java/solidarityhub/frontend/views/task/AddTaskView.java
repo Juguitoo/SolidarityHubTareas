@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.model.Need;
 import solidarityhub.frontend.service.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -73,6 +74,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected List<VolunteerDTO> availabilityVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
 
+    protected List<NeedDTO> allNeedsWithoutTask;
+
     @Autowired
     public AddTaskView(TaskService taskService) {
         this.taskService = taskService;
@@ -80,6 +83,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
+
         beforeEnter(null);
         buildView();
     }
@@ -88,6 +92,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
         catastropheService.isCatastropheSelected(event, selectedCatastrophe);
+        allNeedsWithoutTask = needService.getNeedsWithoutTask(selectedCatastrophe.getId());
     }
 
     protected void buildView() {
@@ -127,7 +132,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
         List<NeedDTO> needs = new ArrayList<>();
         for (String need : selectedNeeds) {
-            needService.getNeedsWithoutTask(selectedCatastrophe.getId()).stream()
+            allNeedsWithoutTask.stream()
                     .filter(n -> n.getDescription().equals(need))
                     .findFirst().ifPresent(needs::add);
         }
@@ -137,9 +142,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
                 .map(name -> {
                     if (name.equals("Elegir voluntarios automáticamente")) {
-                        finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
+                        finalSelectedVolunteers.addAll(allVolunteersList.subList(0, 1));
                     }
-                    return volunteerService.getVolunteers("", new TaskDTO()).stream()
+                    return allVolunteersList.stream()
                             .filter(v -> v.getFirstName().equals(name))
                             .findFirst()
                             .orElse(null);
@@ -502,7 +507,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         dialogContent.setPadding(false);
 
         MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeedsWithoutTask(selectedCatastrophe.getId()));
+        needsListBox.setItems(allNeedsWithoutTask);
         needsListBox.setWidthFull();
 
         needsListBox.setRenderer(

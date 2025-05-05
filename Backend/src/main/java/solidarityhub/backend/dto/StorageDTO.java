@@ -18,17 +18,12 @@ public class StorageDTO {
 
     private String name;
 
-    private GPSCoordinates gpsCoordinates;
-
     private boolean isFull;
 
-    private List<Integer> resources;
 
     public StorageDTO(Storage storage) {
         this.id = storage.getId();
         this.name = storage.getName();
-        this.gpsCoordinates = storage.getGpsCoordinates();
         this.isFull = storage.isFull();
-        this.resources = storage.getResources().stream().map(Resource::getId).toList();
     }
 }

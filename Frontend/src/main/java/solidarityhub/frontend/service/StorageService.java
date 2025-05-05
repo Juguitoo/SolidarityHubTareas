@@ -61,7 +61,7 @@ public class StorageService {
     private List<StorageDTO> getExampleStorages(int limit) {
         List<StorageDTO> exampleStorages = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
-            exampleStorages.add(new StorageDTO("Almacén Ejemplo " + (i + 1), new GPSCoordinates(0,0), false, new ArrayList<>()));
+            exampleStorages.add(new StorageDTO("Almacén Ejemplo " + (i + 1), false));
         }
         return exampleStorages;
     }

@@ -17,4 +17,5 @@ public class ResourceService {
     public Resource getResourceById(Integer id) {return resourceRepository.findById(id).orElse(null);}
     public void deleteResource(Resource resource) {resourceRepository.delete(resource);}
 
+    public List<Resource> getResourcesByCatastrophe(int catastropheId) {return resourceRepository.getResourcesByCatastrophe(catastropheId);}
 }

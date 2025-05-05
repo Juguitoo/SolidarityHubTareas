@@ -35,6 +35,13 @@ public class ResourceController {
         return ResponseEntity.ok(resourceDTOList);
     }
 
+    @GetMapping("/catastrophe/{catastropheId}")
+    public ResponseEntity<?> getResources(@PathVariable int catastropheId) {
+        List<ResourceDTO> resourceDTOList = new ArrayList<>();
+        resourceService.getResourcesByCatastrophe(catastropheId).forEach(r -> {resourceDTOList.add(new ResourceDTO(r));});
+        return ResponseEntity.ok(resourceDTOList);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getResource(@PathVariable Integer id) {
         if (resourceService.getResourceById(id) == null) {
