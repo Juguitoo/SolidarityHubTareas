@@ -1,12 +1,11 @@
 package solidarityhub.frontend.views.resource;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -21,97 +20,92 @@ import solidarityhub.frontend.service.StorageService;
 
 import java.util.List;
 
-public class AddResourceDialog {
+public class AddResourceDialog extends Dialog{
 
     private final ResourceService resourceService;
     private final StorageService storageService;
-    private final Grid<ResourceDTO> resourceGrid;
     private final CatastropheDTO selectedCatastrophe;
 
-    public AddResourceDialog(ResourceService resourceService, StorageService storageService, Grid<ResourceDTO> resourceGrid, CatastropheDTO selectedCatastrophe) {
-        this.resourceService = resourceService;
-        this.storageService = storageService;
-        this.resourceGrid = resourceGrid;
+    private TextField nameField;
+    private Select<ResourceType> typeField;
+    private NumberField quantityField;
+    private TextField unitField;
+    private Select<StorageDTO> storageField;
+
+    public AddResourceDialog(CatastropheDTO selectedCatastrophe) {
+        this.resourceService = new ResourceService();
+        this.storageService = new StorageService();
         this.selectedCatastrophe = selectedCatastrophe;
+
+        buildView();
     }
 
-    public void openAddResourceDialog() {
-        // Crear el diálogo
-        Dialog dialog = new Dialog();
-        dialog.setWidth("600px");
-        dialog.setHeight("600px");
+    public void buildView() {
+        setHeaderTitle("Añadir nuevo recurso");
 
-        // Título del diálogo
-        H3 title = new H3("Añadir nuevo recurso");
-        title.setWidthFull();
-        title.getStyle().set("text-align", "center");
+        VerticalLayout dialogLayout = new VerticalLayout();
+        dialogLayout.add(getForms());
 
-        // Campos del formulario
-        TextField nameField = new TextField("Nombre del recurso");
+        add(dialogLayout);
+        getFooter().add(getButtons());
+    }
 
-        // Desplegable de tipo de recurso
-        Select<ResourceType> typeField = new Select<>();
+    private Component getForms(){
+        FormLayout formLayout = new FormLayout();
+        nameField = new TextField("Nombre del recurso");
+        nameField.setRequiredIndicatorVisible(true);
+        nameField.setRequired(true);
+
+        typeField = new Select<>();
         typeField.setLabel("Tipo de recurso");
         typeField.setItems(ResourceType.values());
         typeField.setItemLabelGenerator(type -> {
-            switch (type) {
-                case FOOD: return "Alimentos";
-                case MEDICINE: return "Medicina";
-                case CLOTHING: return "Ropa";
-                case SHELTER: return "Refugio";
-                case TOOLS: return "Herramientas";
-                case FUEL: return "Combustible";
-                case SANITATION: return "Higiene";
-                case COMMUNICATION: return "Comunicación";
-                case TRANSPORTATION: return "Transporte";
-                case BUILDING: return "Construcción";
-                case MONETARY: return "Donaciones";
-                case STATIONERY: return "Papelería";
-                case LOGISTICS: return "Logística";
-                case OTHER: return "Otros";
-                default: return "Desconocido";
-            }
+            return switch (type) {
+                case FOOD -> "Alimentos";
+                case MEDICINE -> "Medicina";
+                case CLOTHING -> "Ropa";
+                case SHELTER -> "Refugio";
+                case TOOLS -> "Herramientas";
+                case FUEL -> "Combustible";
+                case SANITATION -> "Higiene";
+                case COMMUNICATION -> "Comunicación";
+                case TRANSPORTATION -> "Transporte";
+                case BUILDING -> "Construcción";
+                case MONETARY -> "Donaciones";
+                case STATIONERY -> "Papelería";
+                case LOGISTICS -> "Logística";
+                case OTHER -> "Otros";
+            };
         });
+        typeField.setRequiredIndicatorVisible(true);
 
-        NumberField quantityField = new NumberField("Cantidad");
-        TextField unitField = new TextField("Unidad de medida");
+        quantityField = new NumberField("Cantidad");
+        quantityField.setRequiredIndicatorVisible(true);
+        quantityField.setRequired(true);
 
-        // Crear el desplegable de selección de almacén
-        Select<StorageDTO> storageField = new Select<>();
+        unitField = new TextField("Unidad de medida");
+        unitField.setRequiredIndicatorVisible(true);
+        unitField.setRequired(true);
+
+        storageField = new Select<>();
         storageField.setLabel("Almacén");
-        storageField.setItemLabelGenerator(storageAux -> {
-            //String address = convertCoordinatesToAddress(storageAux.getLatitude(), storageAux.getLongitude());
-            return String.format("%s - %s - %s", storageAux.getName(), "address", storageAux.isFull() ? "Lleno" : "Disponible");
-        });
+        storageField.setItemLabelGenerator(storageAux -> String.format("%s - %s - %s", storageAux.getName(), "address", storageAux.isFull() ? "Lleno" : "Disponible"));
 
-        // Cargar los almacenes en el desplegable
         List<StorageDTO> storages = storageService.getStorages();
         storageField.setItems(storages);
 
-        // Establecer los campos obligatorios
-        nameField.setRequiredIndicatorVisible(true);
-        typeField.setRequiredIndicatorVisible(true);
-        quantityField.setRequiredIndicatorVisible(true);
-        unitField.setRequiredIndicatorVisible(true);
+        formLayout.add(nameField, typeField, quantityField, unitField, storageField);
+        return formLayout;
+    }
 
-        // Agregar el OpenedChangeListener al diálogo
-        dialog.addOpenedChangeListener(dialogEvent -> {
-            if (!dialogEvent.isOpened()) {
-                ResourceView resourceView = (ResourceView) resourceGrid.getParent().get();
-                if (resourceView != null) {
-                    resourceView.refreshGrid();
-                }
-            }
-        });
+    private Component getButtons(){
+        HorizontalLayout buttonLayout = new HorizontalLayout();
 
-        // Botón para guardar
         Button saveButton = new Button("Guardar", event -> {
-            // Lógica para guardar el recurso
             String name = nameField.getValue();
             ResourceType type = typeField.getValue();
             Double quantity = quantityField.getValue();
             String unit = unitField.getValue();
-            String cantidad = String.valueOf(quantity) + " " + unit;
             StorageDTO selectedStorage = storageField.getValue();
 
             if (name.isEmpty() || type == null || quantity == null || unit.isEmpty() ) {
@@ -119,7 +113,6 @@ public class AddResourceDialog {
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
-
 
             ResourceDTO newResource = new ResourceDTO(
                     name,
@@ -135,39 +128,18 @@ public class AddResourceDialog {
                 resourceService.addResource(newResource);
                 Notification.show("Recurso añadido con éxito.", 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                dialog.close();
+                close();
             } catch (Exception e) {
                 Notification.show("Error al añadir el recurso: " + e.getMessage(), 3000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
 
-        // Botón para cancelar
-        Button cancelButton = new Button("Cancelar", event -> dialog.close());
+        Button cancelButton = new Button("Cancelar", event -> close());
 
-        // Layouts para organizar los campos
-        HorizontalLayout nameTypeLayout = new HorizontalLayout(nameField, typeField);
-        nameTypeLayout.setWidthFull();
-        nameTypeLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        HorizontalLayout quantityUnitLayout = new HorizontalLayout(quantityField, unitField);
-        quantityUnitLayout.setWidthFull();
-        quantityUnitLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        HorizontalLayout storageFieldLayout = new HorizontalLayout(storageField);
-        storageFieldLayout.setWidthFull();
-        storageFieldLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        buttonLayout.add(cancelButton, saveButton);
 
-        // Layout de botones
-        HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
-        buttonLayout.setWidthFull();
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        buttonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        // Agregar componentes al diálogo
-        VerticalLayout dialogLayout = new VerticalLayout(title, nameTypeLayout, quantityUnitLayout, storageFieldLayout, buttonLayout);
-        dialog.add(dialogLayout);
-
-        // Abrir el diálogo
-        dialog.open();
+        return buttonLayout;
     }
 
 }

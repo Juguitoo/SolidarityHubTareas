@@ -66,8 +66,7 @@ public class DonationView extends VerticalLayout {
 
     private List<DonationDTO> getDonationList() {
         if (selectedCatastrophe != null) {
-            //return donationService.getDonationsByCatastrophe(selectedCatastrophe.getId());
-            return donationService.getDonations();
+            return donationService.getDonationsByCatastrophe(selectedCatastrophe.getId());
         } else {
             return Collections.emptyList();
         }

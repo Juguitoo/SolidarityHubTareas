@@ -23,7 +23,9 @@ import solidarityhub.frontend.model.enums.ResourceType;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 
 @PageTitle("Recursos")
@@ -100,9 +102,10 @@ public class ResourceView extends VerticalLayout{
     private Component getButtons() {
         // Botón para registrar nuevo recurso
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
-        AddResourceDialog addResourceDialog = new AddResourceDialog(resourceService, storageService, resourceGrid, selectedCatastrophe);
-        addResourceButton.addClickListener(e -> addResourceDialog.openAddResourceDialog());
         addResourceButton.addClassName("add-resource-button");
+
+        AddResourceDialog addResourceDialog = new AddResourceDialog(selectedCatastrophe);
+        addResourceButton.addClickListener(e -> addResourceDialog.open());
 
         HorizontalLayout filterLayout = new HorizontalLayout(addResourceButton);
         filterLayout.setAlignItems(Alignment.CENTER);
