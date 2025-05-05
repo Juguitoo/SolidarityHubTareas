@@ -57,7 +57,12 @@ public class DonationService {
     }
 
     public void deleteDonation(int id) {
+        try {
             restTemplate.delete(baseUrl + "/" + id);
+            clearCache(); // Añadir esta línea para limpiar la caché
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     public void clearCache() {

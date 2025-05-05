@@ -101,8 +101,7 @@ public class DonationController {
         if (donation == null) {
             return ResponseEntity.notFound().build();
         }
-
-        donationService.deleteDonation(id);
-        return ResponseEntity.ok().build();
+        donationService.deleteDonation(donation);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

@@ -51,8 +51,8 @@ public class DonationService {
         return donationRepository.findById(id).orElse(null);
     }
 
-    public void deleteDonation(Integer id) {
-        donationRepository.deleteById(id);
+    public void deleteDonation(Donation donation) {
+        donationRepository.delete(donation);
     }
 
     // Helper method to generate donation code in format DON-YYYY-NNN

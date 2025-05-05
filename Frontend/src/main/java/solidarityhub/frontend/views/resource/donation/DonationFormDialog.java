@@ -270,6 +270,7 @@ public class DonationFormDialog extends Dialog {
     private void deleteDonation() {
         try {
             donationService.deleteDonation(donationDTO.getId());
+            donationService.clearCache();
             Notification.show("Donación eliminada correctamente",
                             3000, Notification.Position.BOTTOM_START)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
