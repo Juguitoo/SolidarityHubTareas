@@ -2,6 +2,7 @@ package solidarityhub.backend.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import solidarityhub.backend.model.Volunteer;
 import solidarityhub.backend.model.enums.TaskType;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @NoArgsConstructor
 @Getter
+@Setter
 public class VolunteerDTO {
     private String dni;
     private String firstName;
