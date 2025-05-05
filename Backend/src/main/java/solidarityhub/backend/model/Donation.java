@@ -51,7 +51,13 @@ public class Donation {
     private Catastrophe catastrophe;
 
     @Setter
-    private double amount;
+    private double quantity;
+
+    @Setter
+    private String unit;
+
+    @Setter
+    private String cantidad;
 
 
     public Donation(String code, DonationType type, String description,
@@ -66,12 +72,16 @@ public class Donation {
         this.catastrophe = catastrophe;
     }
 
-    //Para donaciones monetarias
     public Donation(String code, DonationType type, String description,
                     LocalDate date, DonationStatus status,
-                    Volunteer volunteer, Catastrophe catastrophe, double amount) {
+                    Volunteer volunteer, Catastrophe catastrophe,
+                    double quantity, String unit) {
         this(code, type, description, date, status, volunteer, catastrophe);
-        this.amount = amount;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.cantidad = quantity + " " + unit;
     }
+
+
 
 }

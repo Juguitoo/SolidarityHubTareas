@@ -144,10 +144,8 @@ public class DonationView extends VerticalLayout {
                 .setHeader("Donante")
                 .setAutoWidth(true);
 
-        Grid.Column<DonationDTO> amountColumn = donationGrid.addColumn(donation ->
-                        donation.getType() == DonationType.FINANCIAL ?
-                                String.format("%.2f €", donation.getAmount()) : "-")
-                .setHeader("Importe")
+        Grid.Column<DonationDTO> cantidadColumn = donationGrid.addColumn(DonationDTO::getCantidad)
+                .setHeader("Cantidad")
                 .setAutoWidth(true);
 
         // Configurar evento de doble clic para editar

@@ -57,7 +57,9 @@ public class DonationController {
             donation.setType(donationDTO.getType());
             donation.setDescription(donationDTO.getDescription());
             donation.setStatus(donationDTO.getStatus());
-            donation.setAmount(donationDTO.getAmount());
+            donation.setQuantity(donationDTO.getQuantity());
+            donation.setUnit(donationDTO.getUnit());
+            donation.setCantidad(donationDTO.getQuantity() + " " + donationDTO.getUnit());
 
             Donation savedDonation = donationService.createDonation(
                     donationDTO.getVolunteerDni(),
@@ -85,7 +87,9 @@ public class DonationController {
         donation.setType(donationDTO.getType());
         donation.setDescription(donationDTO.getDescription());
         donation.setStatus(donationDTO.getStatus());
-        donation.setAmount(donationDTO.getAmount());
+        donation.setQuantity(donationDTO.getQuantity());
+        donation.setUnit(donationDTO.getUnit());
+        donation.setCantidad(donationDTO.getQuantity() + " " + donationDTO.getUnit());
 
         Donation updatedDonation = donationService.saveDonation(donation);
         return ResponseEntity.ok(new DonationDTO(updatedDonation));

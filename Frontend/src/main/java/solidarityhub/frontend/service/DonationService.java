@@ -57,12 +57,7 @@ public class DonationService {
     }
 
     public void deleteDonation(int id) {
-        try {
             restTemplate.delete(baseUrl + "/" + id);
-            clearCache();
-        } catch (Exception e) {
-            throw e;
-        }
     }
 
     public void clearCache() {
@@ -126,7 +121,9 @@ public class DonationService {
         donation1.setDescription("Donación de $500");
         donation1.setDate(LocalDate.of(2025, 4, 5));
         donation1.setStatus(DonationStatus.COMPLETED);
-        donation1.setAmount(500);
+        donation1.setQuantity(500);
+        donation1.setUnit("€");
+        donation1.setCantidad("500 €");
         donation1.setCatastropheId(1);
         donation1.setCatastropheName("Huracán Katrina");
 
@@ -137,6 +134,9 @@ public class DonationService {
         donation2.setDescription("Ropa y medicinas");
         donation2.setDate(LocalDate.of(2025, 4, 6));
         donation2.setStatus(DonationStatus.IN_PROGRESS);
+        donation2.setQuantity(50);
+        donation2.setUnit("cajas");
+        donation2.setCantidad("50 cajas");
         donation2.setCatastropheId(1);
         donation2.setCatastropheName("Huracán Katrina");
 
@@ -147,6 +147,9 @@ public class DonationService {
         donation3.setDescription("Transporte de suministros");
         donation3.setDate(LocalDate.of(2025, 4, 7));
         donation3.setStatus(DonationStatus.SCHEDULED);
+        donation3.setQuantity(120);
+        donation3.setUnit("horas");
+        donation3.setCantidad("120 horas");
         donation3.setCatastropheId(1);
         donation3.setCatastropheName("Huracán Katrina");
 
@@ -157,7 +160,9 @@ public class DonationService {
         donation4.setDescription("Donación de $750");
         donation4.setDate(LocalDate.of(2025, 4, 8));
         donation4.setStatus(DonationStatus.COMPLETED);
-        donation4.setAmount(750);
+        donation4.setQuantity(750);
+        donation4.setUnit("€");
+        donation4.setCantidad("750 €");
         donation4.setCatastropheId(1);
         donation4.setCatastropheName("Huracán Katrina");
 

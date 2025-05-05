@@ -23,7 +23,9 @@ public class DonationDTO {
     private String volunteerName;
     private Integer catastropheId;
     private String catastropheName;
-    private double amount;
+    private double quantity;
+    private String unit;
+    private String cantidad;
 
     public DonationDTO(Donation donation) {
         this.id = donation.getId();
@@ -43,6 +45,14 @@ public class DonationDTO {
             this.catastropheName = donation.getCatastrophe().getName();
         }
 
-        this.amount = donation.getAmount();
+        this.quantity = donation.getQuantity();
+        this.unit = donation.getUnit();
+        this.cantidad = donation.getCantidad();
+    }
+    public String getCantidad() {
+        if (cantidad == null || cantidad.isEmpty()) {
+            return quantity + " " + unit;
+        }
+        return cantidad;
     }
 }

@@ -37,12 +37,13 @@ public class DonationFormDialog extends Dialog {
 
     private final Binder<DonationDTO> binder = new Binder<>(DonationDTO.class);
 
-    // Form fields
+    // Campos del formulario
     private final TextField codeField = new TextField("Código");
     private final DatePicker dateField = new DatePicker("Fecha");
     private final ComboBox<DonationType> typeField = new ComboBox<>("Tipo");
     private final TextArea descriptionField = new TextArea("Descripción");
-    private final NumberField amountField = new NumberField("Cantidad (€)");
+    private final NumberField quantityField = new NumberField("Cantidad");
+    private final TextField unitField = new TextField("Unidad de medida");
     private final ComboBox<DonationStatus> statusField = new ComboBox<>("Estado");
     private final TextField volunteerField = new TextField("Donante (DNI)");
 
@@ -70,28 +71,28 @@ public class DonationFormDialog extends Dialog {
         dialogLayout.setSpacing(false);
         dialogLayout.addClassName("donation-form");
 
-        // Title
+        // Título
         H3 title = new H3(isEditMode ? "Editar donación" : "Registrar nueva donación");
         title.addClassName("donation-form-title");
         title.getStyle().set("margin", "1rem");
 
-        // Initialize form
+        // Inicializar formulario
         initForm();
 
-        // Form layout
+        // Diseño del formulario
         FormLayout form = new FormLayout();
         form.addClassName("form-layout");
         form.getStyle().set("padding", "0 1rem");
 
-        // Add form fields
+        // Añadir campos del formulario
         form.add(codeField, dateField, typeField, statusField);
-        form.add(volunteerField, amountField);
+        form.add(volunteerField, quantityField, unitField);
 
-        // Description should span 2 columns
+        // La descripción debe abarcar 2 columnas
         descriptionField.addClassName("full-width");
         form.add(descriptionField);
 
-        // Buttons
+        // Botones
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.addClassName("button-container");
         buttonLayout.getStyle().set("padding", "1rem");
@@ -114,13 +115,13 @@ public class DonationFormDialog extends Dialog {
 
         buttonLayout.add(saveButton);
 
-        // Add components to dialog
+        // Añadir componentes al diálogo
         dialogLayout.add(title, form, buttonLayout);
         add(dialogLayout);
     }
 
     private void initForm() {
-        // Setup fields
+        // Configurar campos
         codeField.setReadOnly(true);
         if (isEditMode) {
             codeField.setValue(donationDTO.getCode());
@@ -141,25 +142,25 @@ public class DonationFormDialog extends Dialog {
             descriptionField.setValue(donationDTO.getDescription());
         }
 
-        // Inicialmente ocultar el campo de cantidad
-        amountField.setVisible(false);
-
-        if (isEditMode && donationDTO.getType() == DonationType.FINANCIAL) {
-            amountField.setVisible(true);
-            amountField.setValue(donationDTO.getAmount());
+        // Inicializar campos de cantidad y unidad
+        if (isEditMode) {
+            quantityField.setValue(donationDTO.getQuantity());
+            unitField.setValue(donationDTO.getUnit());
+        } else {
+            // Valores predeterminados
+            quantityField.setValue(0.0);
+            unitField.setValue("€");
         }
 
-        // Show/hide amount field based on selected type
+        // Establecer valores predeterminados de unidad según el tipo
         typeField.addValueChangeListener(event -> {
-            boolean isFinancial = event.getValue() == DonationType.FINANCIAL;
-            amountField.setVisible(isFinancial);
-
-            // Si no es una donación financiera, establecer un valor por defecto de 0
-            // para evitar problemas de validación
-            if (!isFinancial) {
-                amountField.setValue(0.0);
-            } else if (amountField.isEmpty()) {
-                amountField.setValue(0.0);
+            DonationType selectedType = event.getValue();
+            if (selectedType == DonationType.FINANCIAL && unitField.isEmpty()) {
+                unitField.setValue("€");
+            } else if (selectedType == DonationType.MATERIAL && unitField.isEmpty()) {
+                unitField.setValue("unidades");
+            } else if (selectedType == DonationType.SERVICE && unitField.isEmpty()) {
+                unitField.setValue("horas");
             }
         });
 
@@ -175,7 +176,7 @@ public class DonationFormDialog extends Dialog {
             volunteerField.setValue(donationDTO.getVolunteerDni());
         }
 
-        // Setup binder
+        // Configurar binder
         binder.forField(descriptionField)
                 .asRequired("La descripción es obligatoria")
                 .bind(DonationDTO::getDescription, DonationDTO::setDescription);
@@ -192,16 +193,15 @@ public class DonationFormDialog extends Dialog {
                 .asRequired("El DNI del donante es obligatorio")
                 .bind(DonationDTO::getVolunteerDni, DonationDTO::setVolunteerDni);
 
-        // Configurar el binder para el campo de cantidad solo si es una donación financiera
-        binder.forField(amountField)
-                .withValidator(value -> {
-                    // Solo validar si es una donación financiera
-                    if (typeField.getValue() == DonationType.FINANCIAL) {
-                        return value != null && value >= 0;
-                    }
-                    return true; // No validar para otros tipos
-                }, "La cantidad debe ser un valor positivo")
-                .bind(DonationDTO::getAmount, DonationDTO::setAmount);
+        // Configurar el binder para los campos de cantidad y unidad
+        binder.forField(quantityField)
+                .withValidator(value -> value != null && value >= 0,
+                        "La cantidad debe ser un valor positivo")
+                .bind(DonationDTO::getQuantity, DonationDTO::setQuantity);
+
+        binder.forField(unitField)
+                .asRequired("La unidad de medida es obligatoria")
+                .bind(DonationDTO::getUnit, DonationDTO::setUnit);
 
         binder.forField(dateField)
                 .asRequired("La fecha es obligatoria")
@@ -210,19 +210,17 @@ public class DonationFormDialog extends Dialog {
 
     private void save() {
         try {
-            // Asegurar que la cantidad sea 0 para donaciones no financieras
-            if (typeField.getValue() != DonationType.FINANCIAL) {
-                donationDTO.setAmount(0.0);
-            }
-
-            // Validate form
+            // Validar formulario
             binder.writeBean(donationDTO);
 
-            // Set catastrophe ID
+            // Establecer ID de catástrofe
             donationDTO.setCatastropheId(selectedCatastrophe.getId());
             donationDTO.setCatastropheName(selectedCatastrophe.getName());
 
-            // Save donation
+            // Generar cantidad a partir de quantity y unit
+            donationDTO.setCantidad(donationDTO.getQuantity() + " " + donationDTO.getUnit());
+
+            // Guardar donación
             if (isEditMode) {
                 donationService.updateDonation(donationDTO.getId(), donationDTO);
                 Notification.show("Donación actualizada correctamente",
@@ -235,18 +233,16 @@ public class DonationFormDialog extends Dialog {
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             }
 
-            // Close dialog
+            // Cerrar diálogo
             close();
         } catch (ValidationException e) {
             Notification.show("Por favor, corrija los errores en el formulario: " + e.getMessage(),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            e.printStackTrace(); // Para depuración
         } catch (Exception e) {
             Notification.show("Error al guardar la donación: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            e.printStackTrace(); // Para depuración
         }
     }
 
@@ -290,16 +286,12 @@ public class DonationFormDialog extends Dialog {
             return "";
         }
 
-        switch (type) {
-            case FINANCIAL:
-                return "Económica";
-            case MATERIAL:
-                return "Material";
-            case SERVICE:
-                return "Servicio";
-            default:
-                return type.toString();
-        }
+        return switch (type) {
+            case FINANCIAL -> "Económica";
+            case MATERIAL -> "Material";
+            case SERVICE -> "Servicio";
+            default -> type.toString();
+        };
     }
 
     private String formatDonationStatus(DonationStatus status) {
@@ -307,17 +299,12 @@ public class DonationFormDialog extends Dialog {
             return "";
         }
 
-        switch (status) {
-            case COMPLETED:
-                return "Completada";
-            case IN_PROGRESS:
-                return "En proceso";
-            case SCHEDULED:
-                return "Programada";
-            case CANCELLED:
-                return "Cancelada";
-            default:
-                return status.toString();
-        }
+        return switch (status) {
+            case COMPLETED -> "Completada";
+            case IN_PROGRESS -> "En proceso";
+            case SCHEDULED -> "Programada";
+            case CANCELLED -> "Cancelada";
+            default -> status.toString();
+        };
     }
 }
