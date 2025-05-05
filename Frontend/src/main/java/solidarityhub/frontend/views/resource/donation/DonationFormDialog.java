@@ -5,8 +5,10 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.dialog.DialogVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -61,6 +63,7 @@ public class DonationFormDialog extends Dialog {
         this.donationDTO = isEditMode ? donationDTO : new DonationDTO();
 
         setWidth("600px");
+        addThemeVariants(DialogVariant.LUMO_NO_PADDING);
 
         VerticalLayout dialogLayout = new VerticalLayout();
         dialogLayout.setPadding(false);
@@ -70,6 +73,7 @@ public class DonationFormDialog extends Dialog {
         // Title
         H3 title = new H3(isEditMode ? "Editar donación" : "Registrar nueva donación");
         title.addClassName("donation-form-title");
+        title.getStyle().set("margin", "1rem");
 
         // Initialize form
         initForm();
@@ -77,6 +81,7 @@ public class DonationFormDialog extends Dialog {
         // Form layout
         FormLayout form = new FormLayout();
         form.addClassName("form-layout");
+        form.getStyle().set("padding", "0 1rem");
 
         // Add form fields
         form.add(codeField, dateField, typeField, statusField);
@@ -87,13 +92,27 @@ public class DonationFormDialog extends Dialog {
         form.add(descriptionField);
 
         // Buttons
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.addClassName("button-container");
+        buttonLayout.getStyle().set("padding", "1rem");
+        buttonLayout.getStyle().set("margin-top", "1rem");
+
         Button saveButton = new Button("Guardar", e -> save());
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         Button cancelButton = new Button("Cancelar", e -> close());
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, saveButton);
-        buttonLayout.addClassName("button-container");
+        buttonLayout.add(cancelButton);
+
+        // Botón de eliminar (solo en modo edición)
+        if (isEditMode) {
+            Button deleteButton = new Button("Eliminar", e -> confirmDelete());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            buttonLayout.add(deleteButton);
+        }
+
+        buttonLayout.add(saveButton);
 
         // Add components to dialog
         dialogLayout.add(title, form, buttonLayout);
@@ -122,7 +141,9 @@ public class DonationFormDialog extends Dialog {
             descriptionField.setValue(donationDTO.getDescription());
         }
 
+        // Inicialmente ocultar el campo de cantidad
         amountField.setVisible(false);
+
         if (isEditMode && donationDTO.getType() == DonationType.FINANCIAL) {
             amountField.setVisible(true);
             amountField.setValue(donationDTO.getAmount());
@@ -130,7 +151,16 @@ public class DonationFormDialog extends Dialog {
 
         // Show/hide amount field based on selected type
         typeField.addValueChangeListener(event -> {
-            amountField.setVisible(event.getValue() == DonationType.FINANCIAL);
+            boolean isFinancial = event.getValue() == DonationType.FINANCIAL;
+            amountField.setVisible(isFinancial);
+
+            // Si no es una donación financiera, establecer un valor por defecto de 0
+            // para evitar problemas de validación
+            if (!isFinancial) {
+                amountField.setValue(0.0);
+            } else if (amountField.isEmpty()) {
+                amountField.setValue(0.0);
+            }
         });
 
         statusField.setItems(DonationStatus.values());
@@ -162,7 +192,15 @@ public class DonationFormDialog extends Dialog {
                 .asRequired("El DNI del donante es obligatorio")
                 .bind(DonationDTO::getVolunteerDni, DonationDTO::setVolunteerDni);
 
+        // Configurar el binder para el campo de cantidad solo si es una donación financiera
         binder.forField(amountField)
+                .withValidator(value -> {
+                    // Solo validar si es una donación financiera
+                    if (typeField.getValue() == DonationType.FINANCIAL) {
+                        return value != null && value >= 0;
+                    }
+                    return true; // No validar para otros tipos
+                }, "La cantidad debe ser un valor positivo")
                 .bind(DonationDTO::getAmount, DonationDTO::setAmount);
 
         binder.forField(dateField)
@@ -172,6 +210,11 @@ public class DonationFormDialog extends Dialog {
 
     private void save() {
         try {
+            // Asegurar que la cantidad sea 0 para donaciones no financieras
+            if (typeField.getValue() != DonationType.FINANCIAL) {
+                donationDTO.setAmount(0.0);
+            }
+
             // Validate form
             binder.writeBean(donationDTO);
 
@@ -195,11 +238,48 @@ public class DonationFormDialog extends Dialog {
             // Close dialog
             close();
         } catch (ValidationException e) {
-            Notification.show("Por favor, corrija los errores en el formulario",
+            Notification.show("Por favor, corrija los errores en el formulario: " + e.getMessage(),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            e.printStackTrace(); // Para depuración
         } catch (Exception e) {
             Notification.show("Error al guardar la donación: " + e.getMessage(),
+                            5000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            e.printStackTrace(); // Para depuración
+        }
+    }
+
+    private void confirmDelete() {
+        Dialog confirmDialog = new Dialog();
+        confirmDialog.setHeaderTitle("Confirmar eliminación");
+
+        VerticalLayout confirmContent = new VerticalLayout();
+        confirmContent.add(new Span("¿Está seguro de que desea eliminar esta donación? Esta acción no se puede deshacer."));
+        confirmContent.setPadding(true);
+
+        Button cancelButton = new Button("Cancelar", e -> confirmDialog.close());
+        Button confirmButton = new Button("Eliminar", e -> {
+            deleteDonation();
+            confirmDialog.close();
+        });
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+
+        confirmDialog.getFooter().add(cancelButton, confirmButton);
+        confirmDialog.add(confirmContent);
+
+        confirmDialog.open();
+    }
+
+    private void deleteDonation() {
+        try {
+            donationService.deleteDonation(donationDTO.getId());
+            Notification.show("Donación eliminada correctamente",
+                            3000, Notification.Position.BOTTOM_START)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            close();
+        } catch (Exception e) {
+            Notification.show("Error al eliminar la donación: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }

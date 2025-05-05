@@ -53,6 +53,7 @@ public class MainResourceView extends VerticalLayout implements BeforeEnterObser
         ResourceView resourceView = new ResourceView(selectedCatastrophe);
         DonationView donationView = new DonationView(selectedCatastrophe);
 
+
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
