@@ -41,7 +41,7 @@ public class EditResourceDialog {
     public void openEditResourceDialog() {
         Dialog dialog = new Dialog();
         dialog.setWidth("600px");
-        dialog.setHeight("600px");
+        dialog.setHeight("450px");
 
         H3 title = new H3("Editar recurso");
         title.setWidthFull();
