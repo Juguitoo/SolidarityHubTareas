@@ -227,7 +227,7 @@ public class DonationView extends VerticalLayout {
 
     private void refreshDonations() {
         donationService.clearCache();
-        List<DonationDTO> donations = getDonationList();
+        List<DonationDTO> donations = donationService.getDonationsByCatastrophe(selectedCatastrophe.getId());
         donationDataProvider = new ListDataProvider<>(donations);
         donationGrid.setItems(donations);
         donationGrid.getDataProvider().refreshAll();

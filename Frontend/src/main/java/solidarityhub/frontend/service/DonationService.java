@@ -59,9 +59,10 @@ public class DonationService {
     public void deleteDonation(int id) {
         try {
             restTemplate.delete(baseUrl + "/" + id);
-            clearCache(); // Añadir esta línea para limpiar la caché
+            clearCache(); // Limpiar la caché después de la eliminación
         } catch (Exception e) {
-            throw e;
+            System.err.println("Error al eliminar la donación con ID " + id + ": " + e.getMessage());
+            throw e; // Re-lanzar para que el metodo que lo llama pueda manejarlo
         }
     }
 

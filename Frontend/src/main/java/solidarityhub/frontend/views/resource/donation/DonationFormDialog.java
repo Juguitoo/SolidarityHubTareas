@@ -270,13 +270,18 @@ public class DonationFormDialog extends Dialog {
     private void deleteDonation() {
         try {
             donationService.deleteDonation(donationDTO.getId());
+            // Añadir esta línea para depuración
+            Notification.show("Solicitud de eliminación enviada para la donación ID: " + donationDTO.getId(),
+                    3000, Notification.Position.MIDDLE);
             donationService.clearCache();
             Notification.show("Donación eliminada correctamente",
                             3000, Notification.Position.BOTTOM_START)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             close();
         } catch (Exception e) {
-            Notification.show("Error al eliminar la donación: " + e.getMessage(),
+            // Añadir mensaje de error más detallado
+            Notification.show("Error al eliminar la donación: " + e.getMessage() +
+                                    " (Traza de pila: " + e.getStackTrace()[0] + ")",
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
