@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.resource.donation;
+package solidarityhub.frontend.views.resources.donation;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -88,7 +88,7 @@ public class DonationView extends VerticalLayout {
 
         donationGrid.addItemDoubleClickListener(event -> {
             DonationDTO donation = event.getItem();
-            DonationFormDialog dialog = new DonationFormDialog(donationService, catastropheService, selectedCatastrophe, donation);
+            AddDonationDialog dialog = new AddDonationDialog(selectedCatastrophe, donation);
             dialog.open();
             dialog.addOpenedChangeListener(dialogEvent -> {
                 if (!dialogEvent.isOpened()) {
@@ -113,7 +113,7 @@ public class DonationView extends VerticalLayout {
         addDonationButton.addClassName("add-resource-button");
 
         addDonationButton.addClickListener(e -> {
-            DonationFormDialog dialog = new DonationFormDialog(donationService, catastropheService, selectedCatastrophe);
+            AddDonationDialog dialog = new AddDonationDialog(selectedCatastrophe);
             dialog.open();
             dialog.addOpenedChangeListener(event -> {
                 if (!event.isOpened()) {

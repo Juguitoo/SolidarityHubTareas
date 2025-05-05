@@ -1,3 +1,7 @@
+.resources-dialog{
+    width: 50%;
+}
+
 .add-resource-button{
     background-color: blue;
     color: #fff;

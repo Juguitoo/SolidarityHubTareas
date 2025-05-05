@@ -18,8 +18,7 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
-import solidarityhub.frontend.views.resource.MainResourceView;
-import solidarityhub.frontend.views.resource.ResourceView;
+import solidarityhub.frontend.views.resources.MainResourcesView;
 import solidarityhub.frontend.views.task.TaskView;
 
 /**
@@ -202,7 +201,7 @@ public class MainLayout extends AppLayout {
         nav.addItem(
                 createNavItem("Tareas", VaadinIcon.TASKS, TaskView.class),
                 createNavItem("Mapa", VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
-                createNavItem("Recursos", VaadinIcon.TOOLBOX, MainResourceView.class),
+                createNavItem("Recursos", VaadinIcon.TOOLBOX, MainResourcesView.class),
                 createNavItem("Dashboard", VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
                 createNavItem("Contacto", VaadinIcon.PHONE, "http://localhost:8080/contact")
         );

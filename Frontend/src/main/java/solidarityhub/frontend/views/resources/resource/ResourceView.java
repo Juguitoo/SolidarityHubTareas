@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.resource;
+package solidarityhub.frontend.views.resources.resource;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -98,13 +98,8 @@ public class ResourceView extends VerticalLayout{
 
         resourceGrid.addItemDoubleClickListener(event -> {
             ResourceDTO resource = event.getItem();
-            EditResourceDialog dialog = new EditResourceDialog(
-                    resourceService,
-                    storageService,
-                    resourceGrid,
-                    selectedCatastrophe,
-                    resource);
-            dialog.openEditResourceDialog();
+            EditResourceDialog dialog = new EditResourceDialog(selectedCatastrophe, resource);
+            dialog.open();
 //            dialog.addOpenedChangeListener(dialogEvent -> {
 //                if (!dialogEvent.isOpened()) {
 //                    refreshResources();

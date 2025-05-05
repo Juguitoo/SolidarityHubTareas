@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.resource;
+package solidarityhub.frontend.views.resources;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -12,17 +12,18 @@ import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.resource.donation.DonationView;
+import solidarityhub.frontend.views.resources.donation.DonationView;
+import solidarityhub.frontend.views.resources.resource.ResourceView;
 
 @PageTitle("Recursos")
 @Route("resources")
-public class MainResourceView extends VerticalLayout implements BeforeEnterObserver {
+public class MainResourcesView extends VerticalLayout implements BeforeEnterObserver {
 
     private final CatastropheService catastropheService;
 
     private CatastropheDTO selectedCatastrophe;
 
-    public MainResourceView() {
+    public MainResourcesView() {
         this.catastropheService = new CatastropheService();
 
         setSizeFull();
