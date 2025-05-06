@@ -97,11 +97,7 @@ public class DonationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDonation(@PathVariable Integer id) {
-        Donation donation = donationService.getDonationById(id);
-        if (donation == null) {
-            return ResponseEntity.notFound().build();
-        }
-        donationService.deleteDonation(donation);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        donationService.deleteDonationById(id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -100,11 +100,11 @@ public class ResourceView extends VerticalLayout{
             ResourceDTO resource = event.getItem();
             EditResourceDialog dialog = new EditResourceDialog(selectedCatastrophe, resource);
             dialog.open();
-//            dialog.addOpenedChangeListener(dialogEvent -> {
-//                if (!dialogEvent.isOpened()) {
-//                    refreshResources();
-//                }
-//            });
+            dialog.addOpenedChangeListener(dialogEvent -> {
+                if (!dialogEvent.isOpened()) {
+                    refreshResources();
+                }
+           });
         });
 
         resourceGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
