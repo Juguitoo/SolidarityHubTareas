@@ -33,3 +33,7 @@
 .grid__filter-title{
     width: fit-content;
 }
+
+.donate__dni-field{
+    text-transform: uppercase;
+}

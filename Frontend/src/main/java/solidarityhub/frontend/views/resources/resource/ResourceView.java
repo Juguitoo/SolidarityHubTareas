@@ -104,7 +104,7 @@ public class ResourceView extends VerticalLayout{
                 if (!dialogEvent.isOpened()) {
                     refreshResources();
                 }
-           });
+            });
         });
 
         resourceGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
@@ -113,7 +113,7 @@ public class ResourceView extends VerticalLayout{
 
     private void refreshResources() {
         resourceService.clearCache();
-        resourceGrid.setItems(resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId()));
+        resourceGrid.setItems(getResourceList());
         resourceGrid.getDataProvider().refreshAll();
     }
 

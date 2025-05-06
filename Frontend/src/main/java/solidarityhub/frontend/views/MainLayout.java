@@ -41,8 +41,6 @@ public class MainLayout extends AppLayout {
         getElement().setAttribute("class", "main-layout");
         addDrawerContent();
 
-        // Configurar un listener para actualizar el indicador de catástrofe seleccionada
-        // cuando cambia de ruta o se refresca la página
         UI.getCurrent().addAfterNavigationListener(event -> updateSelectedCatastropheInfo());
     }
 

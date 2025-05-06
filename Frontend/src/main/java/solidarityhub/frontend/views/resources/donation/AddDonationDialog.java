@@ -81,11 +81,13 @@ public class AddDonationDialog extends Dialog {
         dateField = new DatePicker("Fecha");
         dateField.setValue(donation == null ? LocalDate.now() : donation.getDate());
         dateField.setRequiredIndicatorVisible(true);
+        dateField.setRequired(true);
 
         typeField = new ComboBox<>("Tipo");
         typeField.setItems(DonationType.values());
         typeField.setItemLabelGenerator(this::formatDonationType);
         typeField.setRequiredIndicatorVisible(true);
+        typeField.setRequired(true);
 
         typeField.addValueChangeListener(event -> {
             DonationType selectedType = event.getValue();
@@ -101,24 +103,30 @@ public class AddDonationDialog extends Dialog {
         quantityField = new NumberField("Cantidad");
         quantityField.setRequiredIndicatorVisible(true);
         quantityField.setValue(donation == null ? 0.0 : donation.getQuantity());
+        quantityField.setRequired(true);
 
         unitField = new TextField("Unidad de medida");
         unitField.setRequiredIndicatorVisible(true);
         unitField.setValue(donation == null ? "€" : donation.getUnit());
+        unitField.setRequired(true);
 
         descriptionField = new TextArea("Descripción");
         descriptionField.setPlaceholder("Ingrese una descripción detallada de la donación");
+        descriptionField.setHeight("75px");
+        descriptionField.setRequired(true);
         descriptionField.setRequiredIndicatorVisible(true);
-        descriptionField.setHeight("100px");
 
         statusField = new ComboBox<>("Estado");
         statusField.setItems(DonationStatus.values());
         statusField.setItemLabelGenerator(this::formatDonationStatus);
         statusField.setValue(donation == null ? DonationStatus.COMPLETED : donation.getStatus());
         statusField.setRequiredIndicatorVisible(true);
+        statusField.setRequired(true);
 
         volunteerField = new TextField("Donante (DNI)");
+        volunteerField.addClassName("donate__dni-field");
         volunteerField.setRequiredIndicatorVisible(true);
+        volunteerField.setRequired(true);
 
         formLayout.add(dateField, typeField, quantityField, unitField, descriptionField, statusField, volunteerField);
 
@@ -146,7 +154,7 @@ public class AddDonationDialog extends Dialog {
         return buttonLayout;
     }
 
-    //=============================== Edit Donation =========================================
+    //=============================== Manage Donation =========================================
     protected void saveDonation() {
         LocalDate date = dateField.getValue();
         DonationType type = typeField.getValue();
@@ -154,7 +162,8 @@ public class AddDonationDialog extends Dialog {
         Double quantity = quantityField.getValue();
         String unit = unitField.getValue();
         DonationStatus status = statusField.getValue();
-        String volunteerDni = volunteerField.getValue();
+        String volunteerDni = volunteerField.getValue().toUpperCase();
+
 
         if (date == null || type == null || description == null || description.isEmpty() ||
                 quantity == null || unit.isEmpty() || status == null || volunteerDni.isEmpty()) {
