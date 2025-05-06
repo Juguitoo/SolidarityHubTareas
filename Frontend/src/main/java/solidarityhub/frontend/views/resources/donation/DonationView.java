@@ -136,7 +136,7 @@ public class DonationView extends VerticalLayout {
         typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true);
 
         donationGrid.addColumn(donation ->
-                        donation.getDate() != null ? donation.getDate().format(DATE_FORMATTER) : "")
+                        donation.getDate() != null ? donation.getDate().format(DATE_FORMATTER) : "").setHeader("Fecha")
                 .setSortable(true).setAutoWidth(true);
 
         statusColumn = donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus()))
@@ -145,7 +145,7 @@ public class DonationView extends VerticalLayout {
         donorColumn = donationGrid.addColumn(donation -> donation.getVolunteerName() != null ? donation.getVolunteerName() : donation.getVolunteerDni())
                 .setAutoWidth(true);
 
-        donationGrid.addColumn(DonationDTO::getCantidad)
+        donationGrid.addColumn(DonationDTO::getCantidad).setHeader("Cantidad")
                 .setAutoWidth(true);
     }
 
