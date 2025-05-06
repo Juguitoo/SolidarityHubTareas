@@ -34,6 +34,6 @@
     width: fit-content;
 }
 
-.donate__dni-field{
+.donate__dni-field > input{
     text-transform: uppercase;
 }
