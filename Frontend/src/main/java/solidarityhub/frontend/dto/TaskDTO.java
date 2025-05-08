@@ -2,6 +2,7 @@ package solidarityhub.frontend.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @NoArgsConstructor
 @Getter
+@Setter
 public class TaskDTO {
     private int id;
     private String name;
@@ -25,9 +27,11 @@ public class TaskDTO {
     private List<NeedDTO> needs;
     private List<VolunteerDTO> volunteers;
     private Integer catastropheId;
+    private String meetingDirection;
+
 
     public TaskDTO(String name , String description, LocalDateTime startTimeDate, LocalDateTime estimatedEndTimeDate, TaskType type, Priority priority, EmergencyLevel emergencyLevel,
-                   Status status, List<NeedDTO> needs, List<VolunteerDTO> volunteers) {
+                   Status status, List<NeedDTO> needs, List<VolunteerDTO> volunteers, String meetingDirection) {
         this.needs = needs;
         this.volunteers = volunteers;
         this.name = name;
@@ -39,19 +43,16 @@ public class TaskDTO {
         this.emergencyLevel = emergencyLevel;
         this.status = status;
         this.catastropheId = null;
+        this.meetingDirection = meetingDirection;
     }
 
     public TaskDTO(String name, String description, LocalDateTime startTimeDate,
                    LocalDateTime estimatedEndTimeDate, TaskType type, Priority priority,
                    EmergencyLevel emergencyLevel, Status status, List<NeedDTO> needs,
-                   List<VolunteerDTO> volunteers, Integer catastropheId) {
+                   List<VolunteerDTO> volunteers, Integer catastropheId, String meetingDirection) {
         this(name, description, startTimeDate, estimatedEndTimeDate, type, priority,
-                emergencyLevel, status, needs, volunteers);
+                emergencyLevel, status, needs, volunteers, meetingDirection);
         this.catastropheId = catastropheId;
     }
 
-    // Setter específico para el ID de catástrofe
-    public void setCatastropheId(Integer catastropheId) {
-        this.catastropheId = catastropheId;
-    }
 }

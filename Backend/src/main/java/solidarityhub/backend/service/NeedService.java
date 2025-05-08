@@ -10,12 +10,14 @@ import java.util.List;
 public class NeedService {
     private final NeedRepository needRepository;
     public NeedService(NeedRepository needRepository) {this.needRepository = needRepository;}
-    public Need saveNeed(Need need) {
+    public Need save(Need need) {
         return needRepository.save(need);
     }
     public Need findNeed(Integer id) {
         return needRepository.findById(id).get();
     }
 
-    public List<Need> getAllNeeds() {return needRepository.findAll();}
+    public List<Need> getAllNeeds(Integer id) {return needRepository.getAllNeeds(id);}
+    public List<Need> getNeedsWithoutTask(Integer id) {return needRepository.getNeedsWithoutTask(id);}
+    public int getNeedWithoutTaskCount(Integer id) {return needRepository.getNeedWithoutTaskCount(id);}
 }

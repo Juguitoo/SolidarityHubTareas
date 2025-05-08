@@ -35,6 +35,7 @@ public class CatastropheSelectionView extends VerticalLayout {
 
     @Autowired
     public CatastropheSelectionView(CatastropheService catastropheService, TaskService taskService) {
+        VaadinSession.getCurrent().setAttribute("cache", true);
         // Configuración de la vista
         addClassName("catastrophe-selection-view");
         setSizeFull();
@@ -136,7 +137,7 @@ public class CatastropheSelectionView extends VerticalLayout {
 
         // Al hacer clic, se selecciona esta catástrofe
         card.addClickListener(e -> {
-            taskService.taskCache = null; // Limpiar caché de tareas
+            taskService.taskCache.clear();
             selectCatastrophe(catastrophe);
             UI.getCurrent().navigate("tasks");
         });

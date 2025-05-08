@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -9,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.service.NeedService;
-import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.model.Need;
+import solidarityhub.frontend.service.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -20,11 +21,7 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -38,7 +35,12 @@ import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
-import solidarityhub.frontend.service.VolunteerService;
+import solidarityhub.frontend.views.HeaderComponent;
+import solidarityhub.frontend.views.volunteer.VolunteerInfo;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -46,62 +48,67 @@ import java.util.stream.Collectors;
 
 @PageTitle("Añadir tarea")
 @Route("addtask")
-public class AddTaskView extends VerticalLayout {
+public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     protected final TaskService taskService;
     protected final VolunteerService volunteerService;
     protected final NeedService needService;
-    protected final CatastropheDTO selectedCatastrophe;
+    protected final CoordinatesService coordinatesService;
+    protected final CatastropheService catastropheService;
 
-    protected final TaskComponent taskPreview;
+    protected CatastropheDTO selectedCatastrophe;
+    protected TaskComponent taskPreview;
 
     protected final TextField taskName = new TextField("Nombre de la tarea");
     protected final TextArea taskDescription = new TextArea("Descripción de la tarea");
     protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
-    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de emergencia");
+    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de peligrosidad");
     protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
-    protected final DateTimePicker endDateTimePicker = new DateTimePicker("Fecha y hora estimada de finalización");
+    protected final DatePicker endDatePicker = new DatePicker("Fecha estimada de finalización");
+    protected final TextField taskLocation = new TextField("Punto de reunión ");
     protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
     protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
+
+    //Volunteers list
+    protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
+    protected List<VolunteerDTO> distanceVolunteersList = new ArrayList<>();
+    protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
+
+    protected List<NeedDTO> allNeedsWithoutTask;
 
     @Autowired
     public AddTaskView(TaskService taskService) {
         this.taskService = taskService;
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
-        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        this.coordinatesService = new CoordinatesService();
+        this.catastropheService = new CatastropheService();
 
-        this.taskPreview = new TaskComponent(
-                0,
-                "Nombre de la tarea",
-                "Descripccion de la tarea",
-                formatDate(LocalDateTime.now()),
-                "Prioridad",
-                "Nivel de emergencia"
-        );
-        taskPreview.enabledEditButton(false);
-
-        //Header
-        Div header = new Div();
-        header.addClassName("header");
-
-        Button backButton = new Button(new Icon("vaadin", "arrow-left"));
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("tasks")));
-        backButton.addClassName("back-button");
-
-        H1 title = new H1("Añadir tarea");
-        title.addClassName("title");
-
-        header.add(backButton, title);
-
-        add(
-            header,
-            getPreview(),
-            getForms(),
-            getButtons()
-        );
+        beforeEnter(null);
+        buildView();
     }
 
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        catastropheService.isCatastropheSelected(event, selectedCatastrophe);
+        allNeedsWithoutTask = needService.getNeedsWithoutTask(selectedCatastrophe.getId());
+    }
+
+    protected void buildView() {
+        removeAll();
+
+        HeaderComponent header = new HeaderComponent("Añadir tarea", "tasks");
+
+        add(
+                header,
+                getPreview(),
+                getForms(),
+                getButtons()
+        );
+
+        setAlignItems(Alignment.CENTER);
+    }
 
     private void saveNewTask(){
         if (validateForm()) {
@@ -125,18 +132,19 @@ public class AddTaskView extends VerticalLayout {
         List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
         List<NeedDTO> needs = new ArrayList<>();
         for (String need : selectedNeeds) {
-            needService.getNeeds().stream()
+            allNeedsWithoutTask.stream()
                     .filter(n -> n.getDescription().equals(need))
                     .findFirst().ifPresent(needs::add);
         }
+
         List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
         List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
         selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
                 .map(name -> {
                     if (name.equals("Elegir voluntarios automáticamente")) {
-                        finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
+                        finalSelectedVolunteers.addAll(allVolunteersList.subList(0, 1));
                     }
-                    return volunteerService.getVolunteers("", new TaskDTO()).stream()
+                    return allVolunteersList.stream()
                             .filter(v -> v.getFirstName().equals(name))
                             .findFirst()
                             .orElse(null);
@@ -145,29 +153,46 @@ public class AddTaskView extends VerticalLayout {
                 .collect(Collectors.toList());
 
         TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
-        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTimePicker.getValue(),
-                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId());
+
+        // Verificar que endDatePicker.getValue() no sea nulo antes de llamar a atTime()
+        LocalDateTime endDateTime = null;
+        if (endDatePicker.getValue() != null) {
+            endDateTime = endDatePicker.getValue().atTime(23, 59);
+        }
+
+        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
+                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
     }
 
     //===============================Get Components=========================================
-    private Component getPreview(){
+    protected Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
         preview.addClassName("previewContainer");
+        preview.setPadding(false);
+        preview.setWidth("40%");
 
-        H3 previewTitle = new H3("Previsualización:");
-
-        setAlignSelf(Alignment.CENTER, previewTitle, taskPreview);
+        taskPreview = new TaskComponent(
+                0,
+                "Nombre de la tarea",
+                "Descripción de la tarea...",
+                formatDate(LocalDateTime.now()),
+                "Prioridad",
+                "Nivel de peligrosidad"
+        );
+        taskPreview.enabledEditButton(false);
+        setAlignSelf(Alignment.CENTER, taskPreview);
 
         setupFormListeners();
 
-        preview.add(previewTitle, taskPreview);
+        preview.add(taskPreview);
         return preview;
     }
 
-    private Component getForms(){
+    protected Component getForms(){
         FormLayout addTaskForm = new FormLayout();
         addTaskForm.addClassName("addTaskForm");
 
+        //Forms
         taskName.setRequiredIndicatorVisible(true);
         taskName.setRequired(true);
 
@@ -191,34 +216,61 @@ public class AddTaskView extends VerticalLayout {
         starDateTimePicker.setRequiredIndicatorVisible(true);
         starDateTimePicker.setMin(LocalDateTime.now());
         starDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        starDateTimePicker.setHelperText("Sirve, además, como fecha de encuentro con los voluntarios ");
 
-        endDateTimePicker.setRequiredIndicatorVisible(true);
-        endDateTimePicker.setMin(LocalDateTime.now().plusHours(1));
-        endDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
-        endDateTimePicker.setHelperText("La fecha debe ser posterior a la fecha de comienzo");
+        endDatePicker.setRequiredIndicatorVisible(true);
+        endDatePicker.setMin(LocalDate.now());
+        endDatePicker.setI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        endDatePicker.setHelperText("Esta fecha debe ser posterior a la fecha de comienzo");
 
-        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDateTimePicker, taskEmergency, getVolunteersForm());
+        taskLocation.setRequiredIndicatorVisible(true);
+        taskLocation.setRequired(true);
+        taskLocation.setHelperText("Indique la dirección de encuentro de los voluntarios");
+
+        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation);
 
         //Update endDateTimePicker min value when startDateTimePicker changes
         starDateTimePicker.addValueChangeListener(event -> {
-            LocalDateTime startValue = null;
+            LocalDate startValue;
             try {
-                startValue = event.getValue();
+                startValue = event.getValue().toLocalDate();
                 if (startValue != null) {
-                    endDateTimePicker.setMin(startValue);
+                    endDatePicker.setMin(startValue);
 
-                    if (endDateTimePicker.getValue() != null &&
-                            endDateTimePicker.getValue().isBefore(startValue)) {
-                        endDateTimePicker.setValue(startValue.plusHours(1));
-                    } else if (endDateTimePicker.getValue().isBefore(startValue)) {
-                        endDateTimePicker.setValue(null);
+                    if (endDatePicker.getValue() != null &&
+                            endDatePicker.getValue().isBefore(startValue)) {
+                        endDatePicker.setValue(startValue);
+                    } else if (endDatePicker.getValue().isBefore(startValue)) {
+                        endDatePicker.setValue(null);
                     }
                 }
             } catch (Exception e) {
-                endDateTimePicker.setMin(LocalDateTime.now().plusHours(1));
+                endDatePicker.setMin(LocalDate.now());
             }
         });
 
+        taskLocation.addBlurListener(event -> {
+            String address = taskLocation.getValue();
+            if(address != null && !address.isEmpty()){
+                Map<String, Double> coordinatesMap = coordinatesService.getCoordinates(address);
+                if(coordinatesMap != null){
+                    if(coordinatesMap.get("lat") != null && coordinatesMap.get("lon") != null){
+                        taskLocation.setInvalid(false);
+                    }else {
+                        taskLocation.setInvalid(true);
+                        taskLocation.setValue("");
+                        Notification.show("La dirección ingresada no es válida. Por favor, intentelo de nuevo.", 3000, Notification.Position.MIDDLE);
+                    }
+                }else{
+                    taskLocation.setInvalid(true);
+                    taskLocation.setValue("");
+                    Notification.show("La dirección ingresada no es válida. Por favor, intentelo de nuevo.", 3000, Notification.Position.MIDDLE);
+                }
+            }
+        });
+
+
+        //Responsive
         addTaskForm.setColspan(taskDescription, 2);
         addTaskForm.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1),
@@ -234,134 +286,26 @@ public class AddTaskView extends VerticalLayout {
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
         volunteerMultiSelectComboBox.setRequired(true);
-        volunteerMultiSelectComboBox.setHelperText("Los voluntarios no se podrán modificar una vez creada la tarea");
         volunteerMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
-        Dialog selectVolunteersDialog = getVolunteersDialogContent();
-        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> selectVolunteersDialog.open());
+
+        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
+            if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
+                // Si no hay fechas seleccionadas, mostrar notificación
+                Notification notification = Notification.show(
+                        "Selecciona fecha para comprobar qué voluntarios están disponibles",
+                        3000,
+                        Notification.Position.MIDDLE
+                );
+                notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+            } else {
+                // Si hay fechas, mostrar el diálogo normal
+                Dialog selectVolunteersDialog = getVolunteersDialogContent();
+                selectVolunteersDialog.open();
+            }
+        });
 
         return volunteerMultiSelectComboBox;
-    }
-
-    private Dialog getVolunteersDialogContent() {
-        Dialog volunteerDialog = new Dialog();
-        volunteerDialog.setHeaderTitle("Seleccione los voluntarios");
-
-        VerticalLayout dialogContent = new VerticalLayout();
-
-        Checkbox volunteerCheckbox = new Checkbox();
-        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
-
-        // Obtener los nombres de voluntarios
-        List<String> allVolunteers = volunteerService.getVolunteers("None", new TaskDTO()).stream()
-                .map(VolunteerDTO::getFirstName)
-                .collect(Collectors.toList());
-
-
-        MultiSelectListBox<String> volunteersListBox = new MultiSelectListBox<>();
-        volunteersListBox.setItems(allVolunteers);
-
-        Tabs tabs = new Tabs(
-                new Tab("Todos"),
-                new Tab("Distancia"),
-                new Tab("Disponibilidad"),
-                new Tab("Habilidades")
-        );
-
-        tabs.setSelectedIndex(0);
-
-        // Listener para el cambio de pestañas
-        tabs.addSelectedChangeListener(event -> {
-            String selectedTabName = tabs.getSelectedTab().getLabel();
-            switch (selectedTabName) {
-                case "Todos":
-                    allVolunteers.clear();
-                    volunteerService.getVolunteers("None", getTaskDTO()).forEach(v -> {
-                        allVolunteers.add(v.getFirstName());
-                    });
-                    volunteersListBox.setItems(allVolunteers);
-                    break;
-                case "Distancia":
-                    if(needsMultiSelectComboBox.getSelectedItems().isEmpty()){
-                        Notification.show("Por favor, seleccione una necesidad primero para poder calcular las distancias.", 3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    }else{
-                        allVolunteers.clear();
-                        volunteerService.getVolunteers("distancia", getTaskDTO()).forEach(v -> {
-                            allVolunteers.add(v.getFirstName());
-                        });
-                        volunteersListBox.setItems(allVolunteers);
-                    }
-                    break;
-                case "Disponibilidad":
-                    if(starDateTimePicker.isEmpty() || endDateTimePicker.isEmpty()){
-                        Notification.show("Por favor, seleccione primero una fecha de inicio y de fin de la tarea.", 3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    }else{
-                        allVolunteers.clear();
-                        volunteerService.getVolunteers("disponibilidad", getTaskDTO()).forEach(v -> {
-                            allVolunteers.add(v.getFirstName());
-                        });
-                        volunteersListBox.setItems(allVolunteers);
-                    }
-                    break;
-                case "Habilidades":
-                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
-                        Notification.show("Por favor, seleccione una necesidad primero para indicar el tipo de la tarea.", 3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    }else{
-                        allVolunteers.clear();
-                        volunteerService.getVolunteers("habilidades", getTaskDTO()).forEach(v -> {
-                            allVolunteers.add(v.getFirstName());
-                        });
-                        volunteersListBox.setItems(allVolunteers);
-                    }
-
-                    break;
-            }
-        });
-
-        volunteerCheckbox.addClickListener(checkboxClickEvent -> volunteersListBox.setEnabled(!volunteerCheckbox.getValue()));
-
-        // Añadir todos los componentes
-        dialogContent.add(volunteerCheckbox, tabs, volunteersListBox);
-
-        //Footer
-        Button saveButton = new Button("Guardar", e -> {
-            if (volunteerCheckbox.getValue()) {
-                volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
-                volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
-            } else {
-                volunteerMultiSelectComboBox.setItems(volunteersListBox.getSelectedItems());
-                volunteerMultiSelectComboBox.updateSelection(volunteersListBox.getSelectedItems(), new HashSet<>());
-            }
-            volunteerDialog.close();
-        });
-
-        Button cancelButton = new Button("Cancelar", e -> {
-            volunteersListBox.select(volunteerMultiSelectComboBox.getSelectedItems());
-            volunteersListBox.getSelectedItems().stream()
-                    .filter(item -> !volunteerMultiSelectComboBox.getSelectedItems().contains(item))
-                    .forEach(volunteersListBox::deselect);
-            if (volunteerMultiSelectComboBox.getSelectedItems().contains("Elegir voluntarios automáticamente")) {
-                volunteerCheckbox.setValue(true);
-                volunteersListBox.setEnabled(false);
-            } else {
-                volunteerCheckbox.setValue(false);
-                volunteersListBox.setEnabled(true);
-            }
-
-            volunteerDialog.close();
-        });
-
-        volunteerDialog.getFooter().add(cancelButton, saveButton);
-
-        volunteerDialog.add(dialogContent);
-
-        return volunteerDialog;
     }
 
     protected Component getNeedsForm() {
@@ -369,13 +313,264 @@ public class AddTaskView extends VerticalLayout {
         needsMultiSelectComboBox.setReadOnly(true);
         needsMultiSelectComboBox.setRequiredIndicatorVisible(true);
         needsMultiSelectComboBox.setRequired(true);
-        needsMultiSelectComboBox.setHelperText("Las necesidades no se podrán modificar una vez creada la tarea");
         needsMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
         Dialog selectNeedsDialog = getNeedsDialogContent();
         needsMultiSelectComboBox.getElement().addEventListener("click", e -> selectNeedsDialog.open());
 
         return needsMultiSelectComboBox;
+    }
+
+    protected Component getButtons(){
+        HorizontalLayout buttons = new HorizontalLayout();
+
+        Button saveTaskButton = new Button("Añadir");
+        saveTaskButton.addClickListener(e -> saveNewTask());
+
+        Button cancel = new Button("Cancelar");
+        cancel.addClickListener(e -> exitWithoutSavingDialog());
+
+        buttons.add(cancel, saveTaskButton);
+        setAlignSelf(Alignment.END, buttons);
+
+        return buttons;
+    }
+
+    private Dialog getConfirmationDialog() {
+        Dialog confirmDialog = new Dialog();
+        confirmDialog.setHeaderTitle("Tarea creada con éxito");
+
+        confirmDialog.add(
+                new Span("La tarea " + taskName.getValue() + " ha sido creada correctamente.\n" + "¿Que deasea hacer?")
+        );
+        VaadinSession.getCurrent().setAttribute("cache", true);
+        Button addNewTaskButton = new Button("Crear otra tarea", e -> {
+            confirmDialog.close();
+            getUI().ifPresent(ui -> ui.navigate("addtask"));
+        });
+
+        Button closeButton = new Button("Salir", e -> {
+            confirmDialog.close();
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        });
+
+        confirmDialog.getFooter().add(addNewTaskButton, closeButton);
+        return confirmDialog;
+    }
+
+    protected String getEmergencyLevelString(EmergencyLevel level) {
+        return switch (level) {
+            case LOW -> "Baja";
+            case MEDIUM -> "Media";
+            case HIGH -> "Alta";
+            case VERYHIGH -> "Muy alta";
+        };
+    }
+
+    //=============================== Dialogs =========================================
+    private Dialog getVolunteersDialogContent() {
+        Dialog volunteerDialog = new Dialog();
+        volunteerDialog.setHeaderTitle("Seleccione los voluntarios");
+
+        VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
+
+        Checkbox volunteerCheckbox = new Checkbox();
+        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
+
+        Tabs tabs = new Tabs(
+                new Tab("Todos los voluntarios"),
+                new Tab("Por Distancia"),
+                new Tab("Por Habilidades")
+        );
+
+        MultiSelectListBox<VolunteerDTO> volunteersListBox = new MultiSelectListBox<>();
+        volunteersListBox.setWidthFull();
+
+        // No volunteers message
+        Span noVolunteersMessage = new Span("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+        noVolunteersMessage.setVisible(false);
+
+        // Comprobar si tenemos fechas seleccionadas
+        if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
+            Notification.show("Primero debe seleccionar las fechas de inicio y fin de la tarea",
+                    3000, Notification.Position.MIDDLE);
+            volunteerDialog.close();
+            return volunteerDialog;
+        }
+
+        // Obtener todos los voluntarios y comprobar disponibilidad
+        TaskDTO currentTaskDTO = getTaskDTO();
+        if(allVolunteersList.isEmpty()) {
+            allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+        }
+
+        // Configurar el visualizador de voluntarios
+        // POSIBLE REFACTORING: EXTRACT METHOD
+        ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
+            // Mostrar información del voluntario con una etiqueta clara de disponibilidad
+            HorizontalLayout layout = new HorizontalLayout();
+            layout.setWidthFull();
+            layout.setAlignItems(Alignment.CENTER);
+
+            VerticalLayout infoLayout = new VerticalLayout();
+            infoLayout.setPadding(false);
+            infoLayout.setSpacing(false);
+
+            Span nameSpan = new Span(volunteer.getFirstName() + " " + volunteer.getLastName());
+            nameSpan.getStyle().set("font-weight", "bold");
+
+            Span emailSpan = new Span(volunteer.getEmail());
+            emailSpan.getStyle().set("font-size", "0.9em");
+            emailSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+            infoLayout.add(nameSpan, emailSpan);
+
+            // Badge de disponibilidad
+            if(volunteer.getAvailabilityStatus() > 0){
+                Span availabilityBadge = new Span("Disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-success-color)")
+                        .set("color", "white")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                // Agregar un borde de color verde para mayor claridad
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-success-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(76, 175, 80, 0.1)");
+
+                return layout;
+            }else{
+                Span availabilityBadge = new Span("No disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-error-color)")
+                        .set("color", "white")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                // Agregar un borde de color rojo para mayor claridad
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-error-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(244, 67, 54, 0.1)");
+
+                return layout;
+            }
+        });
+
+        volunteersListBox.setRenderer(renderer);
+
+        volunteersListBox.setItems(allVolunteersList);
+
+        // Listener para cambios de pestaña
+        tabs.addSelectedChangeListener(event -> {
+            String selectedTabName = tabs.getSelectedTab().getLabel();
+
+            // Ocultar mensaje de error por defecto
+            noVolunteersMessage.setVisible(false);
+
+            switch (selectedTabName) {
+                case "Todos los voluntarios":
+                    if (allVolunteersList.isEmpty()) {
+                        allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+                        if(allVolunteersList.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+                            noVolunteersMessage.setVisible(true);
+                        } else {
+                            volunteersListBox.setItems(allVolunteersList);
+                        }
+                    } else {
+                        volunteersListBox.setItems(allVolunteersList);
+                    }
+                    break;
+
+                case "Por Distancia":
+                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
+                        Notification.show("Seleccione una necesidad primero para poder filtrar por distancia",
+                                3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    }
+
+                    if (distanceVolunteersList.isEmpty()) {
+                        distanceVolunteersList = new ArrayList<>(volunteerService.getVolunteers("distancia", currentTaskDTO));
+                        if(distanceVolunteersList.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles cercanos a la ubicación");
+                            noVolunteersMessage.setVisible(true);
+                        } else {
+                            volunteersListBox.setItems(distanceVolunteersList);
+                        }
+                    } else {
+                        volunteersListBox.setItems(distanceVolunteersList);
+                    }
+                    break;
+
+                case "Por Habilidades":
+                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
+                        Notification.show("Seleccione una necesidad primero para poder filtrar por habilidades",
+                                3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    }
+
+                    if (skillsVolunteersList.isEmpty()) {
+                        skillsVolunteersList = new ArrayList<>(volunteerService.getVolunteers("habilidades", currentTaskDTO));
+                        if(skillsVolunteersList.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles con las habilidades requeridas");
+                            noVolunteersMessage.setVisible(true);
+                        } else {
+                            volunteersListBox.setItems(skillsVolunteersList);
+                        }
+                    } else {
+                        volunteersListBox.setItems(skillsVolunteersList);
+                    }
+                    break;
+            }
+        });
+
+        volunteerCheckbox.addClickListener(checkboxClickEvent ->
+                volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
+        );
+
+        dialogContent.add(volunteerCheckbox, tabs, noVolunteersMessage, volunteersListBox);
+
+        // Footer
+        Button saveButton = new Button("Guardar", e -> {
+            if (volunteerCheckbox.getValue()) {
+                volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
+                volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
+            } else {
+                Set<String> selectedVolunteersNames = volunteersListBox.getSelectedItems().stream()
+                        .map(VolunteerDTO::getFirstName)
+                        .collect(Collectors.toSet());
+
+                volunteerMultiSelectComboBox.clear();
+                volunteerMultiSelectComboBox.setItems(selectedVolunteersNames);
+                volunteerMultiSelectComboBox.select(selectedVolunteersNames);
+            }
+            volunteerDialog.close();
+        });
+
+        Button cancelButton = new Button("Cancelar", e -> volunteerDialog.close());
+
+        volunteerDialog.getFooter().add(cancelButton, saveButton);
+        volunteerDialog.add(dialogContent);
+
+        return volunteerDialog;
     }
 
     private Dialog getNeedsDialogContent() {
@@ -387,27 +582,28 @@ public class AddTaskView extends VerticalLayout {
         dialogContent.setPadding(false);
 
         MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-        needsListBox.setItems(needService.getNeeds().stream().filter(n -> n.getCatastropheId() == selectedCatastrophe.getId()).toList());
+        needsListBox.setItems(allNeedsWithoutTask);
+        needsListBox.setWidthFull();
 
         needsListBox.setRenderer(
-                new ComponentRenderer<>(need -> {
-                    VerticalLayout needContent = new VerticalLayout();
-                    needContent.addClassName("needContent");
+            new ComponentRenderer<>(need -> {
+                HorizontalLayout needContent = new HorizontalLayout();
+                needContent.addClassName("listBox__item");
 
-                    Span needDescription = new Span(need.getDescription());
-                    needDescription.addClassName("needContent--description");
-                    Span needType = new Span(formatTaskType(need.getTaskType()));
-                    needType.addClassName("needContent--type");
+                Span needDescription = new Span(need.getDescription());
+                needDescription.addClassName("needContent--description");
+                Span needType = new Span(formatTaskType(need.getTaskType()));
+                needType.addClassName("listBox__item-detail");
 
-                    needContent.add(needDescription, needType);
-                    needContent.setPadding(false);
-                    needContent.setSpacing(false);
+                needContent.add(needDescription, needType);
+                needContent.setPadding(false);
+                needContent.setSpacing(false);
 
-                    return needContent;
-                })
+                return needContent;
+            })
         );
 
-        Span infoText = new Span("Al seleccionar una necesidad, solo podrá elegir necesidades adicionales del mismo tipo.");
+        Span infoText = new Span("Solo es posible elegir necesidades de un único tipo.");
         infoText.addClassName("needsDialog--infoText");
 
         dialogContent.add(infoText, needsListBox);
@@ -442,119 +638,89 @@ public class AddTaskView extends VerticalLayout {
         return needsDialog;
     }
 
-    protected Component getButtons(){
-        HorizontalLayout buttons = new HorizontalLayout();
-
-        Button saveTaskButton = new Button("Añadir");
-        saveTaskButton.addClickListener(e -> saveNewTask());
-
-        Button cancel = new Button("Cancelar");
-        cancel.addClickListener(e -> {
-            if (isFormFilled()) {
-                Dialog confirmDialog = new Dialog();
-                confirmDialog.setHeaderTitle("Confirmación");
-
-                VerticalLayout dialogContent = new VerticalLayout();
-                dialogContent.add(new Span("¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."));
-
-                Button confirmButton = new Button("Confirmar", event -> {
-                    confirmDialog.close();
-                    getUI().ifPresent(ui -> ui.navigate(""));
-                });
-                confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-                Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
-                cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-
-                confirmDialog.getFooter().add(cancelButton, confirmButton);
-                confirmDialog.add(dialogContent);
-                confirmDialog.open();
-            } else {
-                getUI().ifPresent(ui -> ui.navigate(""));
-            }
-        });
-
-        buttons.add(cancel, saveTaskButton);
-        setAlignSelf(Alignment.END, buttons);
-
-        return buttons;
-    }
-
-    private Dialog getConfirmationDialog() {
-        Dialog confirmDialog = new Dialog();
-        confirmDialog.setHeaderTitle("Tarea creada con éxito");
-
-        confirmDialog.add(
-                new Span("La tarea " + taskName.getValue() + " ha sido creada correctamente.\n" + "¿Que deasea hacer?")
-        );
-
-        Button addNewTaskButton = new Button("Crear otra tarea", e -> {
-            confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate("addtask"));
-        });
-
-        Button closeButton = new Button("Salir", e -> {
-            confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate("tasks"));
-        });
-
-        confirmDialog.getFooter().add(addNewTaskButton, closeButton);
-        return confirmDialog;
-    }
-
-    protected String getEmergencyLevelString(EmergencyLevel level) {
-        return switch (level) {
-            case LOW -> "Baja";
-            case MEDIUM -> "Media";
-            case HIGH -> "Alta";
-            case VERYHIGH -> "Muy alta";
-        };
-    }
-
     //===============================Validate Form=========================================
     protected boolean validateForm() {
         return !taskName.isEmpty() &&
                 !taskDescription.isEmpty() &&
                 starDateTimePicker.getValue() != null &&
-                endDateTimePicker.getValue() != null &&
+                endDatePicker.getValue() != null &&  // Esto ya está, pero es importante verificarlo
                 taskPriority.getValue() != null &&
                 taskEmergency.getValue() != null &&
                 !needsMultiSelectComboBox.getSelectedItems().isEmpty() &&
-                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
+                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() &&
+                !taskLocation.isEmpty();
     }
 
     protected boolean isFormFilled() {
-        return !taskName.isEmpty() || !taskDescription.isEmpty() || taskPriority.getValue() != null || taskEmergency.getValue() != null || needsMultiSelectComboBox.getValue() != null || starDateTimePicker.getValue() != null || !volunteerMultiSelectComboBox.getSelectedItems().isEmpty();
+        return !taskName.isEmpty() ||
+                !taskDescription.isEmpty() ||
+                taskPriority.getValue() != null ||
+                taskEmergency.getValue() != null ||
+                needsMultiSelectComboBox.getValue() != null ||
+                starDateTimePicker.getValue() != null ||
+                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
+                !taskLocation.isEmpty();
+    }
+
+    protected void exitWithoutSavingDialog() {
+        if (isFormFilled()) {
+            Dialog confirmDialog = new Dialog();
+            confirmDialog.setHeaderTitle("Confirmación");
+
+            VerticalLayout dialogContent = new VerticalLayout();
+            dialogContent.add(new Span("¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."));
+
+            Button confirmButton = new Button("Confirmar", event -> {
+                confirmDialog.close();
+                VaadinSession.getCurrent().setAttribute("cache", true);
+                getUI().ifPresent(ui -> ui.navigate("tasks"));
+            });
+            confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
+            cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+            confirmDialog.getFooter().add(cancelButton, confirmButton);
+            confirmDialog.add(dialogContent);
+            confirmDialog.open();
+        } else {
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        }
     }
 
     //===============================Modify Preview=========================================
     protected void setupFormListeners() {
-        // Listener para el nombre de la tarea
         taskName.addValueChangeListener(e ->
-                updatePreview(e.getValue(), taskDescription.getValue(),
-                        taskPriority.getValue(), taskEmergency.getValue())
+                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue())
         );
 
-        // Listener para la descripción
         taskDescription.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), e.getValue(),
-                        taskPriority.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue()));
 
-        // Listener para la prioridad
         taskPriority.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(),
-                        e.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue()));
 
-        // Listener para el nivel de emergencia
         taskEmergency.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(),
-                        taskPriority.getValue(), e.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue()));
 
-        // Listener para la fecha
         starDateTimePicker.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 updatePreviewDate(e.getValue());
             }
+            allVolunteersList.clear();
+            distanceVolunteersList.clear();
+            skillsVolunteersList.clear();
+        });
+
+        endDatePicker.addValueChangeListener(e -> {
+            allVolunteersList.clear();
+            distanceVolunteersList.clear();
+            skillsVolunteersList.clear();
+        });
+
+        needsMultiSelectComboBox.addSelectionListener(e -> {
+            skillsVolunteersList.clear();
+            distanceVolunteersList.clear();
         });
     }
 

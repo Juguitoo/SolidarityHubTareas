@@ -28,14 +28,14 @@ import java.time.LocalDate;
 @PageTitle("Añadir Catástrofe")
 public class AddCatastropheView extends VerticalLayout {
 
-    private TextField nameField;
-    private TextArea descriptionField;
-    private DatePicker dateField;
-    private NumberField locationXField;
-    private NumberField locationYField;
-    private ComboBox<EmergencyLevel> emergencyLevelComboBox;
-    private Button saveButton;
-    private Button cancelButton;
+    private final TextField nameField;
+    private final TextArea descriptionField;
+    private final DatePicker dateField;
+    private final NumberField locationXField;
+    private final NumberField locationYField;
+    private final ComboBox<EmergencyLevel> emergencyLevelComboBox;
+    private final Button saveButton;
+    private final Button cancelButton;
 
     private final CatastropheService catastropheService;
 
@@ -127,7 +127,6 @@ public class AddCatastropheView extends VerticalLayout {
             case MEDIUM -> "Medio";
             case HIGH -> "Alto";
             case VERYHIGH -> "Muy Alto";
-            default -> level.toString();
         };
     }
 

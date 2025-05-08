@@ -1,4 +1,3 @@
-/* Contenedor principal */
 .tasks-container {
     display: flex;
     flex-direction: column;
@@ -8,32 +7,29 @@
     min-height: 100vh;
 }
 
-/* Título principal */
 .task-title {
     color: #424242;
     font-size: 2rem;
     text-align: center;
 }
 
-/* Contenedor de listas de tareas */
-.tasks-lists {
+.tasksLists__layout {
     display: flex;
     align-items: center;
     width: 100%;
-    justify-content: space-evenly;
+    justify-content: space-between;
 }
 
-/* Secciones de tareas (Por hacer, En proceso, Terminadas) */
 .task-section {
     flex: 1;
     background-color: white;
     border-radius: var(--card-border-radius);
     box-shadow: var(--card-shadow);
     min-width: 280px;
-    max-width: 400px;
+    max-width: 450px;
 }
 
-.task-section .section-title {
+.section-title {
     margin-top: 0;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #e0e0e0;
@@ -41,51 +37,47 @@
     text-align: center;
 }
 
-.more-tasks-button{
+.task-list__container{
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.action-buttons__layout{
+    width: 100%;
+    margin-left: 15px;
+}
+
+.tasks-button{
     background-color: blue;
     color: #fff;
-    cursor: pointer;
-
 }
-.more-tasks-button:hover {
+.tasks-button:hover {
     background-color: #0056b3;
 }
 
-.addTaskButton{
-    position: sticky;
-    bottom: 20px;
-    left: 20px;
-    background-color: blue;
-    color: #fff;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+.notification-task__icon{
+    width: 40px;
+    height: 40px;
+    color: blue;
 }
 
-.addTaskButton:hover {
+.notification-task__button{
+    align-self: end;
+    margin-left: auto;
+    background: transparent;
 }
 
+.notification-task__button:hover .notification-task__icon{
+    color: #0056b3;
+}
 
-@keyframes bounce {
-    0% {
-        transform: translateY(0);
-    }
-    20% {
-        transform: translateY(-5px);
-    }
-    40% {
-        transform: translateY(0);
-    }
-    60% {
-        transform: translateY(-3px);
-    }
-    80% {
-        transform: translateY(0);
-    }
-    100% {
-        transform: translateY(0);
-    }
+.tasks-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 6rem;
+    width: 100%;
 }
 
 .v-dragged {

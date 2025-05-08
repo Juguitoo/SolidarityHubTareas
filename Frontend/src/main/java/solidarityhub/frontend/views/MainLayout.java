@@ -1,13 +1,9 @@
 package solidarityhub.frontend.views;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
-import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -18,16 +14,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
-import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.flow.server.menu.MenuConfiguration;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
+import solidarityhub.frontend.views.resources.MainResourcesView;
 import solidarityhub.frontend.views.task.TaskView;
-
-import java.util.List;
 
 /**
  * The main view is a top-level placeholder for other views.
@@ -49,8 +41,6 @@ public class MainLayout extends AppLayout {
         getElement().setAttribute("class", "main-layout");
         addDrawerContent();
 
-        // Configurar un listener para actualizar el indicador de catástrofe seleccionada
-        // cuando cambia de ruta o se refresca la página
         UI.getCurrent().addAfterNavigationListener(event -> updateSelectedCatastropheInfo());
     }
 
@@ -209,7 +199,7 @@ public class MainLayout extends AppLayout {
         nav.addItem(
                 createNavItem("Tareas", VaadinIcon.TASKS, TaskView.class),
                 createNavItem("Mapa", VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
-                createNavItem("Recursos", VaadinIcon.TOOLBOX, "http://localhost:8083/recursos"),
+                createNavItem("Recursos", VaadinIcon.TOOLBOX, MainResourcesView.class),
                 createNavItem("Dashboard", VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
                 createNavItem("Contacto", VaadinIcon.PHONE, "http://localhost:8080/contact")
         );

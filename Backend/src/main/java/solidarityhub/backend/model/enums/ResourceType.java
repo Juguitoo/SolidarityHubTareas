@@ -1,0 +1,5 @@
+package solidarityhub.backend.model.enums;
+
+public enum ResourceType {
+    FOOD, MEDICINE, CLOTHING, SHELTER, TOOLS, FUEL, SANITATION, COMMUNICATION, TRANSPORTATION, BUILDING, MONETARY, STATIONERY, LOGISTICS, OTHER
+}

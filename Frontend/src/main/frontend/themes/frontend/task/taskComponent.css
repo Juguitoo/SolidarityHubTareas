@@ -1,72 +1,61 @@
-/* Tarjetas de tareas */
 .task-card {
     background-color: #f0f0f0;
     border-radius: 24px ;
     padding: 1rem;
-    margin-bottom: 1rem;
     box-shadow: var(--card-shadow);
-    border-left: 6px solid var(--default-priority);
     transition: transform 0.2s;
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-.task-card.high {
-    border-left-color: var(--high-priority);
-}
-
-.task-card.medium {
-    border-left-color: var(--medium-priority);
-}
-
-.task-card.low {
-    border-left-color: var(--low-priority);
-}
-
-/* Información de la tarea */
-.task-card .task-title {
+.task-title {
     font-weight: bold;
     font-size: 1.2rem;
     color: #212121;
 }
 
-.task-card .task-date {
-    font-size: 0.9rem;
+.task-description {
+    font-size: 0.8rem;
+    color: #616161;
+    text-align: justify;
+    height: 60px;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    -webkit-line-clamp: 3;
+}
+
+.task-date {
+    font-size: 0.8rem;
     color: #757575;
 }
 
-/* Icono de la tarea */
+.task-priority {
+    font-size: 0.8rem;
+    color: #757575;
+}
+
 .task-card img {
     width: 50px;
     height: 50px;
-}
-
-/* Configuración de la tarea */
-.task-card .settings {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    align-self: center;
 }
 
 .edit-button {
-    background-color: #007bff; /* Color de fondo */
-    color: white; /* Color del texto */
-    border: none; /* Sin borde */
-    border-radius: 4px; /* Bordes redondeados */
-    padding: 0.5rem 1rem; /* Espaciado interno */
-    cursor: pointer; /* Cambia el cursor al pasar por encima */
-    transition: background-color 0.3s; /* Transición suave para el cambio de color */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
 }
 
 .edit-button:hover {
-    background-color: #0056b3; /* Color de fondo al pasar el ratón */
+    background-color: #0056b3;
 }
-.task-icon {
-    width: 4px; /* Ajusta el tamaño según sea necesario */
-    height: 4px; /* Mantiene la proporción original */
-    object-fit: contain; /* Evita que se deformen */
-    display: block;
-    max-width: 100%; /* Limita el tamaño máximo */
-    max-height: 100%;
-}
+
 

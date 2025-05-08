@@ -2,8 +2,8 @@ package solidarityhub.frontend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
@@ -11,9 +11,11 @@ import solidarityhub.frontend.model.Volunteer;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class VolunteerService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
@@ -45,27 +47,19 @@ public class VolunteerService {
             String url = baseUrl + "?strategy=" + strategy + "&" + "taskString=" + URLEncoder.encode(taskDTOParams, StandardCharsets.UTF_8);
             ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, VolunteerDTO[].class);
             VolunteerDTO[] volunteers = response.getBody();
+
             if (volunteers != null) {
                 return List.of(volunteers);
             }
             return new ArrayList<>();
         } catch (Exception e) {
-            return getExampleVolunteers();
+            return new ArrayList<>();
         }
     }
 
     public VolunteerDTO getVolunteerById(String id) {
         ResponseEntity<VolunteerDTO> response = restTemplate.exchange(baseUrl + "/" + id, HttpMethod.GET, null, VolunteerDTO.class);
         return response.getBody();
-    }
-
-    //GET EXAMPLE VOLUNTEERS
-    public List<VolunteerDTO> getExampleVolunteers() {
-        List<VolunteerDTO> volunteerDTOs = new ArrayList<>();
-        volunteerDTOs.add(new VolunteerDTO(new Volunteer("33", "Fernando", "Alonso", "alonso@astonmartin.com")));
-        volunteerDTOs.add(new VolunteerDTO(new Volunteer("24", "Carlos", "Alvarez", "carlos@levante.com")));
-        volunteerDTOs.add(new VolunteerDTO(new Volunteer("27", "Sydney", "Sweeney", "Sweeney@gmail.com")));
-        return volunteerDTOs;
     }
 
     //Metodo para convertir VolunteerDTO a Volunteer

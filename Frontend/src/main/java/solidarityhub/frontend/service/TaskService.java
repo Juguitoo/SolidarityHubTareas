@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -26,6 +28,7 @@ public class TaskService {
     private final VolunteerService volunteerService;
     private final NeedService needService;
     public List<TaskDTO> taskCache;
+    public List<TaskDTO> suggestedTasksCache;
 
     public TaskService() {
         this.restTemplate = new RestTemplate();
@@ -33,6 +36,7 @@ public class TaskService {
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.taskCache = new ArrayList<>();
+        this.suggestedTasksCache = new ArrayList<>();
     }
 
     //CRUD METHODS
@@ -43,10 +47,12 @@ public class TaskService {
 
     public void updateTask(int id, TaskDTO taskDTO) {
         restTemplate.put(baseUrl + "/" + id, taskDTO);
+        taskCache.clear();
     }
 
     public void deleteTask(int id) {
         restTemplate.delete(baseUrl + "/" + id);
+        taskCache.clear();
     }
 
     public void clearCache() {
@@ -65,7 +71,7 @@ public class TaskService {
                     taskCache = new ArrayList<>();
                 }
             } catch (RestClientException e) {
-                return getExampleTasks(5);
+                return new ArrayList<>();
             }
         }
         return taskCache;
@@ -142,62 +148,17 @@ public class TaskService {
         return response.getBody();
     }
 
-    //GET EXAMPLE TASKS
-    private List<TaskDTO> getExampleTasks(int limit) {
-        List<NeedDTO> needs = needService.getExampleNeeds();
-        List<VolunteerDTO> volunteers = volunteerService.getExampleVolunteers();
-
-        List<TaskDTO> exampleTasks = new ArrayList<>();
-
-        for (int i = 0; i < limit; i++) {
-            // Convertir a DTO para devolver
-            TaskDTO taskDTO = new TaskDTO(
-                    "Tarea de ejemplo " + i,
-                    "Descripcion de ejemplo " + i,
-                    LocalDateTime.now().plusHours(i),
-                    LocalDateTime.now().plusDays(3),
-                    TaskType.OTHER,
-                    Priority.LOW,
-                    EmergencyLevel.HIGH,
-                    Status.IN_PROGRESS,
-                    needs,
-                    volunteers
-            );
-            exampleTasks.add(taskDTO);
+    public List<TaskDTO> getSuggestedTasks(Integer catastropheId) {
+        try {
+            ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl + "/suggestedTasks?catastropheId=" + catastropheId,
+                    HttpMethod.GET, null, TaskDTO[].class);
+            TaskDTO[] suggestedTasks = response.getBody();
+            if (suggestedTasks != null) {
+                return List.of(suggestedTasks);
+            }
+            return new ArrayList<>();
+        } catch (Exception e) {
+            return new ArrayList<>();
         }
-        for (int i = 0; i < limit; i++) {
-            // Convertir a DTO para devolver
-            TaskDTO taskDTO = new TaskDTO(
-                    "Tarea de ejemplo " + i,
-                    "Descripcion de ejemplo " + i,
-                    LocalDateTime.now().plusHours(i),
-                    LocalDateTime.now().plusDays(3),
-                    TaskType.OTHER,
-                    Priority.LOW,
-                    EmergencyLevel.HIGH,
-                    Status.TO_DO,
-                    needs,
-                    volunteers
-            );
-            exampleTasks.add(taskDTO);
-        }
-        for (int i = 0; i < limit; i++) {
-            // Convertir a DTO para devolver
-            TaskDTO taskDTO = new TaskDTO(
-                    "Tarea de ejemplo " + i,
-                    "Descripcion de ejemplo " + i,
-                    LocalDateTime.now().plusHours(i),
-                    LocalDateTime.now().plusDays(3),
-                    TaskType.OTHER,
-                    Priority.LOW,
-                    EmergencyLevel.HIGH,
-                    Status.FINISHED,
-                    needs,
-                    volunteers
-            );
-            exampleTasks.add(taskDTO);
-        }
-
-        return exampleTasks;
     }
 }

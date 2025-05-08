@@ -2,6 +2,7 @@ package solidarityhub.frontend.service;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.NeedDTO;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class NeedService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
@@ -36,12 +38,12 @@ public class NeedService {
     }
 
     //GET METHODS
-    public List<NeedDTO> getNeeds() {
+    public List<NeedDTO> getNeedsWithoutTask(Integer id) {
         try {
-            ResponseEntity<NeedDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, NeedDTO[].class);
+            ResponseEntity<NeedDTO[]> response = restTemplate.exchange(baseUrl + "/withoutTask?catastropheid=" + id, HttpMethod.GET, null, NeedDTO[].class);
             NeedDTO[] needs = response.getBody();
             if (needs != null) {
-                return new ArrayList<>(List.of(needs)).stream().filter(n -> n.getTaskId() == -1).collect(Collectors.toList());
+                return List.of(needs);
             }
             return new ArrayList<>();
         } catch (RestClientException e) {
@@ -49,18 +51,17 @@ public class NeedService {
         }
     }
 
-    public NeedDTO getNeedById(int id) {
-        ResponseEntity<NeedDTO> response = restTemplate.exchange(baseUrl + "/" + id, HttpMethod.GET, null, NeedDTO.class);
-        return response.getBody();
-    }
-
-    public List<NeedDTO> getNeedsByType(TaskType needType) {
-        List<NeedDTO> allNeeds = getNeeds();
-        List<NeedDTO> filteredNeeds = allNeeds.stream()
-                .filter(needDTO -> needType.equals(needDTO.getTaskType()))
-                .collect(java.util.stream.Collectors.toList());
-
-        return filteredNeeds;
+    public List<NeedDTO> getAllNeeds(Integer id) {
+        try {
+            ResponseEntity<NeedDTO[]> response = restTemplate.exchange(baseUrl + "?catastropheid=" + id, HttpMethod.GET, null, NeedDTO[].class);
+            NeedDTO[] needs = response.getBody();
+            if (needs != null) {
+                return List.of(needs);
+            }
+            return new ArrayList<>();
+        } catch (RestClientException e) {
+            return getExampleNeeds();
+        }
     }
 
     //GET EXAMPLE NEEDS
@@ -84,5 +85,14 @@ public class NeedService {
             ));
         }
         return needs;
+    }
+
+    public int getNeedsWithoutTaskCount(Integer id) {
+        try {
+            ResponseEntity<Integer> response = restTemplate.exchange(baseUrl + "/countWithoutTask?catastropheid=" + id, HttpMethod.GET, null, Integer.class);
+            return response.getBody();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

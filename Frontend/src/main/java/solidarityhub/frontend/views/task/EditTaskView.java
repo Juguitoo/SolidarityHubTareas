@@ -4,12 +4,16 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Status;
@@ -32,10 +36,12 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private TaskDTO originalTask;
     private int taskId;
 
+    protected ComboBox<Status> taskStatusComboBox;
+
     @Autowired
     public EditTaskView(TaskService taskService) {
         super(taskService);
-        this.taskService = taskService;
+        this.taskService = new TaskService();
 
         // Cambiar el título de la vista
         getElement().getChildren()
@@ -46,6 +52,23 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         .findFirst()).ifPresent(title -> title.setText("Editar tarea"));
 
         taskPreview.enabledEditButton(false);
+    }
+
+    @Override
+    protected Component getForms() {
+        taskStatusComboBox = new ComboBox<>("Estado de la tarea");
+        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+        taskStatusComboBox.setItemLabelGenerator(status -> switch (status) {
+            case TO_DO -> "Por hacer";
+            case IN_PROGRESS -> "En progreso";
+            case FINISHED -> "Finalizada";
+        });
+        taskStatusComboBox.setRequiredIndicatorVisible(true);
+        taskStatusComboBox.setRequired(true);
+
+        FormLayout addFormLayout = (FormLayout) super.getForms();
+        addFormLayout.add(taskStatusComboBox);
+        return addFormLayout;
     }
 
     //===============================Load data=========================================
@@ -99,20 +122,26 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             starDateTimePicker.setMin(LocalDateTime.now());
         }
 
-        endDateTimePicker.setValue(task.getEstimatedEndTimeDate());
-
-        Set<String> needDescriptions = task.getNeeds().stream()
+        List<String> needs = new ArrayList<>(allNeedsWithoutTask.stream()
                 .map(NeedDTO::getDescription)
-                .collect(Collectors.toSet());
-        needsMultiSelectComboBox.setItems(needDescriptions);
-        needsMultiSelectComboBox.select(needDescriptions);
-        needsMultiSelectComboBox.setHelperText("Este campo no se puede modificar");
+                .toList());
+        List<String> taskNeeds = task.getNeeds().stream()
+                .map(NeedDTO::getDescription)
+                .toList();
+        needs.addAll(taskNeeds);
+
+        needsMultiSelectComboBox.setItems(needs);
+        needsMultiSelectComboBox.select(taskNeeds);
+
+        endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
+        taskLocation.setValue(task.getMeetingDirection());
+        taskStatusComboBox.setValue(task.getStatus());
 
         Set<String> volunteerNames = task.getVolunteers().stream()
                 .map(VolunteerDTO::getFirstName)
                 .collect(Collectors.toSet());
 
-        //Cambiar cuando este implementado el patron
+
         if (volunteerNames.isEmpty()) {
             volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
             volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
@@ -120,9 +149,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             volunteerMultiSelectComboBox.setItems(volunteerNames);
             volunteerMultiSelectComboBox.select(volunteerNames);
         }
-        volunteerMultiSelectComboBox.setHelperText("Este campo no se puede modificar");
 
-        // Actualizar la vista previa
         taskPreview.updateName(task.getName());
         taskPreview.updateDescription(task.getDescription());
         taskPreview.updateDate(formatDate(task.getStartTimeDate()));
@@ -152,50 +179,54 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return buttons;
     }
 
-    @Override
-    protected Component getNeedsForm() {
-        needsMultiSelectComboBox.setReadOnly(true);
-        needsMultiSelectComboBox.setRequired(false);
-        needsMultiSelectComboBox.setRequiredIndicatorVisible(false);
-
-        needsMultiSelectComboBox.getElement().removeAttribute("clickable");
-        return needsMultiSelectComboBox;
-    }
-
-    @Override
-    protected Component getVolunteersForm() {
-        volunteerMultiSelectComboBox.setReadOnly(true);
-        volunteerMultiSelectComboBox.setRequired(false);
-        volunteerMultiSelectComboBox.setRequiredIndicatorVisible(false);
-
-        volunteerMultiSelectComboBox.getElement().removeAttribute("clickable");
-        return volunteerMultiSelectComboBox;
-    }
-
     //===============================Modify task=========================================
     private void updateTask() {
         if (validateForm()) {
             try {
-                List<NeedDTO> originalNeeds = originalTask.getNeeds();
-                List<VolunteerDTO> originalVolunteers = originalTask.getVolunteers();
+                List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+                List<NeedDTO> needs = new ArrayList<>();
+                for (String need : selectedNeeds) {
+                    needService.getAllNeeds(selectedCatastrophe.getId()).stream()
+                            .filter(n -> n.getDescription().equals(need))
+                            .findFirst().ifPresent(needs::add);
+                }
+
+                List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
+                List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
+                selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
+                        .map(name -> {
+                            if (name.equals("Elegir voluntarios automáticamente")) {
+                                finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
+                            }
+                            return volunteerService.getVolunteers("", new TaskDTO()).stream()
+                                    .filter(v -> v.getFirstName().equals(name))
+                                    .findFirst()
+                                    .orElse(null);
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+
+
 
                 TaskDTO updatedTaskDTO = new TaskDTO(
                         taskName.getValue(),
                         taskDescription.getValue(),
                         starDateTimePicker.getValue(),
-                        endDateTimePicker.getValue(),
-                        originalTask.getType(),
+                        endDatePicker.getValue().atTime(23, 59),
+                        needs.getFirst().getTaskType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
-                        originalTask.getStatus(),
-                        originalNeeds,
-                        originalVolunteers,
-                        selectedCatastrophe.getId()
+                        taskStatusComboBox.getValue(),
+                        needs,
+                        selectedVolunteers,
+                        selectedCatastrophe.getId(),
+                        taskLocation.getValue()
                 );
 
                 taskService.updateTask(taskId, updatedTaskDTO);
-                taskService.taskCache = null;
+                taskService.clearCache();
                 Notification.show("Tarea actualizada correctamente");
+                VaadinSession.getCurrent().setAttribute("cache", true);
                 UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
                 Notification.show("Error al actualizar la tarea: " + e.getMessage(),
@@ -219,7 +250,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         Button confirmButton = new Button("Eliminar", event -> {
             try {
                 taskService.deleteTask(taskId);
-                taskService.taskCache = null;
+                VaadinSession.getCurrent().setAttribute("cache", true);
                 confirmDialog.close();
                 Notification.show("Tarea eliminada correctamente");
                 UI.getCurrent().navigate("tasks");

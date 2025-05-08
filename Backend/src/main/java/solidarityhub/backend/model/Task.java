@@ -8,11 +8,11 @@ import solidarityhub.backend.model.enums.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Entity
-@NoArgsConstructor
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,26 +51,35 @@ public class Task {
     private Status status;
 
     @Setter
-    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Volunteer> volunteers;
+
+    @Setter
+    @ManyToMany(mappedBy = "acceptedTasks", cascade = CascadeType.ALL)
+    private List<Volunteer> acceptedVolunteers;
 
     @Setter
     @ManyToOne(cascade = CascadeType.ALL)
     private Zone zone;
 
     @Setter
-    @OneToOne(cascade = CascadeType.ALL)
-    private Notification notification;
-
-    @Setter
     @ManyToOne
     @JoinColumn(name = "catastrophe_id")
     private Catastrophe catastrophe;
 
-    private LocalDate creationDate;
+    private final LocalDate creationDate;
+
+    @Setter
+    private String meetingDirection;
+
+    @Setter
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
 
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
-                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers) {
+                LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status,
+                List<Volunteer> volunteers, String meetingDirection) {
+        this.notifications = new ArrayList<>();
         this.needs = needs;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
@@ -82,11 +91,21 @@ public class Task {
         this.volunteers= volunteers;
         this.type = needs.getFirst().getTaskType();
         this.creationDate = LocalDate.now();
+        this.meetingDirection = meetingDirection;
     }
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel,
-                Status status, List<Volunteer> volunteers, Catastrophe catastrophe) {
-        this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers);
+                Status status, List<Volunteer> volunteers, String meetingDirection, Catastrophe catastrophe) {
+        this(needs, taskName, taskDescription, startTimeDate, estimatedEndTimeDate, priority, emergencyLevel, status, volunteers, meetingDirection);
         this.catastrophe = catastrophe;
+    }
+
+    public Task(){
+        this.creationDate = LocalDate.now();
+        this.notifications = new ArrayList<>();
+    }
+
+    public void addNotification(Notification notification) {
+        this.notifications.add(notification);
     }
 }

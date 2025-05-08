@@ -37,8 +37,11 @@ public class Volunteer extends Person {
             inverseJoinColumns = @JoinColumn(name = "task_id"))
     private List<Task> tasks;
 
-    @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Donation> donations;
+    @ManyToMany
+    @JoinTable(name = "volunteer_accepted_tasks",
+            joinColumns = @JoinColumn(name = "volunteer_dni"),
+            inverseJoinColumns = @JoinColumn(name = "task_id"))
+    private List<Task> acceptedTasks;
 
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Certificate> certificates;
@@ -54,7 +57,6 @@ public class Volunteer extends Person {
                      List<ScheduleAvailability> scheduleAvailabilities) {
         super(dni, firstName, lastName, email, phone, address, password);
         this.tasks = new ArrayList<>();
-        this.donations = new ArrayList<>();
         this.certificates = new ArrayList<>();
         this.scheduleAvailabilities = scheduleAvailabilities;
         this.taskTypes = taskTypes;
@@ -83,7 +85,6 @@ public class Volunteer extends Person {
             }
 
         }
-        System.out.println(this.getFirstName() + " " + available);
         return available;
     }
 

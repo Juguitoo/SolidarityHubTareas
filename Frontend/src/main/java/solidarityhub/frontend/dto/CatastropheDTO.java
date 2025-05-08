@@ -18,7 +18,6 @@ public class CatastropheDTO {
     private LocalDate startDate;
     private EmergencyLevel emergencyLevel;
 
-    // Constructor completo
     public CatastropheDTO(Catastrophe catastrophe) {
         this.name = catastrophe.getName();
         this.description = catastrophe.getDescription();

@@ -1,5 +1,10 @@
 package solidarityhub.frontend.service;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.server.VaadinSession;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -7,12 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.model.Catastrophe;
-import solidarityhub.frontend.model.GPSCoordinates;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
+import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +77,7 @@ public class CatastropheService {
             CatastropheDTO[] catastrophes = restTemplate.getForObject(baseUrl, CatastropheDTO[].class);
             return catastrophes != null ? Arrays.asList(catastrophes) : Collections.emptyList();
         } catch (Exception e) {
-            return getExampleCatastrophes();
+            return Collections.emptyList();
         }
     }
 
@@ -89,20 +90,14 @@ public class CatastropheService {
         }
     }
 
-    //GET EXAMPLE CATASROPHE
-    public List<CatastropheDTO> getExampleCatastrophes() {
-        List<CatastropheDTO> exampleCatastrophes = new ArrayList<>();
-
-        Catastrophe exampleCatastrophe = new Catastrophe(
-                "Catástrofe de ejemplo",
-                "Descripción de la catástrofe de ejemplo",
-                new GPSCoordinates(0.0, 0.0),
-                LocalDate.now(),
-                EmergencyLevel.HIGH
-        );
-
-        exampleCatastrophes.add(new CatastropheDTO(exampleCatastrophe));
-
-        return exampleCatastrophes;
+    public boolean isCatastropheSelected(BeforeEnterEvent event, CatastropheDTO selectedCatastrophe) {
+        if (selectedCatastrophe == null) {
+            Notification.show("Por favor, selecciona una catástrofe primero",
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+            event.rerouteTo("");
+            return false;
+        }
+        return true;
     }
 }

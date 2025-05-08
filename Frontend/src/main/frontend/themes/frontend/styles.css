@@ -6,6 +6,7 @@
 @import url('catastrophe/catastropheComponent.css');
 @import url('catastrophe/addCatastrophe.css');
 @import url('catastrophe/catastropheSelectionView.css');
+@import url('resources/resources.css');
 
 :root {
     --background-color: #f5f5f5;
@@ -16,6 +17,12 @@
     --medium-priority: #ffab40;
     --low-priority: #69f0ae;
     --default-priority: #e0e0e0;
+}
+
+div, h1, h2, p, span, a, label, input, button, select, textarea, ul, li, img, section, header, footer, nav, main {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 vaadin-button{
@@ -45,4 +52,27 @@ vaadin-button{
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    color: #424242;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.centered-checkbox-group {
+    margin: auto;
+}
+
+.centered-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 5rem 0
+}
+
+.suggested-task{
+    width: 75%;
+}
+
+.suggested-task:hover{
+    transform: scale(1.05);
 }

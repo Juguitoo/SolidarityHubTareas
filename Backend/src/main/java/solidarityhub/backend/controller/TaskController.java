@@ -1,15 +1,14 @@
 package solidarityhub.backend.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import solidarityhub.backend.config.FcmService;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.dto.VolunteerDTO;
-import solidarityhub.backend.model.Catastrophe;
-import solidarityhub.backend.model.Need;
-import solidarityhub.backend.model.Task;
-import solidarityhub.backend.model.Volunteer;
+import solidarityhub.backend.model.*;
 import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
@@ -24,8 +23,8 @@ public class TaskController {
     private final NotificationService notificationService;
     private final CatastropheService catastropheService;
 
-
-    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService) {
+    @Autowired
+    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService, FcmService fcmService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
         this.needService = needService;
@@ -88,11 +87,11 @@ public class TaskController {
         if (catastrophe != null) {
             task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(),
                     taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(),
-                    taskDTO.getStatus(), volunteers, catastrophe);
+                    taskDTO.getStatus(), volunteers, taskDTO.getMeetingDirection(), catastrophe);
         } else {
             task = new Task(needs, taskDTO.getName(), taskDTO.getDescription(), taskDTO.getStartTimeDate(),
                     taskDTO.getEstimatedEndTimeDate(), taskDTO.getPriority(), taskDTO.getEmergencyLevel(),
-                    taskDTO.getStatus(), volunteers);
+                    taskDTO.getStatus(), volunteers, taskDTO.getMeetingDirection());
 
             // Si no se especificó una catástrofe, utilizar la de la primera necesidad
             if (!needs.isEmpty() && needs.getFirst().getCatastrophe() != null) {
@@ -100,27 +99,27 @@ public class TaskController {
             }
         }
 
-
-        taskService.saveTask(task);
+        taskService.save(task);
 
         for (Need need : needs) {
             need.setTask(task);
-            needService.saveNeed(need);
+            needService.save(need);
         }
 
         for (Volunteer volunteer : volunteers) {
             volunteer.getTasks().add(task);
-            notificationService.notifyEmail(volunteer.getEmail(),"Nueva tarea -> " + task.getCatastrophe().getName(),
-            "Se le ha asignado una nueva tarea: " + task.getTaskName() + "\n" +
-                    "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                    "Descripción: " + task.getTaskDescription() + "\n" +
-                    "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                    "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                    "Prioridad: " + task.getPriority() + "\n" +
-                    "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                    "Estado: " + task.getStatus());
-            volunteerService.saveVolunteer(volunteer);
+
+            Notification notification = getNotification(volunteer, task, "Nueva tarea");
+            task.addNotification(notification);
+
+            notificationService.notifyEmail(volunteer.getEmail(), notification);
+            notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
+                    "Se le ha asignado una nueva tarea: " + task.getTaskName());
+            notificationService.save(notification);
+
+            volunteerService.save(volunteer);
         }
+        taskService.save(task);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -131,6 +130,9 @@ public class TaskController {
         if(task == null) {
             return ResponseEntity.notFound().build();
         }
+
+        task.getVolunteers().forEach(volunteer -> {volunteer.getTasks().remove(task); volunteerService.save(volunteer);});
+        task.getNeeds().forEach(need -> {need.setTask(null); needService.save(need);});
 
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
@@ -147,7 +149,7 @@ public class TaskController {
         List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer needId : needIds) {
             Need need = needService.findNeed(needId);
-            if (need != null && !task.getNeeds().contains(need)) {
+            if (need != null) {
                 needs.add(need);
             }
         }
@@ -156,7 +158,6 @@ public class TaskController {
         for (String volunteerID : volunteerDnis) {
             Volunteer volunteer = volunteerService.getVolunteer(volunteerID);
             volunteers.add(volunteer);
-
         }
 
         task.setTaskName(taskDTO.getName());
@@ -168,34 +169,31 @@ public class TaskController {
         task.setStatus(taskDTO.getStatus());
         task.setVolunteers(volunteers);
         task.setNeeds(needs);
+        task.setType(taskDTO.getType());
+        task.setMeetingDirection(taskDTO.getMeetingDirection());
 
-        taskService.saveTask(task);
+        taskService.save(task);
 
         for (Need need : needs) {
             if(need.getTask() == null){
                 need.setTask(task);
-                needService.saveNeed(need);
+                needService.save(need);
             }
         }
 
         for (Volunteer volunteer : volunteers) {
             if(!volunteer.getTasks().contains(task)) {
                 volunteer.getTasks().add(task);
-                volunteerService.saveVolunteer(volunteer);
+                volunteerService.save(volunteer);
             }
-            boolean emailSent = notificationService.notifyEmail(volunteer.getEmail(), "Tarea actualizada -> " + task.getTaskName(),
-                    "Se ha actualizado una tarea que se le había asignado. " + "\n" +
-                            "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                            "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                            "Descripción: " + task.getTaskDescription() + "\n" +
-                            "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                            "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                            "Prioridad: " + task.getPriority() + "\n" +
-                            "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                            "Estado: " + task.getStatus());
-            if (!emailSent) {
-                System.out.println("Correo no enviado a " + volunteer.getEmail());
-            }
+
+            Notification notification = getNotification(volunteer, task, "Tarea actualizada");
+
+            notificationService.notifyEmail(volunteer.getEmail(), notification);
+            notificationService.save(notification);
+            notificationService.notifyApp(volunteer.getNotificationToken(),
+                    "Tarea actualizada",
+                    "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
@@ -210,23 +208,68 @@ public class TaskController {
         // Desasociar la tarea de las necesidades y voluntarios
         for (Need need : task.getNeeds()) {
             need.setTask(null);
-            needService.saveNeed(need);
+            needService.save(need);
         }
         for (Volunteer volunteer : task.getVolunteers()) {
-            notificationService.notifyEmail(volunteer.getEmail(), "Tarea eliminada -> " + task.getTaskName(),
-                    "Se ha eliminado una tarea que se le había asignado. " + "\n" +
-                            "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
-                            "Nombre de la tarea: " + task.getTaskName() + "\n" +
-                            "Descripción: " + task.getTaskDescription() + "\n" +
-                            "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
-                            "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
-                            "Prioridad: " + task.getPriority() + "\n" +
-                            "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
-                            "Estado: " + task.getStatus());
+
+            Notification notification = getNotification(volunteer, task, "Tarea eliminada");
+
+            notificationService.notifyEmail(volunteer.getEmail(),notification);
+            notificationService.notifyApp(volunteer.getNotificationToken(), "Tarea eliminada",
+                    "Se ha eliminado la tarea " + task.getTaskName() + " que se le había asignado.");
+
             volunteer.getTasks().remove(task);
-            volunteerService.saveVolunteer(volunteer);
+            volunteerService.save(volunteer);
         }
         taskService.deleteTask(task);
         return ResponseEntity.ok().build();
+    }
+
+    private static Notification getNotification(Volunteer volunteer, Task task, String tipo) {
+        String title = tipo + " -> " + task.getTaskName();
+        String intro = "";
+
+        switch (tipo) {
+            case "Nueva tarea" -> {
+                intro = "Se le ha asignado una nueva tarea: ";
+            }
+            case "Tarea actualizada" -> {
+                intro = "Se ha actualizado la tarea que tenía asignada: ";
+            }
+            case "Tarea eliminada" -> {
+                intro = "Se ha eliminado la tarea que tenía asignada: ";
+            }
+        }
+
+        String body = intro + task.getTaskName() + "\n" +
+                "Referente a la catástrofe: " + task.getCatastrophe().getName() + "\n" +
+                "Descripción: " + task.getTaskDescription() + "\n" +
+                "Fecha de inicio: " + task.getStartTimeDate() + "\n" +
+                "Fecha estimada de finalización: " + task.getEstimatedEndTimeDate() + "\n" +
+                "Prioridad: " + task.getPriority() + "\n" +
+                "Nivel de emergencia: " + task.getEmergencyLevel() + "\n" +
+                "Estado: " + task.getStatus() + "\n" +
+                "Punto de encuentro: " + task.getMeetingDirection();
+
+        return new Notification(title, body, task, volunteer);
+    }
+
+    @GetMapping("/suggestedTasks")
+    public ResponseEntity<?> getSuggestedTasks(@RequestParam Integer catastropheId) {
+        List<Need> needs = needService.getNeedsWithoutTask(catastropheId);
+        if(needs.size()> 3) {
+            needs = needs.subList(0, 3);
+        }
+
+        if (needs.isEmpty()) {
+            return ResponseEntity.badRequest().body("Se debe seleccionar al menos una necesidad");
+        }
+
+        List<Task> suggestedTasks = taskService.getSuggestedTasks(needs);
+        List<TaskDTO> suggestedTaskDTOs = new ArrayList<>();
+        for (Task task : suggestedTasks) {
+            suggestedTaskDTOs.add(new TaskDTO(task));
+        }
+        return ResponseEntity.ok(suggestedTaskDTOs);
     }
 }
