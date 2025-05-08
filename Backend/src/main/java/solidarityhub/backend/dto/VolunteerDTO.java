@@ -29,4 +29,5 @@ public class VolunteerDTO {
         this.taskTypes = volunteer.getTaskTypes();
         volunteer.getTasks().forEach(t ->{tasks.add(t.getId());});
     }
+
 }

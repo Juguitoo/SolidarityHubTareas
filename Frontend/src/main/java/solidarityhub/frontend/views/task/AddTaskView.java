@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -288,8 +289,22 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         volunteerMultiSelectComboBox.setRequired(true);
         volunteerMultiSelectComboBox.addClassName("addTaskForm--multiSelectComboBox");
 
-        Dialog selectVolunteersDialog = getVolunteersDialogContent();
-        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> selectVolunteersDialog.open());
+
+        volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
+            if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
+                // Si no hay fechas seleccionadas, mostrar notificación
+                Notification notification = Notification.show(
+                        "Selecciona fecha para comprobar qué voluntarios están disponibles",
+                        3000,
+                        Notification.Position.MIDDLE
+                );
+                notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+            } else {
+                // Si hay fechas, mostrar el diálogo normal
+                Dialog selectVolunteersDialog = getVolunteersDialogContent();
+                selectVolunteersDialog.open();
+            }
+        });
 
         return volunteerMultiSelectComboBox;
     }
@@ -365,116 +380,161 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
 
         Tabs tabs = new Tabs(
-            new Tab("Todos"),
-            new Tab("Distancia"),
-            new Tab("Disponibilidad"),
-            new Tab("Habilidades")
+                new Tab("Disponibles"),
+                new Tab("Por Distancia"),
+                new Tab("Por Habilidades")
         );
 
         MultiSelectListBox<VolunteerDTO> volunteersListBox = new MultiSelectListBox<>();
         volunteersListBox.setWidthFull();
 
-        //No volunteers message
-        Span noVolunteersMessage = new Span("No se encontraron voluntarios con las habilidades requeridas");
+        // No volunteers message
+        Span noVolunteersMessage = new Span("No se encontraron voluntarios disponibles para las fechas seleccionadas");
         noVolunteersMessage.setVisible(false);
 
-        allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("None", getTaskDTO()));
+        // Comprobar si tenemos fechas seleccionadas
+        if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
+            Notification.show("Primero debe seleccionar las fechas de inicio y fin de la tarea",
+                    3000, Notification.Position.MIDDLE);
+            volunteerDialog.close();
+            return volunteerDialog;
+        }
 
-        volunteersListBox.setRenderer(new ComponentRenderer<>(volunteer ->
-                new VolunteerInfo(volunteer, tabs.getSelectedTab() != null ? tabs.getSelectedTab().getLabel() : "Todos")
-        ));
+        // Obtener las fechas para verificar disponibilidad
+        LocalDateTime startDate = starDateTimePicker.getValue();
+        LocalDateTime endDate = endDatePicker.getValue().atTime(23, 59);
 
-        tabs.setSelectedIndex(0);
-        volunteersListBox.setItems(allVolunteersList);
+        // Obtener todos los voluntarios y comprobar disponibilidad
+        TaskDTO currentTaskDTO = getTaskDTO();
+        allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("None", currentTaskDTO));
 
-        // Listener para el cambio de pestañas
+        // Filtrar por disponibilidad
+        List<VolunteerDTO> availableVolunteers = allVolunteersList.stream()
+                .filter(v -> v.isAvailable() > 0) // Suponiendo que el servicio ya ha configurado la disponibilidad
+                .collect(Collectors.toList());
+
+        // Obtener voluntarios por distancia y habilidades para los filtros
+        distanceVolunteersList = new ArrayList<>(volunteerService.getVolunteers("distancia", currentTaskDTO))
+                .stream()
+                .filter(v -> v.isAvailable() > 0) // Solo disponibles
+                .collect(Collectors.toList());
+
+        skillsVolunteersList = new ArrayList<>(volunteerService.getVolunteers("habilidades", currentTaskDTO))
+                .stream()
+                .filter(v -> v.isAvailable() > 0) // Solo disponibles
+                .collect(Collectors.toList());
+
+        // Configurar el visualizador de voluntarios
+        ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
+            // Mostrar información del voluntario con una etiqueta clara de disponibilidad
+            HorizontalLayout layout = new HorizontalLayout();
+            layout.setWidthFull();
+            layout.setAlignItems(Alignment.CENTER);
+
+            VerticalLayout infoLayout = new VerticalLayout();
+            infoLayout.setPadding(false);
+            infoLayout.setSpacing(false);
+
+            Span nameSpan = new Span(volunteer.getFirstName() + " " + volunteer.getLastName());
+            nameSpan.getStyle().set("font-weight", "bold");
+
+            Span emailSpan = new Span(volunteer.getEmail());
+            emailSpan.getStyle().set("font-size", "0.9em");
+            emailSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+            infoLayout.add(nameSpan, emailSpan);
+
+            // Badge de disponibilidad
+            Span availabilityBadge = new Span("Disponible");
+            availabilityBadge.getStyle()
+                    .set("background-color", "var(--lumo-success-color)")
+                    .set("color", "white")
+                    .set("padding", "4px 8px")
+                    .set("border-radius", "4px")
+                    .set("font-size", "0.8em")
+                    .set("font-weight", "bold")
+                    .set("margin-left", "auto");
+
+            layout.add(infoLayout, availabilityBadge);
+
+            // Agregar un borde de color verde para mayor claridad
+            layout.getStyle()
+                    .set("border-left", "4px solid var(--lumo-success-color)")
+                    .set("padding", "8px")
+                    .set("border-radius", "4px")
+                    .set("background-color", "rgba(76, 175, 80, 0.1)");
+
+            return layout;
+        });
+
+        volunteersListBox.setRenderer(renderer);
+
+        // Inicializar con los voluntarios disponibles
+        if (availableVolunteers.isEmpty()) {
+            noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+            noVolunteersMessage.setVisible(true);
+        } else {
+            volunteersListBox.setItems(availableVolunteers);
+        }
+
+        // Listener para cambios de pestaña
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
-            TaskDTO currentTaskDTO = getTaskDTO();
 
             // Ocultar mensaje de error por defecto
             noVolunteersMessage.setVisible(false);
 
             switch (selectedTabName) {
-                case "Todos":
-                    volunteerCheckbox.clear();
-                    if(allVolunteersList.isEmpty()){
-                        allVolunteersList.addAll(volunteerService.getVolunteers("None", currentTaskDTO));
-                    }
-                    volunteersListBox.setItems(allVolunteersList);
-                    break;
-
-                case "Distancia":
-                    if(needsMultiSelectComboBox.getSelectedItems().isEmpty()){
-                        Notification.show("Por favor, seleccione una necesidad primero para poder calcular las distancias.",
-                                3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
+                case "Disponibles":
+                    if (availableVolunteers.isEmpty()) {
+                        noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+                        noVolunteersMessage.setVisible(true);
                     } else {
-                        if(distanceVolunteersList.isEmpty()){
-                            distanceVolunteersList.addAll(volunteerService.getVolunteers("distancia", currentTaskDTO));
-                        }
-                        volunteersListBox.setItems(distanceVolunteersList);
-
-                        if(distanceVolunteersList.isEmpty()) {
-                            noVolunteersMessage.setText("No se encontraron voluntarios cercanos a la ubicación de la tarea");
-                            noVolunteersMessage.setVisible(true);
-                        }
+                        volunteersListBox.setItems(availableVolunteers);
                     }
                     break;
 
-                case "Disponibilidad":
-                    if(starDateTimePicker.isEmpty() || endDatePicker.isEmpty()){
-                        Notification.show("Por favor, seleccione primero una fecha de inicio y de fin de la tarea.",
-                                3000, Notification.Position.MIDDLE);
-                        tabs.setSelectedTab(tabs.getTabAt(0));
-                        return;
-                    } else {
-                        if(availabilityVolunteersList.isEmpty()){
-                            availabilityVolunteersList.addAll(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
-                        }
-                        volunteersListBox.setItems(availabilityVolunteersList);
-
-                        if(availabilityVolunteersList.isEmpty()) {
-                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles en las fechas seleccionadas");
-                            noVolunteersMessage.setVisible(true);
-                        }
-                    }
-                    break;
-
-                case "Habilidades":
+                case "Por Distancia":
                     if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
-                        Notification.show("Por favor, seleccione una necesidad primero para indicar el tipo de la tarea.",
+                        Notification.show("Seleccione una necesidad primero para poder filtrar por distancia",
                                 3000, Notification.Position.MIDDLE);
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
-                    } else {
-                        if (skillsVolunteersList.isEmpty()) {
-                            skillsVolunteersList.addAll(volunteerService.getVolunteers("habilidades", currentTaskDTO));
-                        }
-                        volunteersListBox.setItems(skillsVolunteersList);
+                    }
 
-                        if(skillsVolunteersList.isEmpty()) {
-                            noVolunteersMessage.setText("No se encontraron voluntarios con la habilidad requerida para esta tarea");
-                            noVolunteersMessage.setVisible(true);
-                        }
+                    if (distanceVolunteersList.isEmpty()) {
+                        noVolunteersMessage.setText("No se encontraron voluntarios disponibles cercanos a la ubicación");
+                        noVolunteersMessage.setVisible(true);
+                    } else {
+                        volunteersListBox.setItems(distanceVolunteersList);
+                    }
+                    break;
+
+                case "Por Habilidades":
+                    if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
+                        Notification.show("Seleccione una necesidad primero para poder filtrar por habilidades",
+                                3000, Notification.Position.MIDDLE);
+                        tabs.setSelectedTab(tabs.getTabAt(0));
+                        return;
+                    }
+
+                    if (skillsVolunteersList.isEmpty()) {
+                        noVolunteersMessage.setText("No se encontraron voluntarios disponibles con las habilidades requeridas");
+                        noVolunteersMessage.setVisible(true);
+                    } else {
+                        volunteersListBox.setItems(skillsVolunteersList);
                     }
                     break;
             }
-
-            // Actualizar el renderer cuando cambia la pestaña para actualizar la información mostrada
-            volunteersListBox.setRenderer(new ComponentRenderer<>(volunteer ->
-                    new VolunteerInfo(volunteer, selectedTabName)
-            ));
         });
 
         volunteerCheckbox.addClickListener(checkboxClickEvent ->
-            volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
+                volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
         );
 
         dialogContent.add(volunteerCheckbox, tabs, noVolunteersMessage, volunteersListBox);
 
-        //Footer
+        // Footer
         Button saveButton = new Button("Guardar", e -> {
             if (volunteerCheckbox.getValue()) {
                 volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
@@ -490,6 +550,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             }
             volunteerDialog.close();
         });
+
         Button cancelButton = new Button("Cancelar", e -> volunteerDialog.close());
 
         volunteerDialog.getFooter().add(cancelButton, saveButton);

@@ -69,3 +69,23 @@
     border-color: var(--lumo-contrast-50pct);
     border-width: 0;
 }
+
+/* Availability styling */
+.volunteer-available {
+    background-color: rgba(76, 175, 80, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.volunteer-unavailable {
+    background-color: rgba(244, 67, 54, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+

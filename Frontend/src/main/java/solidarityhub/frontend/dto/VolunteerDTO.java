@@ -17,6 +17,7 @@ public class VolunteerDTO {
     private String email;
     private List<Integer> tasks;
     private List<TaskType> taskTypes;
+    private int availabilityStatus;
 
     public VolunteerDTO(Volunteer volunteer) {
         this.tasks = new ArrayList<>();
@@ -26,5 +27,11 @@ public class VolunteerDTO {
         this.email = volunteer.getEmail();
         this.taskTypes = volunteer.getTaskTypes();
         volunteer.getTasks().forEach(t ->{tasks.add(t.getId());});
+    }
+    public int isAvailable() {
+        return availabilityStatus;
+    }
+    public void setAvailabilityStatus(int availabilityStatus) {
+        this.availabilityStatus = availabilityStatus;
     }
 }
