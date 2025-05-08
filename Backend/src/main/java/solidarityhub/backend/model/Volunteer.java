@@ -44,9 +44,6 @@ public class Volunteer extends Person {
     private List<Task> acceptedTasks;
 
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Donation> donations;
-
-    @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Certificate> certificates;
 
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
@@ -60,7 +57,6 @@ public class Volunteer extends Person {
                      List<ScheduleAvailability> scheduleAvailabilities) {
         super(dni, firstName, lastName, email, phone, address, password);
         this.tasks = new ArrayList<>();
-        this.donations = new ArrayList<>();
         this.certificates = new ArrayList<>();
         this.scheduleAvailabilities = scheduleAvailabilities;
         this.taskTypes = taskTypes;

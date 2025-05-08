@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.DonationDTO;
 import solidarityhub.backend.model.Donation;
-import solidarityhub.backend.model.enums.DonationStatus;
 import solidarityhub.backend.service.DonationService;
 
 import java.util.ArrayList;
@@ -43,12 +42,12 @@ public class DonationController {
         return ResponseEntity.ok(donationDTOs);
     }
 
-    @GetMapping("/byVolunteer")
-    public ResponseEntity<?> getDonationsByVolunteer(@RequestParam String volunteerDni) {
-        List<DonationDTO> donationDTOs = new ArrayList<>();
-        donationService.getDonationsByVolunteer(volunteerDni).forEach(d -> donationDTOs.add(new DonationDTO(d)));
-        return ResponseEntity.ok(donationDTOs);
-    }
+//    @GetMapping("/byVolunteer")
+//    public ResponseEntity<?> getDonationsByVolunteer(@RequestParam String volunteerDni) {
+//        List<DonationDTO> donationDTOs = new ArrayList<>();
+//        donationService.getDonationsByDonor(volunteerDni).forEach(d -> donationDTOs.add(new DonationDTO(d)));
+//        return ResponseEntity.ok(donationDTOs);
+//    }
 
     @PostMapping
     public ResponseEntity<?> createDonation(@RequestBody DonationDTO donationDTO) {
@@ -62,13 +61,13 @@ public class DonationController {
             donation.setCantidad(donationDTO.getQuantity() + " " + donationDTO.getUnit());
 
             Donation savedDonation = donationService.createDonation(
-                    donationDTO.getVolunteerDni(),
+                    donationDTO.getDonorDni(),
                     donationDTO.getCatastropheId(),
                     donation
             );
 
             if (savedDonation == null) {
-                return ResponseEntity.badRequest().body("Invalid volunteer or catastrophe");
+                return ResponseEntity.badRequest().body("Invalid donor or catastrophe");
             }
 
             return ResponseEntity.status(HttpStatus.CREATED).body(new DonationDTO(savedDonation));

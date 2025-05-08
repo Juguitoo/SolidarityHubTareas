@@ -13,17 +13,22 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
+import solidarityhub.frontend.dto.DonorDTO;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import solidarityhub.frontend.model.enums.DonationType;
 import solidarityhub.frontend.service.DonationService;
+import solidarityhub.frontend.service.DonorService;
 
 import java.time.LocalDate;
 
 public class AddDonationDialog extends Dialog {
 
     protected final DonationService donationService;
+    protected final DonorService donorService;
+
     protected final CatastropheDTO selectedCatastrophe;
     protected DonationDTO donation;
 
@@ -33,7 +38,8 @@ public class AddDonationDialog extends Dialog {
     protected NumberField quantityField;
     protected TextField unitField;
     protected ComboBox<DonationStatus> statusField;
-    protected TextField volunteerField;
+    protected TextField donorDniField;
+    protected TextField donorNameField;
 
     public AddDonationDialog(CatastropheDTO selectedCatastrophe) {
         this(selectedCatastrophe, null);
@@ -41,6 +47,7 @@ public class AddDonationDialog extends Dialog {
 
     protected AddDonationDialog(CatastropheDTO selectedCatastrophe, DonationDTO donation) {
         this.donationService = new DonationService();
+        this.donorService = new DonorService();
         this.selectedCatastrophe = selectedCatastrophe;
         this.donation = donation;
 
@@ -70,12 +77,21 @@ public class AddDonationDialog extends Dialog {
             quantityField.setValue(donation.getQuantity());
             unitField.setValue(donation.getUnit());
             statusField.setValue(donation.getStatus());
-            volunteerField.setValue(donation.getVolunteerDni());
+            donorDniField.setValue(donation.getDonorDni());
+            donorNameField.setValue(donation.getDonorName());
         }
     }
 
     //=============================== Get Components =========================================
     protected Component getForms() {
+        FormLayout formLayout = new FormLayout();
+
+        formLayout.add(getDonationForms(), getDonorForms());
+
+        return formLayout;
+    }
+
+    protected Component getDonationForms() {
         FormLayout formLayout = new FormLayout();
 
         dateField = new DatePicker("Fecha");
@@ -123,15 +139,42 @@ public class AddDonationDialog extends Dialog {
         statusField.setRequiredIndicatorVisible(true);
         statusField.setRequired(true);
 
-        volunteerField = new TextField("Donante (DNI)");
-        volunteerField.addClassName("donate__dni-field");
-        volunteerField.setRequiredIndicatorVisible(true);
-        volunteerField.setRequired(true);
-
-        formLayout.add(dateField, typeField, quantityField, unitField, descriptionField, statusField, volunteerField);
+        formLayout.add(dateField, typeField, quantityField, unitField, descriptionField, statusField);
 
         formLayout.setColspan(descriptionField, 2);
 
+        return formLayout;
+    }
+
+    protected Component getDonorForms() {
+        FormLayout formLayout = new FormLayout();
+
+        donorDniField = new TextField("Donante (DNI)");
+        donorDniField.addClassName("donate__dni-field");
+        donorDniField.setRequiredIndicatorVisible(true);
+        donorDniField.setRequired(true);
+        donorDniField.setPlaceholder("11111111A");
+
+        donorNameField = new TextField("Donante (nombre)");
+        donorNameField.setRequiredIndicatorVisible(true);
+        donorDniField.setRequiredIndicatorVisible(true);
+        donorNameField.setRequired(true);
+
+        formLayout.add(donorDniField, donorNameField);
+
+        donorDniField.setValueChangeMode(ValueChangeMode.LAZY); // Establece el modo para esperar
+        donorDniField.setValueChangeTimeout(500); // Define el tiempo de espera en milisegundos
+        donorDniField.addValueChangeListener(event -> {
+            String dni = event.getValue();
+            if (dni != null && !dni.isEmpty()) {
+                DonorDTO donor = donorService.getDonorByDni(dni);
+                if (donor != null) {
+                    donorNameField.setValue(donor.getName());
+                } else {
+                    donorNameField.clear();
+                }
+            }
+        });
         return formLayout;
     }
 
@@ -154,31 +197,32 @@ public class AddDonationDialog extends Dialog {
         return buttonLayout;
     }
 
-    //=============================== Manage Donation =========================================
+    //=============================== Action Methods =========================================
     protected void saveDonation() {
+        if (!validateForms()) {
+            Notification.show("Por favor, completa todos los campos.", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return;
+        }
+
+        //Donation data
         LocalDate date = dateField.getValue();
         DonationType type = typeField.getValue();
         String description = descriptionField.getValue();
         Double quantity = quantityField.getValue();
         String unit = unitField.getValue();
         DonationStatus status = statusField.getValue();
-        String volunteerDni = volunteerField.getValue().toUpperCase();
 
-
-        if (date == null || type == null || description == null || description.isEmpty() ||
-                quantity == null || unit.isEmpty() || status == null || volunteerDni.isEmpty()) {
-            Notification.show("Por favor, completa todos los campos.", 3000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return;
-        }
+        DonorDTO donor = saveDonor();
 
         try {
             DonationDTO donationToSave = new DonationDTO();
+
             if (donation != null) {
                 donationToSave.setId(donation.getId());
-                donationToSave.setCode(donation.getCode());
             }
 
+            // Set donation data
             donationToSave.setDate(date);
             donationToSave.setType(type);
             donationToSave.setDescription(description);
@@ -186,9 +230,8 @@ public class AddDonationDialog extends Dialog {
             donationToSave.setUnit(unit);
             donationToSave.setCantidad(quantity + " " + unit);
             donationToSave.setStatus(status);
-            donationToSave.setVolunteerDni(volunteerDni);
             donationToSave.setCatastropheId(selectedCatastrophe.getId());
-            donationToSave.setCatastropheName(selectedCatastrophe.getName());
+            donationToSave.setDonorDni(donor.getDni());
 
             if (donation == null) {
                 donationService.addDonation(donationToSave);
@@ -204,6 +247,28 @@ public class AddDonationDialog extends Dialog {
             String action = donation == null ? "registrar" : "actualizar";
             Notification.show("Error al " + action + " la donación: " + e.getMessage(), 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    protected DonorDTO saveDonor(){
+        DonorDTO donorToSave = new DonorDTO();
+        String dni = donorDniField.getValue();
+        String name = donorNameField.getValue();
+
+        if(exitsDonor(dni)){
+            donorToSave = donorService.getDonorByDni(dni);
+        } else {
+            donorToSave.setDni(dni);
+            donorToSave.setName(name);
+        }
+
+        try {
+            donorService.addDonor(donorToSave);
+            return donorToSave;
+        } catch (Exception e) {
+            Notification.show("Error al registrar el donante", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return null;
         }
     }
 
@@ -246,5 +311,21 @@ public class AddDonationDialog extends Dialog {
             case SCHEDULED -> "Programada";
             case CANCELLED -> "Cancelada";
         };
+    }
+
+    //===============================Validate Form=========================================
+    private boolean validateForms() {
+        return !dateField.isEmpty() &&
+                !typeField.isEmpty() &&
+                !descriptionField.isEmpty() &&
+                !quantityField.isEmpty() &&
+                !unitField.isEmpty() &&
+                !statusField.isEmpty() &&
+                !donorDniField.isEmpty() &&
+                !donorNameField.isEmpty();
+    }
+
+    private boolean exitsDonor(String donorDni) {
+        return donorService.getDonorByDni(donorDni) != null;
     }
 }

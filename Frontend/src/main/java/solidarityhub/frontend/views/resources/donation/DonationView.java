@@ -142,7 +142,7 @@ public class DonationView extends VerticalLayout {
         statusColumn = donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus()))
                 .setAutoWidth(true);
 
-        donorColumn = donationGrid.addColumn(donation -> donation.getVolunteerName() != null ? donation.getVolunteerName() : donation.getVolunteerDni())
+        donorColumn = donationGrid.addColumn(donation -> donation.getDonorName() != null ? donation.getDonorName() : "Anonimo")
                 .setAutoWidth(true);
 
         donationGrid.addColumn(DonationDTO::getCantidad).setHeader("Cantidad")
@@ -185,10 +185,10 @@ public class DonationView extends VerticalLayout {
             donationDataProvider.clearFilters();
             if (!event.getValue().isEmpty()) {
                 donationDataProvider.setFilter(donation ->
-                        (donation.getVolunteerName() != null &&
-                                StringUtils.containsIgnoreCase(donation.getVolunteerName(), event.getValue())) ||
-                                (donation.getVolunteerDni() != null &&
-                                        StringUtils.containsIgnoreCase(donation.getVolunteerDni(), event.getValue())));
+                        (donation.getDonorName() != null &&
+                                StringUtils.containsIgnoreCase(donation.getDonorName(), event.getValue())) ||
+                                (donation.getDonorDni() != null &&
+                                        StringUtils.containsIgnoreCase(donation.getDonorDni(), event.getValue())));
             }
         });
         donorColumn.setHeader(getGridFilterHeader("Donante", donorFilter, donorColumn));

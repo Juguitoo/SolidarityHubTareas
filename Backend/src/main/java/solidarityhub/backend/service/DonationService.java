@@ -2,10 +2,12 @@ package solidarityhub.backend.service;
 
 import org.springframework.stereotype.Service;
 import solidarityhub.backend.model.Donation;
-import solidarityhub.backend.model.Volunteer;
+import solidarityhub.backend.model.Donor;
+import solidarityhub.backend.model.Person;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.repository.DonationRepository;
-import solidarityhub.backend.repository.VolunteerRepository;
+import solidarityhub.backend.repository.DonorRepository;
+import solidarityhub.backend.repository.PersonRepository;
 import solidarityhub.backend.repository.CatastropheRepository;
 
 import java.time.LocalDate;
@@ -16,22 +18,18 @@ import java.util.Optional;
 @Service
 public class DonationService {
     private final DonationRepository donationRepository;
-    private final VolunteerRepository volunteerRepository;
     private final CatastropheRepository catastropheRepository;
+    private final PersonRepository personRepository;
+    private final DonorRepository donorRepository;
 
-    public DonationService(DonationRepository donationRepository,
-                           VolunteerRepository volunteerRepository,
-                           CatastropheRepository catastropheRepository) {
+    public DonationService(DonationRepository donationRepository, CatastropheRepository catastropheRepository, PersonRepository personRepository, DonorRepository donorRepository) {
         this.donationRepository = donationRepository;
-        this.volunteerRepository = volunteerRepository;
         this.catastropheRepository = catastropheRepository;
+        this.personRepository = personRepository;
+        this.donorRepository = donorRepository;
     }
 
     public Donation saveDonation(Donation donation) {
-        // If no code is set, generate one
-        if (donation.getCode() == null || donation.getCode().isEmpty()) {
-            donation.setCode(generateDonationCode());
-        }
         return donationRepository.save(donation);
     }
 
@@ -43,8 +41,8 @@ public class DonationService {
         return donationRepository.findByCatastropheId(catastropheId);
     }
 
-    public List<Donation> getDonationsByVolunteer(String volunteerDni) {
-        return donationRepository.findByVolunteerDni(volunteerDni);
+    public List<Donation> getDonationsByDonor(String donorDni) {
+        return donationRepository.findByDonorDni(donorDni);
     }
 
     public Donation getDonationById(Integer id) {
@@ -55,22 +53,12 @@ public class DonationService {
         System.out.println(donationRepository.deleteDonationById(id));
     }
 
-    // Helper method to generate donation code in format DON-YYYY-NNN
-    private String generateDonationCode() {
-        String currentYear = String.valueOf(Year.now().getValue());
-        Integer maxNumber = donationRepository.findMaxDonationNumberForYear(currentYear);
-        int nextNumber = (maxNumber != null) ? maxNumber + 1 : 1;
-
-        // Format the sequence number with leading zeros
-        return String.format("DON-%s-%03d", currentYear, nextNumber);
-    }
-
-    public Donation createDonation(String volunteerDni, Integer catastropheId, Donation donation) {
-        Optional<Volunteer> volunteer = volunteerRepository.findById(volunteerDni);
+    public Donation createDonation(String donorDni, Integer catastropheId, Donation donation) {
+        Optional<Donor> donor = donorRepository.findById(donorDni);
         Optional<Catastrophe> catastrophe = catastropheRepository.findById(catastropheId);
 
-        if (volunteer.isPresent() && catastrophe.isPresent()) {
-            donation.setVolunteer(volunteer.get());
+        if (donor.isPresent() && catastrophe.isPresent()) {
+            donation.setDonor(donor.get());
             donation.setCatastrophe(catastrophe.get());
             donation.setDate(LocalDate.now());
             return saveDonation(donation);

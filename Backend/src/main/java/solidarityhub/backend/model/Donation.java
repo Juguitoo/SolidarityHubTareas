@@ -7,7 +7,6 @@ import lombok.Setter;
 import solidarityhub.backend.model.enums.DonationType;
 import solidarityhub.backend.model.enums.DonationStatus;
 import java.time.LocalDate;
-
 import java.util.List;
 
 @Entity
@@ -17,10 +16,6 @@ public class Donation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
-    @Setter
-    @Column(unique = true)
-    private String code; // DON-YYYY-NNN format
 
     @Setter
     @Enumerated(EnumType.STRING)
@@ -38,12 +33,11 @@ public class Donation {
 
     @ManyToOne
     @Setter
-    @JoinColumn(name = "volunteer_dni")
-    private Volunteer volunteer;
+    @JoinColumn(name = "donor_dni")
+    private Donor donor;
 
     @OneToMany(mappedBy = "donation")
     private List<Resource> resources;
-
 
     @Setter
     @ManyToOne
@@ -60,28 +54,24 @@ public class Donation {
     private String cantidad;
 
 
-    public Donation(String code, DonationType type, String description,
+    public Donation(DonationType type, String description,
                     LocalDate date, DonationStatus status,
-                    Volunteer volunteer, Catastrophe catastrophe) {
-        this.code = code;
+                    Donor donor, Catastrophe catastrophe) {
         this.type = type;
         this.description = description;
         this.date = date;
         this.status = status;
-        this.volunteer = volunteer;
+        this.donor = donor;
         this.catastrophe = catastrophe;
     }
 
-    public Donation(String code, DonationType type, String description,
+    public Donation(DonationType type, String description,
                     LocalDate date, DonationStatus status,
-                    Volunteer volunteer, Catastrophe catastrophe,
+                    Donor donor, Catastrophe catastrophe,
                     double quantity, String unit) {
-        this(code, type, description, date, status, volunteer, catastrophe);
+        this(type, description, date, status, donor, catastrophe);
         this.quantity = quantity;
         this.unit = unit;
         this.cantidad = quantity + " " + unit;
     }
-
-
-
 }
