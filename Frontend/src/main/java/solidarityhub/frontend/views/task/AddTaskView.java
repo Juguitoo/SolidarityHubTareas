@@ -72,7 +72,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     //Volunteers list
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> distanceVolunteersList = new ArrayList<>();
-    protected List<VolunteerDTO> availabilityVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
 
     protected List<NeedDTO> allNeedsWithoutTask;
@@ -380,7 +379,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
 
         Tabs tabs = new Tabs(
-                new Tab("Disponibles"),
+                new Tab("Todos los voluntarios"),
                 new Tab("Por Distancia"),
                 new Tab("Por Habilidades")
         );
@@ -400,31 +399,14 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             return volunteerDialog;
         }
 
-        // Obtener las fechas para verificar disponibilidad
-        LocalDateTime startDate = starDateTimePicker.getValue();
-        LocalDateTime endDate = endDatePicker.getValue().atTime(23, 59);
-
         // Obtener todos los voluntarios y comprobar disponibilidad
         TaskDTO currentTaskDTO = getTaskDTO();
-        allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("None", currentTaskDTO));
-
-        // Filtrar por disponibilidad
-        List<VolunteerDTO> availableVolunteers = allVolunteersList.stream()
-                .filter(v -> v.isAvailable() > 0) // Suponiendo que el servicio ya ha configurado la disponibilidad
-                .collect(Collectors.toList());
-
-        // Obtener voluntarios por distancia y habilidades para los filtros
-        distanceVolunteersList = new ArrayList<>(volunteerService.getVolunteers("distancia", currentTaskDTO))
-                .stream()
-                .filter(v -> v.isAvailable() > 0) // Solo disponibles
-                .collect(Collectors.toList());
-
-        skillsVolunteersList = new ArrayList<>(volunteerService.getVolunteers("habilidades", currentTaskDTO))
-                .stream()
-                .filter(v -> v.isAvailable() > 0) // Solo disponibles
-                .collect(Collectors.toList());
+        if(allVolunteersList.isEmpty()) {
+            allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+        }
 
         // Configurar el visualizador de voluntarios
+        // POSIBLE REFACTORING: EXTRACT METHOD
         ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
             // Mostrar información del voluntario con una etiqueta clara de disponibilidad
             HorizontalLayout layout = new HorizontalLayout();
@@ -445,37 +427,54 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             infoLayout.add(nameSpan, emailSpan);
 
             // Badge de disponibilidad
-            Span availabilityBadge = new Span("Disponible");
-            availabilityBadge.getStyle()
-                    .set("background-color", "var(--lumo-success-color)")
-                    .set("color", "white")
-                    .set("padding", "4px 8px")
-                    .set("border-radius", "4px")
-                    .set("font-size", "0.8em")
-                    .set("font-weight", "bold")
-                    .set("margin-left", "auto");
+            if(volunteer.getAvailabilityStatus() > 0){
+                Span availabilityBadge = new Span("Disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-success-color)")
+                        .set("color", "white")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto");
 
-            layout.add(infoLayout, availabilityBadge);
+                layout.add(infoLayout, availabilityBadge);
 
-            // Agregar un borde de color verde para mayor claridad
-            layout.getStyle()
-                    .set("border-left", "4px solid var(--lumo-success-color)")
-                    .set("padding", "8px")
-                    .set("border-radius", "4px")
-                    .set("background-color", "rgba(76, 175, 80, 0.1)");
+                // Agregar un borde de color verde para mayor claridad
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-success-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(76, 175, 80, 0.1)");
 
-            return layout;
+                return layout;
+            }else{
+                Span availabilityBadge = new Span("No disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-error-color)")
+                        .set("color", "white")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                // Agregar un borde de color rojo para mayor claridad
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-error-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(244, 67, 54, 0.1)");
+
+                return layout;
+            }
         });
 
         volunteersListBox.setRenderer(renderer);
 
-        // Inicializar con los voluntarios disponibles
-        if (availableVolunteers.isEmpty()) {
-            noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
-            noVolunteersMessage.setVisible(true);
-        } else {
-            volunteersListBox.setItems(availableVolunteers);
-        }
+        volunteersListBox.setItems(allVolunteersList);
 
         // Listener para cambios de pestaña
         tabs.addSelectedChangeListener(event -> {
@@ -485,12 +484,17 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             noVolunteersMessage.setVisible(false);
 
             switch (selectedTabName) {
-                case "Disponibles":
-                    if (availableVolunteers.isEmpty()) {
-                        noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
-                        noVolunteersMessage.setVisible(true);
+                case "Todos los voluntarios":
+                    if (allVolunteersList.isEmpty()) {
+                        allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+                        if(allVolunteersList.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+                            noVolunteersMessage.setVisible(true);
+                        } else {
+                            volunteersListBox.setItems(allVolunteersList);
+                        }
                     } else {
-                        volunteersListBox.setItems(availableVolunteers);
+                        volunteersListBox.setItems(allVolunteersList);
                     }
                     break;
 
@@ -503,8 +507,13 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     }
 
                     if (distanceVolunteersList.isEmpty()) {
-                        noVolunteersMessage.setText("No se encontraron voluntarios disponibles cercanos a la ubicación");
-                        noVolunteersMessage.setVisible(true);
+                        distanceVolunteersList = new ArrayList<>(volunteerService.getVolunteers("distancia", currentTaskDTO));
+                        if(distanceVolunteersList.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles cercanos a la ubicación");
+                            noVolunteersMessage.setVisible(true);
+                        } else {
+                            volunteersListBox.setItems(distanceVolunteersList);
+                        }
                     } else {
                         volunteersListBox.setItems(distanceVolunteersList);
                     }
@@ -519,8 +528,13 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     }
 
                     if (skillsVolunteersList.isEmpty()) {
-                        noVolunteersMessage.setText("No se encontraron voluntarios disponibles con las habilidades requeridas");
-                        noVolunteersMessage.setVisible(true);
+                        skillsVolunteersList = new ArrayList<>(volunteerService.getVolunteers("habilidades", currentTaskDTO));
+                        if(skillsVolunteersList.isEmpty()) {
+                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles con las habilidades requeridas");
+                            noVolunteersMessage.setVisible(true);
+                        } else {
+                            volunteersListBox.setItems(skillsVolunteersList);
+                        }
                     } else {
                         volunteersListBox.setItems(skillsVolunteersList);
                     }
@@ -693,11 +707,15 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             if (e.getValue() != null) {
                 updatePreviewDate(e.getValue());
             }
-            availabilityVolunteersList.clear();
+            allVolunteersList.clear();
+            distanceVolunteersList.clear();
+            skillsVolunteersList.clear();
         });
 
         endDatePicker.addValueChangeListener(e -> {
-            availabilityVolunteersList.clear();
+            allVolunteersList.clear();
+            distanceVolunteersList.clear();
+            skillsVolunteersList.clear();
         });
 
         needsMultiSelectComboBox.addSelectionListener(e -> {

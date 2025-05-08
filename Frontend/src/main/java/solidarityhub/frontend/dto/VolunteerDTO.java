@@ -31,7 +31,4 @@ public class VolunteerDTO {
     public int isAvailable() {
         return availabilityStatus;
     }
-    public void setAvailabilityStatus(int availabilityStatus) {
-        this.availabilityStatus = availabilityStatus;
-    }
 }

@@ -19,8 +19,10 @@ public class VolunteerDTO {
     private String email;
     private List<Integer> tasks;
     private List<TaskType> taskTypes;
+    private int availabilityStatus;
 
     public VolunteerDTO(Volunteer volunteer) {
+        this.availabilityStatus = 0;
         this.tasks = new ArrayList<>();
         this.dni = volunteer.getDni();
         this.firstName = volunteer.getFirstName();

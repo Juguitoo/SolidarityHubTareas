@@ -34,15 +34,21 @@ public class VolunteerController {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         String decodedTaskString = URLDecoder.decode(taskString, StandardCharsets.UTF_8);
+
         TaskDTO taskDTO = null;
         try {
             taskDTO = objectMapper.readValue(decodedTaskString, TaskDTO.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        volunteerService.getVolunteersByStrategy(strategy, taskDTO).forEach(v -> {volunteerDTOList.add(new VolunteerDTO(v));});
-        for (VolunteerDTO v : volunteerDTOList) {
-        }
+
+        TaskDTO finalTaskDTO = taskDTO;
+        volunteerService.getVolunteersByStrategy(strategy, taskDTO).forEach(v -> {
+            VolunteerDTO volunteerDTO = new VolunteerDTO(v);
+            volunteerDTO.setAvailabilityStatus(v.isAvailable(finalTaskDTO.getStartTimeDate(), finalTaskDTO.getEstimatedEndTimeDate()));
+            volunteerDTOList.add(volunteerDTO);
+        });
+
         return ResponseEntity.ok(volunteerDTOList);
     }
 
