@@ -2,8 +2,7 @@ package solidarityhub.frontend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.TaskDTO;
@@ -12,6 +11,7 @@ import solidarityhub.frontend.model.Volunteer;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,12 +41,48 @@ public class VolunteerService {
     //GET METHODS
     public List<VolunteerDTO> getVolunteers(String strategy, TaskDTO taskDTO) {
         try {
+            LocalDateTime startDate = taskDTO.getStartTimeDate();
+            LocalDateTime endDate = taskDTO.getEstimatedEndTimeDate();
+
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             String taskDTOParams = objectMapper.writeValueAsString(taskDTO);
             String url = baseUrl + "?strategy=" + strategy + "&" + "taskString=" + URLEncoder.encode(taskDTOParams, StandardCharsets.UTF_8);
             ResponseEntity<VolunteerDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, VolunteerDTO[].class);
             VolunteerDTO[] volunteers = response.getBody();
+
+            if (volunteers != null && startDate != null && endDate != null) {
+                List<VolunteerDTO> volunteerList = new ArrayList<>(List.of(volunteers));
+
+                // Now check availability using the backend endpoint
+                String availabilityUrl = baseUrl + "/checkAvailability";
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                for (VolunteerDTO volunteer : volunteerList) {
+                    try {
+                        // Create request object with volunteer ID and dates
+                        String availabilityParams = "{\"volunteerId\":\"" + volunteer.getDni() +
+                                "\",\"startDate\":\"" + startDate +
+                                "\",\"endDate\":\"" + endDate + "\"}";
+
+                        HttpEntity<String> request = new HttpEntity<>(availabilityParams, headers);
+                        ResponseEntity<Integer> availabilityResponse = restTemplate.exchange(
+                                availabilityUrl, HttpMethod.POST, request, Integer.class);
+
+                        // Set availability status on the DTO
+                        if (availabilityResponse.getBody() != null) {
+                            volunteer.setAvailabilityStatus(availabilityResponse.getBody());
+                        }
+                    } catch (Exception e) {
+                        // If availability check fails, assume not available
+                        volunteer.setAvailabilityStatus(0);
+                    }
+                }
+
+                return volunteerList;
+            }
+
             if (volunteers != null) {
                 return List.of(volunteers);
             }
