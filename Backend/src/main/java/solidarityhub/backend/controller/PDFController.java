@@ -32,6 +32,5 @@ public class PDFController {
     @GetMapping
     public ResponseEntity<?> get() {
         return ResponseEntity.ok().build();
-
     }
 }

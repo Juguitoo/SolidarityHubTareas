@@ -24,7 +24,7 @@ public class PDFService {
         this.documentoPDFRepository = documentoPDFRepository;
     }
 
-    public PDFDocument createPDFDocument(Volunteer volunteer, Task task) {
+    public void createPDFDocument(Volunteer volunteer, Task task) {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
@@ -179,12 +179,10 @@ public class PDFService {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
-            PDFDocument certificate = new PDFDocument("ejemplo.pdf", outputStream.toByteArray());
+            PDFDocument certificate = new PDFDocument("certificate_" + volunteer.getDni() + "_" + task.getId() + ".pdf", outputStream.toByteArray());
             documentoPDFRepository.save(certificate);
-            return certificate;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 }
