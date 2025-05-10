@@ -2,10 +2,12 @@ package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -14,6 +16,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.TaskService;
@@ -21,6 +24,7 @@ import solidarityhub.frontend.service.TaskService;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,10 +36,17 @@ public class CatastropheSelectionView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final Logger LOGGER = Logger.getLogger(CatastropheSelectionView.class.getName());
+    private final Translator translator;
 
     @Autowired
     public CatastropheSelectionView(CatastropheService catastropheService, TaskService taskService) {
         VaadinSession.getCurrent().setAttribute("cache", true);
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         // Configuración de la vista
         addClassName("catastrophe-selection-view");
         setSizeFull();
@@ -44,9 +55,34 @@ public class CatastropheSelectionView extends VerticalLayout {
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 
         // Crear componentes de encabezado
-        H1 title = new H1("Selecciona una Catástrofe");
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        H1 title = new H1(translator.get("select_catastrophe"));
         title.addClassName("selection-title");
         title.getStyle().set("margin-top", "20px");
+
+        ComboBox<String> languageSelector = new ComboBox<>();
+        languageSelector.getStyle().set("margin-top", "20px");
+        languageSelector.setItems("Español", "Català", "English");
+        languageSelector.setValue(getIdiomaActual());
+        horizontalLayout.add(title, languageSelector);
+
+        languageSelector.addValueChangeListener(event -> {
+            String selected = event.getValue();
+            Locale newLocale = switch (selected) {
+                case "English" -> new Locale("en");
+                case "Català" -> new Locale("ca");
+                default -> new Locale("es");
+            };
+
+            // Guardamos el locale en sesión
+            VaadinSession.getCurrent().setAttribute(Locale.class, newLocale);
+
+            // Establecemos el nuevo locale para la UI actual
+            UI.getCurrent().setLocale(newLocale);
+
+            // Recargamos la vista actual
+            UI.getCurrent().getPage().reload();
+        });
 
         Paragraph subtitle = new Paragraph("Elige la catástrofe en la que quieres trabajar");
         subtitle.addClassName("selection-subtitle");
@@ -61,7 +97,7 @@ public class CatastropheSelectionView extends VerticalLayout {
             List<CatastropheDTO> catastrophes = catastropheService.getAllCatastrophes();
 
             if (catastrophes.isEmpty()) {
-                add(title, subtitle, new H3("No hay catástrofes disponibles"));
+                add(horizontalLayout, subtitle, new H3("No hay catástrofes disponibles"));
 
                 Button addCatastropheButton = new Button("Añadir una catástrofe");
                 addCatastropheButton.addClassName("add-catastrophe-button");
@@ -69,7 +105,7 @@ public class CatastropheSelectionView extends VerticalLayout {
                 add(addCatastropheButton);
             } else {
                 // Añadir primero los componentes de título y subtítulo
-                add(title, subtitle);
+                add(horizontalLayout, subtitle);
 
                 // Ordenar las catástrofes por nivel de emergencia (MUY ALTO primero)
                 catastrophes.sort(Comparator.comparing((CatastropheDTO c) -> {
@@ -171,6 +207,15 @@ public class CatastropheSelectionView extends VerticalLayout {
             case MEDIUM -> "emergency-medium";
             case HIGH -> "emergency-high";
             case VERYHIGH -> "emergency-very-high";
+        };
+    }
+
+    private String getIdiomaActual() {
+        Locale current = UI.getCurrent().getLocale();
+        return switch (current.getLanguage()) {
+            case "en" -> "English";
+            case "ca" -> "Català";
+            default -> "Español";
         };
     }
 }
