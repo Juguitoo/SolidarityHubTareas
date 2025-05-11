@@ -12,13 +12,16 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.TaskType;
+import solidarityhub.frontend.i18n.Translator;
 
 import javax.print.attribute.standard.Media;
 import java.util.Collections;
+import java.util.Locale;
 
 @Getter
 public class TaskComponent extends VerticalLayout {
@@ -33,6 +36,16 @@ public class TaskComponent extends VerticalLayout {
     private TaskType taskType;
 
     public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel, TaskType taskType) {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
+
         this.taskId = taskId;
         this.taskName = name;
         this.taskDescription = description;
@@ -45,6 +58,15 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public TaskComponent(TaskDTO taskDTO) {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         this.taskId = taskDTO.getId();
         this.taskName = taskDTO.getName();
         this.taskDescription = taskDTO.getDescription();
@@ -81,19 +103,19 @@ public class TaskComponent extends VerticalLayout {
     public Image getImg() {
         Image taskImg = new Image("images/task_default.png", "Icono tarea");
         return switch (emergencyLevel) {
-            case "low", "LOW", "Baja" -> {
+            case "low", "LOW", "Baja", "Baix" -> {
                 taskImg = new Image("images/task_low.png", "Tarea de emergencia baja");
                 yield taskImg;
             }
-            case "medium", "MEDIUM", "Media" -> {
+            case "medium", "MEDIUM", "Media", "Mitjà" -> {
                 taskImg = new Image("images/task_medium.png", "Tarea de emergencia media");
                 yield taskImg;
             }
-            case "high", "HIGH", "Alta" -> {
+            case "high", "HIGH", "Alta", "Alt" -> {
                 taskImg = new Image("images/task_high.png", "Tarea de emergencia alta");
                 yield taskImg;
             }
-            case "veryHigh", "VERYHIGH", "Muy alta" -> {
+            case "veryHigh", "VERYHIGH", "Muy alta", "MOLT ALT" -> {
                 taskImg = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
                 yield taskImg;
             }
@@ -152,6 +174,8 @@ public class TaskComponent extends VerticalLayout {
         Icon editTaskIcon = VaadinIcon.COG.create();
         editButton = new Button(editTaskIcon);
         editButton.addClassName("edit-button");
+        // Agregar tooltip traducido
+        editButton.getElement().setAttribute("title", translator.get("edit_task_button_tooltip"));
 
         editButton.addClickListener(event -> UI.getCurrent().navigate("editTask", QueryParameters.simple(
                 Collections.singletonMap("id", String.valueOf(this.taskId)))));

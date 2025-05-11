@@ -1,17 +1,13 @@
 package solidarityhub.frontend.views.task;
 
-
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.router.QueryParameters;
-import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.service.TaskService;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -19,34 +15,69 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
+import org.apache.commons.lang3.StringUtils;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.model.enums.EmergencyLevel;
+import solidarityhub.frontend.model.enums.Priority;
+import solidarityhub.frontend.model.enums.Status;
+import solidarityhub.frontend.model.enums.TaskType;
+import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @PageTitle("Ver más tareas")
 @Route("moretasks")
 public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
+    private static Translator translator;
 
     private final TaskService taskService;
     private CatastropheDTO selectedCatastrophe;
     private ListDataProvider<TaskDTO> tasksDataProvider;
     private final Grid<TaskDTO> taskGrid;
 
+    // Columnas para filtros
+    private Grid.Column<TaskDTO> nameColumn;
+    private Grid.Column<TaskDTO> statusColumn;
+    private Grid.Column<TaskDTO> priorityColumn;
+    private Grid.Column<TaskDTO> typeColumn;
+    private Grid.Column<TaskDTO> emergencyLevelColumn;
+
+    // Valores de filtro
+    private String nameFilterValue = "";
+    private Set<Status> statusFilterValues = new HashSet<>();
+    private Set<Priority> priorityFilterValues = new HashSet<>();
+    private Set<TaskType> typeFilterValues = new HashSet<>();
+    private Set<EmergencyLevel> emergencyFilterValues = new HashSet<>();
+
     public MoreTasks() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         this.taskService = new TaskService();
 
         this.taskGrid = new Grid<>(TaskDTO.class, false);
         taskGrid.addClassName("moreTasks_grid");
+        taskGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        taskGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
     @Override
@@ -54,7 +85,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         if (selectedCatastrophe == null) {
-            Notification.show("Por favor, selecciona una catástrofe primero",
+            Notification.show(translator.get("select_catastrophe_warning"),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
             event.forwardTo(CatastropheSelectionView.class);
@@ -68,17 +99,16 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
         removeAll();
         addClassName("moreTasks_Container");
 
-        //Header
+        // Header
         HeaderComponent header = new HeaderComponent(
-            "Tareas: " + selectedCatastrophe.getName(), "tasks"
+                translator.get("task_view_title") + selectedCatastrophe.getName(), "tasks"
         );
 
-
-        add(header, getFilters(), taskGrid);
+        add(header, taskGrid);
         populateTaskGrid();
     }
 
-    //===============================Get Grid Items=========================================
+    // ===============================Get Grid Items=========================================
     private List<TaskDTO> getTasksList() {
         if (selectedCatastrophe != null) {
             return taskService.getTasksByCatastrophe(selectedCatastrophe.getId());
@@ -92,17 +122,14 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
 
         if (tasksDataProvider.getItems().isEmpty()) {
             taskGrid.setVisible(false);
-            add(new Span("No hay tareas disponibles para esta catástrofe."));
+            add(new Span(translator.get("no_tasks")));
         } else {
             taskGrid.setVisible(true);
             taskGrid.setDataProvider(tasksDataProvider);
-            taskGrid.addColumn(TaskDTO::getName).setHeader("Nombre");
-            taskGrid.addColumn(task -> task.getDescription().length() > 50 ? task.getDescription().substring(0, 50) + "..." : task.getDescription()).setHeader("Descripción");
-            taskGrid.addColumn(TaskDTO::getPriority).setHeader("Prioridad");
-            taskGrid.addColumn(task -> formatDate(task.getStartTimeDate())).setHeader("Fecha de comienzo");
-            taskGrid.addColumn(task -> formatDate(task.getEstimatedEndTimeDate())).setHeader("Fecha estimada de finalización");
-            taskGrid.addColumn(task -> task.getNeeds().size()).setHeader("Cantidad de necesidades cubiertas");
-            taskGrid.addColumn(task -> task.getVolunteers().size()).setHeader("Cantidad de Voluntarios");
+
+            // Definimos las columnas con sus filtros
+            setupColumns();
+            setupFilters();
         }
 
         taskGrid.addItemClickListener(event -> {
@@ -114,67 +141,220 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
         });
     }
 
-    //===============================Get Components=========================================
-    private Component getFilters() {
-        HorizontalLayout filterLayout = new HorizontalLayout();
-        filterLayout.setAlignItems(Alignment.BASELINE);
-        filterLayout.setSpacing(true);
+    private void setupColumns() {
+        // Columna de nombre
+        nameColumn = taskGrid.addColumn(TaskDTO::getName)
+                .setHeader(translator.get("more_tasks_name"))
+                .setAutoWidth(true);
 
-        TextField searchField = getSearchField();
-        Button searchButton = getSearchButton(searchField);
+        // Columna de descripción
+        taskGrid.addColumn(task ->
+                        task.getDescription().length() > 50 ?
+                                task.getDescription().substring(0, 50) + "..." :
+                                task.getDescription())
+                .setHeader(translator.get("more_tasks_description"))
+                .setAutoWidth(true);
 
-        filterLayout.add(getPriorityFilter());
+        // Columna de tipo de tarea
+        typeColumn = taskGrid.addColumn(task -> formatTaskType(task.getType()))
+                .setHeader(translator.get("more_tasks_type"))
+                .setAutoWidth(true);
 
-        return filterLayout;
+        // Columna de prioridad
+        priorityColumn = taskGrid.addColumn(task -> formatPriority(task.getPriority()))
+                .setHeader(translator.get("more_tasks_priority"))
+                .setAutoWidth(true);
+
+        // Columna de nivel de emergencia
+        emergencyLevelColumn = taskGrid.addColumn(task -> formatEmergencyLevel(task.getEmergencyLevel()))
+                .setHeader(translator.get("more_tasks_emergency_level"))
+                .setAutoWidth(true);
+
+        // Columna de estado
+        statusColumn = taskGrid.addColumn(task -> formatStatus(task.getStatus()))
+                .setHeader(translator.get("more_tasks_status"))
+                .setAutoWidth(true);
+
+        // Columna de fecha de inicio
+        taskGrid.addColumn(task -> formatDate(task.getStartTimeDate()))
+                .setHeader(translator.get("more_tasks_start_date"))
+                .setAutoWidth(true);
+
+        // Columna de fecha estimada de finalización
+        taskGrid.addColumn(task -> formatDate(task.getEstimatedEndTimeDate()))
+                .setHeader(translator.get("more_tasks_end_date"))
+                .setAutoWidth(true);
+
+        // Columna de necesidades
+        taskGrid.addColumn(task -> task.getNeeds().size())
+                .setHeader(translator.get("more_tasks_needs"))
+                .setAutoWidth(true);
+
+        // Columna de voluntarios
+        taskGrid.addColumn(task -> task.getVolunteers().size())
+                .setHeader(translator.get("more_tasks_volunteers"))
+                .setAutoWidth(true);
     }
 
-    private MultiSelectComboBox<Priority> getPriorityFilter() {
-        MultiSelectComboBox<Priority> filter = new MultiSelectComboBox<>("Filtrar por prioridad");
-        filter.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
-        filter.setItemLabelGenerator(priority -> switch (priority) {
-            case LOW -> "Baja";
-            case MODERATE -> "Moderada";
-            case URGENT -> "Urgente";
+    private void setupFilters() {
+        // Filtro de búsqueda por nombre
+        TextField nameFilter = new TextField();
+        nameFilter.setPlaceholder(translator.get("filter_by_name"));
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
+        nameFilter.addValueChangeListener(event -> {
+            nameFilterValue = event.getValue();
+            applyAllFilters();
         });
-        filter.addValueChangeListener(event -> applyPriorityFilter(event.getValue()));
-        return filter;
+        nameColumn.setHeader(getGridFilterHeader(translator.get("filter_name"), nameFilter));
+
+        // Filtro de estado
+        MultiSelectComboBox<Status> statusFilter = new MultiSelectComboBox<>();
+        statusFilter.setPlaceholder(translator.get("filter_by_status"));
+        statusFilter.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+        statusFilter.setItemLabelGenerator(this::formatStatus);
+        statusFilter.addValueChangeListener(event -> {
+            statusFilterValues = event.getValue();
+            applyAllFilters();
+        });
+        statusColumn.setHeader(getGridFilterHeader(translator.get("filter_status"), statusFilter));
+
+        // Filtro de prioridad
+        MultiSelectComboBox<Priority> priorityFilter = new MultiSelectComboBox<>();
+        priorityFilter.setPlaceholder(translator.get("filter_by_priority"));
+        priorityFilter.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
+        priorityFilter.setItemLabelGenerator(this::formatPriority);
+        priorityFilter.addValueChangeListener(event -> {
+            priorityFilterValues = event.getValue();
+            applyAllFilters();
+        });
+        priorityColumn.setHeader(getGridFilterHeader(translator.get("filter_priority"), priorityFilter));
+
+        // Filtro de tipo de tarea
+        MultiSelectComboBox<TaskType> typeFilter = new MultiSelectComboBox<>();
+        typeFilter.setPlaceholder(translator.get("filter_by_type"));
+        typeFilter.setItems(TaskType.values());
+        typeFilter.setItemLabelGenerator(this::formatTaskType);
+        typeFilter.addValueChangeListener(event -> {
+            typeFilterValues = event.getValue();
+            applyAllFilters();
+        });
+        typeColumn.setHeader(getGridFilterHeader(translator.get("filter_type"), typeFilter));
+
+        // Filtro de nivel de emergencia
+        MultiSelectComboBox<EmergencyLevel> emergencyFilter = new MultiSelectComboBox<>();
+        emergencyFilter.setPlaceholder(translator.get("filter_by_emergency_level"));
+        emergencyFilter.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
+        emergencyFilter.setItemLabelGenerator(this::formatEmergencyLevel);
+        emergencyFilter.addValueChangeListener(event -> {
+            emergencyFilterValues = event.getValue();
+            applyAllFilters();
+        });
+        emergencyLevelColumn.setHeader(getGridFilterHeader(translator.get("filter_emergency_level"), emergencyFilter));
     }
 
-    private TextField getSearchField() {
-        TextField searchField = new TextField("Buscar tarea");
-        searchField.addKeyPressListener(Key.ENTER, e -> applySearchFilter(searchField.getValue()));
-        return searchField;
+    private Component getGridFilterHeader(String headerText, Component filterComponent) {
+        HorizontalLayout filterHeader = new HorizontalLayout();
+        Span filterTitle = new Span(headerText);
+        filterHeader.setAlignItems(Alignment.CENTER);
+        filterTitle.addClassName("grid__filter-title");
+        filterHeader.add(filterTitle, filterComponent);
+        filterHeader.addClassName("grid__filter-header");
+        return filterHeader;
     }
 
-    private Button getSearchButton(TextField searchField) {
-        Button searchButton = new Button("Buscar", e -> applySearchFilter(searchField.getValue()));
-        searchButton.addClassName("search-button"); // Agregar la clase CSS
-        return searchButton;
-    }
-
-    //===============================Manage Filters=========================================
-    private void applySearchFilter(String searchTerm) {
-        String term = searchTerm.trim().toLowerCase();
+    // ===============================Manage Filters=========================================
+    private void applyAllFilters() {
         tasksDataProvider.clearFilters();
-        if (!term.isEmpty()) {
-            tasksDataProvider.addFilter(task -> task.getName().toLowerCase().contains(term));
+
+        // Filtro por nombre
+        if (!nameFilterValue.isEmpty()) {
+            tasksDataProvider.addFilter(task ->
+                    StringUtils.containsIgnoreCase(task.getName(), nameFilterValue));
         }
+
+        // Filtro por estado
+        if (!statusFilterValues.isEmpty()) {
+            tasksDataProvider.addFilter(task ->
+                    statusFilterValues.contains(task.getStatus()));
+        }
+
+        // Filtro por prioridad
+        if (!priorityFilterValues.isEmpty()) {
+            tasksDataProvider.addFilter(task ->
+                    priorityFilterValues.contains(task.getPriority()));
+        }
+
+        // Filtro por tipo de tarea
+        if (!typeFilterValues.isEmpty()) {
+            tasksDataProvider.addFilter(task ->
+                    typeFilterValues.contains(task.getType()));
+        }
+
+        // Filtro por nivel de emergencia
+        if (!emergencyFilterValues.isEmpty()) {
+            tasksDataProvider.addFilter(task ->
+                    emergencyFilterValues.contains(task.getEmergencyLevel()));
+        }
+
         tasksDataProvider.refreshAll();
     }
 
-    private void applyPriorityFilter(Set<Priority> selectedPriorities) {
-        tasksDataProvider.clearFilters();
-        if (!selectedPriorities.isEmpty()) {
-            tasksDataProvider.addFilter(task -> selectedPriorities.contains(task.getPriority()));
-        }
-        tasksDataProvider.refreshAll();
-    }
-
-
+    // ===============================Format Methods=========================================
     private String formatDate(LocalDateTime taskDate) {
         if (taskDate == null) {
-            return "No disponible";
+            return translator.get("more_tasks_no_available");
         }
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
+
+    private String formatStatus(Status status) {
+        if (status == null) return "";
+        return switch (status) {
+            case TO_DO -> translator.get("status_todo");
+            case IN_PROGRESS -> translator.get("status_in_progress");
+            case FINISHED -> translator.get("status_finished");
+        };
+    }
+
+    private String formatPriority(Priority priority) {
+        if (priority == null) return "";
+        return switch (priority) {
+            case LOW -> translator.get("low_priority");
+            case MODERATE -> translator.get("moderate_priority");
+            case URGENT -> translator.get("urgent_priority");
+        };
+    }
+
+    private String formatEmergencyLevel(EmergencyLevel level) {
+        if (level == null) return "";
+        return switch (level) {
+            case LOW -> translator.get("low_emergency_level");
+            case MEDIUM -> translator.get("medium_emergency_level");
+            case HIGH -> translator.get("high_emergency_level");
+            case VERYHIGH -> translator.get("very_high_emergency_level");
+        };
+    }
+
+    private String formatTaskType(TaskType taskType) {
+        if (taskType == null) return "No especificado";
+        return switch (taskType) {
+            case MEDICAL -> "Médica";
+            case POLICE -> "Policía";
+            case FIREFIGHTERS -> "Bomberos";
+            case CLEANING -> "Limpieza";
+            case FEED -> "Alimentación";
+            case PSYCHOLOGICAL -> "Psicológica";
+            case BUILDING -> "Construcción";
+            case CLOTHING -> "Ropa";
+            case REFUGE -> "Refugio";
+            case OTHER -> "Otra";
+            case SEARCH -> "Búsqueda";
+            case LOGISTICS -> "Logística";
+            case COMMUNICATION -> "Comunicación";
+            case MOBILITY -> "Movilidad";
+            case PEOPLEMANAGEMENT -> "Gestión de personas";
+            case SAFETY -> "Seguridad";
+        };
     }
 }

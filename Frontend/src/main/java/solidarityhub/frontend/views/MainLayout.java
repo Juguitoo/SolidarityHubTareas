@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -39,12 +40,13 @@ public class MainLayout extends AppLayout {
     private Span appName;
     private Button logoButton;
     private Div selectedCatastropheInfo;
+    private ComboBox<String> languageSelector;
 
     public MainLayout() {
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
         if (sessionLocale != null) {
             UI.getCurrent().setLocale(sessionLocale);
-        }else{
+        } else {
             VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
             UI.getCurrent().setLocale(new Locale("es"));
         }
@@ -52,9 +54,50 @@ public class MainLayout extends AppLayout {
 
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("class", "main-layout");
+
+        // Agregar selector de idiomas a la barra superior
+        addToNavbar(createTopBar());
+
+        // Agregar contenido del drawer
         addDrawerContent();
 
         UI.getCurrent().addAfterNavigationListener(event -> updateSelectedCatastropheInfo());
+    }
+
+    private Component createTopBar() {
+        HorizontalLayout topBar = new HorizontalLayout();
+        topBar.addClassName("top-bar");
+        topBar.setWidthFull();
+        topBar.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        topBar.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        // Selector de idioma
+        languageSelector = new ComboBox<>();
+        languageSelector.setAllowCustomValue(false);
+        languageSelector.addClassName("language-selector");
+        languageSelector.setItems("Español", "Català", "English");
+        languageSelector.setValue(getIdiomaActual());
+
+        languageSelector.addValueChangeListener(event -> {
+            String selected = event.getValue();
+            Locale newLocale = switch (selected) {
+                case "English" -> new Locale("en");
+                case "Català" -> new Locale("ca");
+                default -> new Locale("es");
+            };
+
+            // Guardamos el locale en sesión
+            VaadinSession.getCurrent().setAttribute(Locale.class, newLocale);
+
+            // Establecemos el nuevo locale para la UI actual
+            UI.getCurrent().setLocale(newLocale);
+
+            // Recargamos la vista actual
+            UI.getCurrent().getPage().reload();
+        });
+
+        topBar.add(languageSelector);
+        return topBar;
     }
 
     private void addDrawerContent() {
@@ -245,5 +288,14 @@ public class MainLayout extends AppLayout {
         // Configurar el texto del elemento
         item.setLabel(label);
         return item;
+    }
+
+    private String getIdiomaActual() {
+        Locale current = UI.getCurrent().getLocale();
+        return switch (current.getLanguage()) {
+            case "en" -> "English";
+            case "ca" -> "Català";
+            default -> "Español";
+        };
     }
 }

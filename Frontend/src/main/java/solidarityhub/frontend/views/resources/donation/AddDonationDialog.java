@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resources.donation;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -14,20 +15,24 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
 import solidarityhub.frontend.dto.DonorDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import solidarityhub.frontend.model.enums.DonationType;
 import solidarityhub.frontend.service.DonationService;
 import solidarityhub.frontend.service.DonorService;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 public class AddDonationDialog extends Dialog {
 
     protected final DonationService donationService;
     protected final DonorService donorService;
+    protected static Translator translator;
 
     protected final CatastropheDTO selectedCatastrophe;
     protected DonationDTO donation;
@@ -51,11 +56,25 @@ public class AddDonationDialog extends Dialog {
         this.selectedCatastrophe = selectedCatastrophe;
         this.donation = donation;
 
+        initializeTranslator();
         buildView();
     }
 
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+    }
+
     protected void buildView() {
-        setHeaderTitle(donation == null ? "Registrar nueva donación" : "Editar donación");
+        setHeaderTitle(donation == null ?
+                translator.get("add_donation_button") :
+                translator.get("edit_donation_button"));
         addClassNames("resources-dialog");
 
         VerticalLayout dialogLayout = new VerticalLayout();
@@ -94,12 +113,12 @@ public class AddDonationDialog extends Dialog {
     protected Component getDonationForms() {
         FormLayout formLayout = new FormLayout();
 
-        dateField = new DatePicker("Fecha");
+        dateField = new DatePicker(translator.get("donation_date"));
         dateField.setValue(donation == null ? LocalDate.now() : donation.getDate());
         dateField.setRequiredIndicatorVisible(true);
         dateField.setRequired(true);
 
-        typeField = new ComboBox<>("Tipo");
+        typeField = new ComboBox<>(translator.get("donation_type"));
         typeField.setItems(DonationType.values());
         typeField.setItemLabelGenerator(this::formatDonationType);
         typeField.setRequiredIndicatorVisible(true);
@@ -110,29 +129,29 @@ public class AddDonationDialog extends Dialog {
             if (selectedType == DonationType.FINANCIAL && unitField.isEmpty()) {
                 unitField.setValue("€");
             } else if (selectedType == DonationType.MATERIAL && unitField.isEmpty()) {
-                unitField.setValue("unidades");
+                unitField.setValue(translator.get("units"));
             } else if (selectedType == DonationType.SERVICE && unitField.isEmpty()) {
-                unitField.setValue("horas");
+                unitField.setValue(translator.get("hours"));
             }
         });
 
-        quantityField = new NumberField("Cantidad");
+        quantityField = new NumberField(translator.get("resource_quantity"));
         quantityField.setRequiredIndicatorVisible(true);
         quantityField.setValue(donation == null ? 0.0 : donation.getQuantity());
         quantityField.setRequired(true);
 
-        unitField = new TextField("Unidad de medida");
+        unitField = new TextField(translator.get("unit"));
         unitField.setRequiredIndicatorVisible(true);
         unitField.setValue(donation == null ? "€" : donation.getUnit());
         unitField.setRequired(true);
 
-        descriptionField = new TextArea("Descripción");
-        descriptionField.setPlaceholder("Ingrese una descripción detallada de la donación");
+        descriptionField = new TextArea(translator.get("donation_description"));
+        descriptionField.setPlaceholder(translator.get("donation_description_placeholder"));
         descriptionField.setHeight("75px");
         descriptionField.setRequired(true);
         descriptionField.setRequiredIndicatorVisible(true);
 
-        statusField = new ComboBox<>("Estado");
+        statusField = new ComboBox<>(translator.get("donation_status"));
         statusField.setItems(DonationStatus.values());
         statusField.setItemLabelGenerator(this::formatDonationStatus);
         statusField.setValue(donation == null ? DonationStatus.COMPLETED : donation.getStatus());
@@ -149,13 +168,13 @@ public class AddDonationDialog extends Dialog {
     protected Component getDonorForms() {
         FormLayout formLayout = new FormLayout();
 
-        donorDniField = new TextField("Donante (DNI)");
+        donorDniField = new TextField(translator.get("donor_id"));
         donorDniField.addClassName("donate__dni-field");
         donorDniField.setRequiredIndicatorVisible(true);
         donorDniField.setRequired(true);
         donorDniField.setPlaceholder("11111111A");
 
-        donorNameField = new TextField("Donante (nombre)");
+        donorNameField = new TextField(translator.get("donor_name"));
         donorNameField.setRequiredIndicatorVisible(true);
         donorDniField.setRequiredIndicatorVisible(true);
         donorNameField.setRequired(true);
@@ -181,13 +200,16 @@ public class AddDonationDialog extends Dialog {
     protected Component getButtons() {
         HorizontalLayout buttonLayout = new HorizontalLayout();
 
-        Button cancelButton = new Button("Cancelar", event -> close());
-        Button saveButton = new Button(donation == null ? "Guardar" : "Actualizar", event -> saveDonation());
+        Button cancelButton = new Button(translator.get("cancel_button"), event -> close());
+        Button saveButton = new Button(
+                donation == null ? translator.get("save_button") : translator.get("edit_button"),
+                event -> saveDonation()
+        );
 
         buttonLayout.add(cancelButton);
 
         if (donation != null) {
-            Button deleteButton = new Button("Eliminar", event -> deleteDonation());
+            Button deleteButton = new Button(translator.get("delete_button"), event -> deleteDonation());
             deleteButton.getStyle().set("color", "var(--lumo-error-text-color)");
             buttonLayout.add(deleteButton);
         }
@@ -200,7 +222,7 @@ public class AddDonationDialog extends Dialog {
     //=============================== Action Methods =========================================
     protected void saveDonation() {
         if (!validateForms()) {
-            Notification.show("Por favor, completa todos los campos.", 3000, Notification.Position.MIDDLE)
+            Notification.show(translator.get("check_fields"), 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             return;
         }
@@ -235,17 +257,19 @@ public class AddDonationDialog extends Dialog {
 
             if (donation == null) {
                 donationService.addDonation(donationToSave);
-                Notification.show("Donación registrada correctamente", 3000, Notification.Position.BOTTOM_START)
+                Notification.show(translator.get("donation_registered_success"), 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } else {
                 donationService.updateDonation(donation.getId(), donationToSave);
-                Notification.show("Donación actualizada correctamente", 3000, Notification.Position.BOTTOM_START)
+                Notification.show(translator.get("donation_updated_success"), 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             }
             close();
         } catch (Exception e) {
-            String action = donation == null ? "registrar" : "actualizar";
-            Notification.show("Error al " + action + " la donación: " + e.getMessage(), 3000, Notification.Position.MIDDLE)
+            String action = donation == null ? translator.get("register_action") : translator.get("update_action");
+            Notification.show(translator.get("error_prefix") + " " + action + " " +
+                                    translator.get("donation_lowercase") + ": " + e.getMessage(),
+                            3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
@@ -266,7 +290,7 @@ public class AddDonationDialog extends Dialog {
             donorService.addDonor(donorToSave);
             return donorToSave;
         } catch (Exception e) {
-            Notification.show("Error al registrar el donante", 3000, Notification.Position.MIDDLE)
+            Notification.show(translator.get("error_register_donor"), 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             return null;
         }
@@ -278,11 +302,11 @@ public class AddDonationDialog extends Dialog {
         try {
             donationService.deleteDonation(donation.getId());
             donationService.clearCache();
-            Notification.show("Donación eliminada correctamente", 3000, Notification.Position.BOTTOM_START)
+            Notification.show(translator.get("donation_deleted_success"), 3000, Notification.Position.BOTTOM_START)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             close();
         } catch (Exception e) {
-            Notification.show("Error al eliminar la donación: " + e.getMessage(), 3000, Notification.Position.MIDDLE)
+            Notification.show(translator.get("error_deleting_donation") + ": " + e.getMessage(), 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
@@ -294,9 +318,9 @@ public class AddDonationDialog extends Dialog {
         }
 
         return switch (type) {
-            case FINANCIAL -> "Económica";
-            case MATERIAL -> "Material";
-            case SERVICE -> "Servicio";
+            case FINANCIAL -> translator.get("donation_type_financial");
+            case MATERIAL -> translator.get("donation_type_material");
+            case SERVICE -> translator.get("donation_type_service");
         };
     }
 
@@ -306,10 +330,10 @@ public class AddDonationDialog extends Dialog {
         }
 
         return switch (status) {
-            case COMPLETED -> "Completada";
-            case IN_PROGRESS -> "En proceso";
-            case SCHEDULED -> "Programada";
-            case CANCELLED -> "Cancelada";
+            case COMPLETED -> translator.get("donation_status_completed");
+            case IN_PROGRESS -> translator.get("donation_status_in_progress");
+            case SCHEDULED -> translator.get("donation_status_scheduled");
+            case CANCELLED -> translator.get("donation_status_cancelled");
         };
     }
 
