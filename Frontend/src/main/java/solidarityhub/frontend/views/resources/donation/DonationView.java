@@ -18,7 +18,6 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import solidarityhub.frontend.model.enums.DonationType;
-import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.DonationService;
 
 import java.time.format.DateTimeFormatter;
@@ -31,7 +30,6 @@ import java.util.Set;
 public class DonationView extends VerticalLayout {
 
     private final DonationService donationService;
-    private final CatastropheService catastropheService;
     private final CatastropheDTO selectedCatastrophe;
 
     private final Grid<DonationDTO> donationGrid;
@@ -49,7 +47,6 @@ public class DonationView extends VerticalLayout {
 
     public DonationView(CatastropheDTO catastrophe) {
         this.donationService = new DonationService();
-        this.catastropheService = new CatastropheService();
         this.selectedCatastrophe = catastrophe;
 
         this.donationGrid = new Grid<>(DonationDTO.class, false);
@@ -229,7 +226,6 @@ public class DonationView extends VerticalLayout {
             case FINANCIAL -> "Económica";
             case MATERIAL -> "Material";
             case SERVICE -> "Servicio";
-            default -> type.toString();
         };
     }
 
@@ -243,7 +239,6 @@ public class DonationView extends VerticalLayout {
             case IN_PROGRESS -> "En proceso";
             case SCHEDULED -> "Programada";
             case CANCELLED -> "Cancelada";
-            default -> status.toString();
         };
     }
 

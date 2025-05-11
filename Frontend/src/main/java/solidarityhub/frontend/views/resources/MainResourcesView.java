@@ -14,6 +14,7 @@ import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.views.HeaderComponent;
 import solidarityhub.frontend.views.resources.donation.DonationView;
 import solidarityhub.frontend.views.resources.resource.ResourceView;
+import solidarityhub.frontend.views.resources.storage.StorageView;
 
 @PageTitle("Recursos")
 @Route("resources")
@@ -53,18 +54,19 @@ public class MainResourcesView extends VerticalLayout implements BeforeEnterObse
     private Component getTabs(){
         ResourceView resourceView = new ResourceView(selectedCatastrophe);
         DonationView donationView = new DonationView(selectedCatastrophe);
-
+        StorageView storageView = new StorageView(selectedCatastrophe);
 
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
         Tab resouseTab = new Tab("Recursos");
         Tab donationsTab = new Tab("Donaciones");
+        Tab storageTab = new Tab("Almacenes");
         Tab volunteerTab = new Tab("Voluntarios");
-        Tab accommodationTab = new Tab("Almacenes");
 
         tabSheet.add(resouseTab, resourceView);
         tabSheet.add(donationsTab, donationView);
+        tabSheet.add(storageTab, storageView);
 
 
         return tabSheet;
