@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.Need;
 import solidarityhub.frontend.service.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -36,10 +35,8 @@ import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.volunteer.VolunteerInfo;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -76,23 +73,23 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     protected List<NeedDTO> allNeedsWithoutTask;
 
-    @Autowired
-    public AddTaskView(TaskService taskService) {
-        this.taskService = taskService;
+    public AddTaskView() {
+        this.taskService = new TaskService();
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
-
-        beforeEnter(null);
-        buildView();
     }
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-        catastropheService.isCatastropheSelected(event, selectedCatastrophe);
+        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
+            return;
+        }
         allNeedsWithoutTask = needService.getNeedsWithoutTask(selectedCatastrophe.getId());
+
+        buildView();
     }
 
     protected void buildView() {
@@ -101,10 +98,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         HeaderComponent header = new HeaderComponent("Añadir tarea", "tasks");
 
         add(
-                header,
-                getPreview(),
-                getForms(),
-                getButtons()
+            header,
+            getPreview(),
+            getForms(),
+            getButtons()
         );
 
         setAlignItems(Alignment.CENTER);
@@ -177,7 +174,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 "Descripción de la tarea...",
                 formatDate(LocalDateTime.now()),
                 "Prioridad",
-                "Nivel de peligrosidad"
+                "Nivel de peligrosidad",
+                TaskType.OTHER
         );
         taskPreview.enabledEditButton(false);
         setAlignSelf(Alignment.CENTER, taskPreview);
@@ -593,7 +591,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 Span needDescription = new Span(need.getDescription());
                 needDescription.addClassName("needContent--description");
                 Span needType = new Span(formatTaskType(need.getTaskType()));
-                needType.addClassName("listBox__item-detail");
+                needType.addClassName("need-type");
 
                 needContent.add(needDescription, needType);
                 needContent.setPadding(false);

@@ -1,14 +1,10 @@
-package solidarityhub.frontend.views.task;
+package solidarityhub.frontend.views.task.suggested;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +12,7 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
-import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.views.task.AddTaskView;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -30,8 +26,8 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
     protected final CatastropheDTO selectedCatastrophe;
 
     @Autowired
-    public EditSuggestedTask(TaskService taskService) {
-        super(taskService);
+    public EditSuggestedTask() {
+        super();
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
         // Cambiar el título de la vista

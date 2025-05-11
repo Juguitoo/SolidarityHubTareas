@@ -14,7 +14,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.model.enums.Priority;
+import solidarityhub.frontend.model.enums.TaskType;
 
+import javax.print.attribute.standard.Media;
 import java.util.Collections;
 
 @Getter
@@ -27,14 +30,16 @@ public class TaskComponent extends VerticalLayout {
     private String priority;
     private String emergencyLevel;
     public Button editButton;
+    private TaskType taskType;
 
-    public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel) {
+    public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel, TaskType taskType) {
         this.taskId = taskId;
         this.taskName = name;
         this.taskDescription = description;
         this.startTimeDate = startTimeDate;
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
+        this.taskType = taskType;
 
         creatComponent();
     }
@@ -46,6 +51,7 @@ public class TaskComponent extends VerticalLayout {
         this.startTimeDate = taskDTO.getStartTimeDate().toString();
         this.priority = taskDTO.getPriority().toString();
         this.emergencyLevel = taskDTO.getEmergencyLevel().toString();
+        this.taskType = taskDTO.getType();
 
         creatComponent();
     }
@@ -62,7 +68,7 @@ public class TaskComponent extends VerticalLayout {
         footer.setWidthFull();
         footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
         footer.setAlignItems(Alignment.CENTER);
-        footer.add(getPriorityLevelComponent(), getSettingsComponent());
+        footer.add(getPriorityLevelComponent(), getNeedTypeComponent(), getSettingsComponent());
 
         add(
             header,
@@ -75,19 +81,19 @@ public class TaskComponent extends VerticalLayout {
     public Image getImg() {
         Image taskImg = new Image("images/task_default.png", "Icono tarea");
         return switch (emergencyLevel) {
-            case "low", "Baja" -> {
+            case "low", "LOW", "Baja" -> {
                 taskImg = new Image("images/task_low.png", "Tarea de emergencia baja");
                 yield taskImg;
             }
-            case "medium", "Media" -> {
+            case "medium", "MEDIUM", "Media" -> {
                 taskImg = new Image("images/task_medium.png", "Tarea de emergencia media");
                 yield taskImg;
             }
-            case "high", "Alta" -> {
+            case "high", "HIGH", "Alta" -> {
                 taskImg = new Image("images/task_high.png", "Tarea de emergencia alta");
                 yield taskImg;
             }
-            case "veryHigh", "Muy alta" -> {
+            case "veryHigh", "VERYHIGH", "Muy alta" -> {
                 taskImg = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
                 yield taskImg;
             }
@@ -101,6 +107,12 @@ public class TaskComponent extends VerticalLayout {
         return taskNameTitle;
     }
 
+    public Component getStartDateTimeComponent() {
+        Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
+        startDateTimeSpan.addClassName("task-date");
+        return startDateTimeSpan;
+    }
+
     public Component getTaskDescriptionComponent() {
         Div taskDescriptionSpan = new Div(taskDescription);
         taskDescriptionSpan.addClassName("task-description");
@@ -108,9 +120,28 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getPriorityLevelComponent() {
-        Span emergencyLevelSpan = new Span(priority);
+        Span emergencyLevelSpan = new Span();
         emergencyLevelSpan.addClassName("task-priority");
+
+        switch (priority) {
+            case "LOW":
+                emergencyLevelSpan.setText("Baja");
+                break;
+            case "MODERATE":
+                emergencyLevelSpan.setText("Moderada");
+                break;
+            case "URGENT":
+                emergencyLevelSpan.setText("Urgente");
+                break;
+        }
+
         return emergencyLevelSpan;
+    }
+
+    public Component getNeedTypeComponent() {
+        Span needTypeSpan = new Span(formatTaskType(taskType));
+        needTypeSpan.addClassName("need-type");
+        return needTypeSpan;
     }
 
     public Component getSettingsComponent() {
@@ -127,12 +158,6 @@ public class TaskComponent extends VerticalLayout {
 
         buttonLayout.add(editButton);
         return buttonLayout;
-    }
-
-    public Component getStartDateTimeComponent() {
-        Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
-        startDateTimeSpan.addClassName("task-date");
-        return startDateTimeSpan;
     }
 
     //===============================Update Components=========================================
@@ -168,5 +193,31 @@ public class TaskComponent extends VerticalLayout {
 
     public void enabledEditButton(Boolean enabled) {
         editButton.setEnabled(enabled);
+    }
+
+    //===============================Format Methods=========================================
+    private String formatTaskType(TaskType taskType) {
+        if (taskType == null) {
+            return "No especificado";
+        }
+
+        return switch (taskType) {
+            case MEDICAL -> "Medica";
+            case POLICE -> "Policía";
+            case FIREFIGHTERS -> "Bomberos";
+            case CLEANING -> "Limpieza";
+            case FEED -> "Alimentación";
+            case PSYCHOLOGICAL -> "Psicológica";
+            case BUILDING -> "Construcción";
+            case CLOTHING -> "Ropa";
+            case REFUGE -> "Refugio";
+            case OTHER -> "Otra";
+            case SEARCH -> "Búsqueda";
+            case LOGISTICS -> "Logística";
+            case COMMUNICATION -> "Comunicación";
+            case MOBILITY -> "Movilidad";
+            case PEOPLEMANAGEMENT -> "Gestión de personas";
+            default -> "Otro";
+        };
     }
 }

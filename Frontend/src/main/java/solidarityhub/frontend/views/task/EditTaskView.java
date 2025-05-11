@@ -12,9 +12,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.TaskService;
@@ -38,12 +36,10 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     protected ComboBox<Status> taskStatusComboBox;
 
-    @Autowired
-    public EditTaskView(TaskService taskService) {
-        super(taskService);
+    public EditTaskView() {
+        super();
         this.taskService = new TaskService();
 
-        // Cambiar el título de la vista
         getElement().getChildren()
                 .filter(element -> element.getChildren()
                         .anyMatch(child -> child.getTag().equals("h1")))
@@ -51,7 +47,15 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                         .filter(child -> child.getTag().equals("h1"))
                         .findFirst()).ifPresent(title -> title.setText("Editar tarea"));
 
-        taskPreview.enabledEditButton(false);
+    }
+
+    @Override
+    protected void buildView() {
+        super.buildView();
+
+        if (taskPreview != null) {
+            taskPreview.enabledEditButton(false);
+        }
     }
 
     @Override

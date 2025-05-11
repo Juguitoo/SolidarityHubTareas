@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.task;
+package solidarityhub.frontend.views.task.suggested;
 
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -12,6 +12,7 @@ import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
+import solidarityhub.frontend.views.task.TaskComponent;
 
 import java.util.ArrayList;
 import java.util.List;

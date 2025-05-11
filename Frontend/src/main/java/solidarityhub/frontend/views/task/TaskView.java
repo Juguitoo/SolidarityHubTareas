@@ -216,14 +216,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     //===============================Update Status Methods=========================================
     private TaskComponent createDraggableTaskComponent(TaskDTO task) {
-        TaskComponent taskComponent = new TaskComponent(
-                task.getId(),
-                task.getName(),
-                task.getDescription(),
-                formatDate(task.getStartTimeDate()),
-                task.getPriority().toString(),
-                formatEmergencyLevel(task.getEmergencyLevel())
-        );
+        TaskComponent taskComponent = new TaskComponent(task);
 
         // Configurar el componente como origen de arrastre según la documentación de Vaadin
         DragSource<TaskComponent> dragSource = DragSource.create(taskComponent);
