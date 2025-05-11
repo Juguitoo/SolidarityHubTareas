@@ -109,7 +109,7 @@ public class TaskComponent extends VerticalLayout {
                 taskImg = new Image("images/task_high.png", translator.get("alt_task_high_icon"));
                 yield taskImg;
             }
-            case "Very high", "Muy alto", "Molt alt" -> {
+            case "VERY HIGH", "MUY ALTO", "MOLT ALT" -> {
                 taskImg = new Image("images/task_veryHigh.png", translator.get("alt_task_very_high_icon"));
                 yield taskImg;
             }
