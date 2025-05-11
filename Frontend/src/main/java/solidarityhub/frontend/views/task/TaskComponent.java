@@ -12,13 +12,17 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.i18n.Translator;
 
 import java.util.Collections;
+import java.util.Locale;
 
 @Getter
 public class TaskComponent extends VerticalLayout {
+    private static Translator translator;
 
     private final int taskId;
     private String taskName;
@@ -29,6 +33,15 @@ public class TaskComponent extends VerticalLayout {
     public Button editButton;
 
     public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel) {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         this.taskId = taskId;
         this.taskName = name;
         this.taskDescription = description;
@@ -40,6 +53,15 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public TaskComponent(TaskDTO taskDTO) {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         this.taskId = taskDTO.getId();
         this.taskName = taskDTO.getName();
         this.taskDescription = taskDTO.getDescription();
@@ -73,22 +95,22 @@ public class TaskComponent extends VerticalLayout {
 
     //===============================Get Components=========================================
     public Image getImg() {
-        Image taskImg = new Image("images/task_default.png", "Icono tarea");
+        Image taskImg = new Image("images/task_default.png", translator.get("alt_task_icon"));
         return switch (emergencyLevel) {
-            case "low", "Baja" -> {
-                taskImg = new Image("images/task_low.png", "Tarea de emergencia baja");
+            case "Low", "Bajo", "Baix" -> {
+                taskImg = new Image("images/task_low.png", translator.get("alt_task_low_icon"));
                 yield taskImg;
             }
-            case "medium", "Media" -> {
-                taskImg = new Image("images/task_medium.png", "Tarea de emergencia media");
+            case "Medium", "Medio", "Mitjà" -> {
+                taskImg = new Image("images/task_medium.png", translator.get("alt_task_medium_icon"));
                 yield taskImg;
             }
-            case "high", "Alta" -> {
-                taskImg = new Image("images/task_high.png", "Tarea de emergencia alta");
+            case "High", "Alto", "Alt"-> {
+                taskImg = new Image("images/task_high.png", translator.get("alt_task_high_icon"));
                 yield taskImg;
             }
-            case "veryHigh", "Muy alta" -> {
-                taskImg = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
+            case "Very high", "Muy alto", "Molt alt" -> {
+                taskImg = new Image("images/task_veryHigh.png", translator.get("alt_task_very_high_icon"));
                 yield taskImg;
             }
             default -> taskImg;
@@ -108,8 +130,14 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getPriorityLevelComponent() {
-        Span emergencyLevelSpan = new Span(priority);
+        Span emergencyLevelSpan = new Span();
         emergencyLevelSpan.addClassName("task-priority");
+        switch (priority) {
+            case "LOW" -> emergencyLevelSpan.setText(translator.get("low_priority"));
+            case "MODERATE" -> emergencyLevelSpan.setText(translator.get("moderate_priority"));
+            case "URGENT" -> emergencyLevelSpan.setText(translator.get("urgent_priority"));
+            default -> emergencyLevelSpan.setText("Default");
+        };
         return emergencyLevelSpan;
     }
 

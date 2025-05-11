@@ -12,6 +12,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.service.CatastropheService;
@@ -33,17 +34,28 @@ import solidarityhub.frontend.views.HeaderComponent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 @PageTitle("Tareas")
 @Route("tasks")
 @Menu(order = 1, icon = LineAwesomeIconUrl.TASKS_SOLID)
 public class TaskView extends VerticalLayout implements BeforeEnterObserver {
+    protected static Translator translator;
 
     private final TaskService taskService;
     private final CatastropheService catastropheService;
     private CatastropheDTO selectedCatastrophe;
 
     public TaskView() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         this.taskService = new TaskService();
         catastropheService = new CatastropheService();
 
@@ -68,7 +80,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private void buildView() {
         removeAll();
 
-        HeaderComponent header = new HeaderComponent("Tareas: " + selectedCatastrophe.getName());
+        HeaderComponent header = new HeaderComponent(translator.get("task_view_title") + selectedCatastrophe.getName());
 
         add(
             header,
@@ -81,15 +93,15 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         HorizontalLayout actionButtonsLayout = new HorizontalLayout();
         actionButtonsLayout.addClassName("action-buttons__layout");
 
-        Button addTaskButton = new Button("Añadir tarea", new Icon("vaadin", "plus"));
+        Button addTaskButton = new Button(translator.get("add_task_button"), new Icon("vaadin", "plus"));
         addTaskButton.addClickListener(e ->UI.getCurrent().navigate("addtask"));
         addTaskButton.addClassNames("tasks-button");
 
-        Button moreTasksButton = new Button("Ver todas las tareas", new Icon("vaadin", "clipboard"));
+        Button moreTasksButton = new Button(translator.get("all_tasks_button"), new Icon("vaadin", "clipboard"));
         moreTasksButton.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
         moreTasksButton.addClassName("tasks-button");
 
-        Button sugestedTasksButton = new Button("Tareas sugeridas", new Icon("vaadin", "lightbulb"));
+        Button sugestedTasksButton = new Button(translator.get("suggested_tasks_button"), new Icon("vaadin", "lightbulb"));
         sugestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
         sugestedTasksButton.addClassName("tasks-button");
 
@@ -116,7 +128,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         VerticalLayout toDoLayout = new VerticalLayout();
         toDoLayout.addClassName("task-section");
 
-        H3 todoTitle = new H3("Por hacer");
+        H3 todoTitle = new H3(translator.get("todo_tasks"));
         todoTitle.addClassName("section-title");
         toDoLayout.add(todoTitle);
 
@@ -130,12 +142,12 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     .toList();
 
             if (toDoTasks.isEmpty()) {
-                taskListContainer.add(new Span("No hay tareas pendientes para esta catástrofe."));
+                taskListContainer.add(new Span(translator.get("no_todo_tasks")));
             } else {
                 toDoTasks.forEach(taskListContainer::add);
             }
         } catch (Exception e) {
-            taskListContainer.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            taskListContainer.add(new Span(translator.get("error_todo_tasks") + e.getMessage()));
         }
 
         toDoLayout.add(taskListContainer);
@@ -150,7 +162,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         VerticalLayout inProgressLayout = new VerticalLayout();
         inProgressLayout.addClassName("task-section");
 
-        H3 doingTitle = new H3("En proceso");
+        H3 doingTitle = new H3(translator.get("in_progress_tasks"));
         doingTitle.addClassName("section-title");
         inProgressLayout.add(doingTitle);
 
@@ -164,12 +176,12 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     .toList();
 
             if (doingTasks.isEmpty()) {
-                taskListContainer.add(new Span("No hay tareas en proceso para esta catástrofe."));
+                taskListContainer.add(new Span(translator.get("no_in_progress_tasks")));
             } else {
                 doingTasks.forEach(taskListContainer::add);
             }
         } catch (Exception e) {
-            taskListContainer.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            taskListContainer.add(new Span(translator.get("error_in_progress_tasks") + e.getMessage()));
         }
 
         inProgressLayout.add(taskListContainer);
@@ -184,7 +196,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         VerticalLayout doneLayout = new VerticalLayout();
         doneLayout.addClassName("task-section");
 
-        H3 doneTitle = new H3("Terminadas");
+        H3 doneTitle = new H3(translator.get("terminated_tasks"));
         doneTitle.addClassName("section-title");
         doneLayout.add(doneTitle);
 
@@ -198,12 +210,12 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     .toList();
 
             if (doneTasks.isEmpty()) {
-                taskListContainer.add(new Span("No hay tareas terminadas para esta catástrofe."));
+                taskListContainer.add(new Span(translator.get("no_terminated_tasks")));
             } else {
                 doneTasks.forEach(taskListContainer::add);
             }
         } catch (Exception e) {
-            taskListContainer.add(new Span("Error al cargar tareas: " + e.getMessage()));
+            taskListContainer.add(new Span(translator.get("error_terminated_tasks") + e.getMessage()));
         }
 
         doneLayout.add(taskListContainer);
@@ -263,9 +275,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                 taskService.clearCache(); // Limpiar caché para forzar recarga
 
                 // Mostrar notificación
-                String statusText = newStatus == Status.TO_DO ? "Por hacer" :
-                        newStatus == Status.IN_PROGRESS ? "En proceso" : "Terminada";
-                Notification.show("Tarea '" + originalTask.getName() + "' movida a " + statusText,
+                String statusText = newStatus == Status.TO_DO ? translator.get("todo_tasks") :
+                        newStatus == Status.IN_PROGRESS ? translator.get("in_progress_tasks") : translator.get("terminated_tasks");
+                Notification.show(translator.get("task") + " '" + originalTask.getName() + "' " + translator.get("moved_to")+ statusText,
                                 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
@@ -273,7 +285,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                 buildView();
             }
         } catch (Exception e) {
-            Notification.show("Error al actualizar la tarea: " + e.getMessage(),
+            Notification.show(translator.get("error_updating_task") + e.getMessage(),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
@@ -295,7 +307,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                         updateTaskStatus(taskId, newStatus);
                     }
                 } catch (Exception e) {
-                    Notification.show("Error al verificar el estado de la tarea: " + e.getMessage(),
+                    Notification.show(translator.get("error_verifying_task") + e.getMessage(),
                                     3000, Notification.Position.MIDDLE)
                             .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
@@ -310,10 +322,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     private String formatEmergencyLevel(EmergencyLevel level) {
         return switch (level) {
-            case LOW -> "Baja";
-            case MEDIUM -> "Media";
-            case HIGH -> "Alta";
-            case VERYHIGH -> "Muy alta";
+            case LOW -> translator.get("low_emergency_level");
+            case MEDIUM -> translator.get("medium_emergency_level");
+            case HIGH -> translator.get("high_emergency_level");
+            case VERYHIGH -> translator.get("very_high_emergency_level");
         };
     }
 }

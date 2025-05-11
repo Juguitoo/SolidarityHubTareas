@@ -64,6 +64,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         title.getStyle().set("margin-top", "20px");
 
         ComboBox<String> languageSelector = new ComboBox<>();
+        languageSelector.setAllowCustomValue(false);
         languageSelector.getStyle().set("margin-top", "20px");
         languageSelector.setItems("Español", "Català", "English");
         languageSelector.setValue(getIdiomaActual());
