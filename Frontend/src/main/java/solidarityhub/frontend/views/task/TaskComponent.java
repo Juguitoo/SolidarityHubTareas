@@ -36,7 +36,7 @@ public class TaskComponent extends VerticalLayout {
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
         if (sessionLocale != null) {
             UI.getCurrent().setLocale(sessionLocale);
-        }else{
+        } else {
             VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
             UI.getCurrent().setLocale(new Locale("es"));
         }
@@ -56,7 +56,7 @@ public class TaskComponent extends VerticalLayout {
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
         if (sessionLocale != null) {
             UI.getCurrent().setLocale(sessionLocale);
-        }else{
+        } else {
             VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
             UI.getCurrent().setLocale(new Locale("es"));
         }
@@ -87,9 +87,9 @@ public class TaskComponent extends VerticalLayout {
         footer.add(getPriorityLevelComponent(), getSettingsComponent());
 
         add(
-            header,
-            new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
-            footer
+                header,
+                new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
+                footer
         );
     }
 
@@ -149,6 +149,8 @@ public class TaskComponent extends VerticalLayout {
         Icon editTaskIcon = VaadinIcon.COG.create();
         editButton = new Button(editTaskIcon);
         editButton.addClassName("edit-button");
+        // Agregar tooltip traducido
+        editButton.getElement().setAttribute("title", translator.get("edit_task_button_tooltip"));
 
         editButton.addClickListener(event -> UI.getCurrent().navigate("editTask", QueryParameters.simple(
                 Collections.singletonMap("id", String.valueOf(this.taskId)))));

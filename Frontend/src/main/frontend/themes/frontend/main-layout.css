@@ -19,6 +19,38 @@ vaadin-app-layout::part(content) {
   transition: margin-left var(--transition-duration) var(--transition-easing);
 }
 
+
+/* Estilos para la barra superior con el selector de idioma */
+.top-bar {
+  background-color: var(--lumo-base-color);
+  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  padding: 0 1rem;
+  height: 40px;
+}
+
+.language-selector {
+  margin-right: 1.5rem;
+  max-width: 120px;
+  min-width: 120px;
+  --lumo-font-size-s: 14px;
+}
+
+/* Ajuste para el contenido principal con la barra superior */
+vaadin-app-layout::part(navbar) {
+  min-height: 40px;
+  z-index: 1000;
+}
+
+/* Estilos para el lado del drawer */
+.drawer-content {
+  background-color: var(--lumo-base-color);
+  border-right: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* Ajustes para que el contenido principal se posicione correctamente */
+vaadin-app-layout::part(content) {
+  padding-top: 40px;
+}
 /* Ocultar el toggle del drawer */
 [part="navbar"] [slot="navbar"] vaadin-drawer-toggle,
 .drawer-toggle {
@@ -294,6 +326,7 @@ html[theme~="dark"] vaadin-icon,
 html[theme~="dark"] .app-name {
   color: var(--lumo-primary-color);
 }
+
 
 /* Responsividad */
 @media (max-width: 800px) {

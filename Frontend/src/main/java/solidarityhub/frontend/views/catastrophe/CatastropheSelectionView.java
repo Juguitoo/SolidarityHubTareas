@@ -2,7 +2,6 @@ package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -44,7 +43,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
         if (sessionLocale != null) {
             UI.getCurrent().setLocale(sessionLocale);
-        }else{
+        } else {
             VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
             UI.getCurrent().setLocale(new Locale("es"));
         }
@@ -58,35 +57,9 @@ public class CatastropheSelectionView extends VerticalLayout {
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 
         // Crear componentes de encabezado
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
         H1 title = new H1(translator.get("select_catastrophe_title"));
         title.addClassName("selection-title");
         title.getStyle().set("margin-top", "20px");
-
-        ComboBox<String> languageSelector = new ComboBox<>();
-        languageSelector.setAllowCustomValue(false);
-        languageSelector.getStyle().set("margin-top", "20px");
-        languageSelector.setItems("Español", "Català", "English");
-        languageSelector.setValue(getIdiomaActual());
-        horizontalLayout.add(title, languageSelector);
-
-        languageSelector.addValueChangeListener(event -> {
-            String selected = event.getValue();
-            Locale newLocale = switch (selected) {
-                case "English" -> new Locale("en");
-                case "Català" -> new Locale("ca");
-                default -> new Locale("es");
-            };
-
-            // Guardamos el locale en sesión
-            VaadinSession.getCurrent().setAttribute(Locale.class, newLocale);
-
-            // Establecemos el nuevo locale para la UI actual
-            UI.getCurrent().setLocale(newLocale);
-
-            // Recargamos la vista actual
-            UI.getCurrent().getPage().reload();
-        });
 
         Paragraph subtitle = new Paragraph(translator.get("select_catastrophe_subtitle"));
         subtitle.addClassName("selection-subtitle");
@@ -101,7 +74,7 @@ public class CatastropheSelectionView extends VerticalLayout {
             List<CatastropheDTO> catastrophes = catastropheService.getAllCatastrophes();
 
             if (catastrophes.isEmpty()) {
-                add(horizontalLayout, subtitle, new H3(translator.get("no_catastrophes_found")));
+                add(title, subtitle, new H3(translator.get("no_catastrophes_found")));
 
                 Button addCatastropheButton = new Button(translator.get("add_catastrophe"));
                 addCatastropheButton.addClassName("add-catastrophe-button");
@@ -109,7 +82,7 @@ public class CatastropheSelectionView extends VerticalLayout {
                 add(addCatastropheButton);
             } else {
                 // Añadir primero los componentes de título y subtítulo
-                add(horizontalLayout, subtitle);
+                add(title, subtitle);
 
                 // Ordenar las catástrofes por nivel de emergencia (MUY ALTO primero)
                 catastrophes.sort(Comparator.comparing((CatastropheDTO c) -> {
@@ -211,15 +184,6 @@ public class CatastropheSelectionView extends VerticalLayout {
             case MEDIUM -> "emergency-medium";
             case HIGH -> "emergency-high";
             case VERYHIGH -> "emergency-very-high";
-        };
-    }
-
-    private String getIdiomaActual() {
-        Locale current = UI.getCurrent().getLocale();
-        return switch (current.getLanguage()) {
-            case "en" -> "English";
-            case "ca" -> "Català";
-            default -> "Español";
         };
     }
 }
