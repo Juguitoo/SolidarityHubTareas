@@ -25,6 +25,7 @@ import java.util.Locale;
 
 @Getter
 public class TaskComponent extends VerticalLayout {
+    private static Translator translator;
 
     private final int taskId;
     private String taskName;
@@ -44,7 +45,6 @@ public class TaskComponent extends VerticalLayout {
             UI.getCurrent().setLocale(new Locale("es"));
         }
         translator = new Translator(UI.getCurrent().getLocale());
-
 
         this.taskId = taskId;
         this.taskName = name;
@@ -101,22 +101,22 @@ public class TaskComponent extends VerticalLayout {
 
     //===============================Get Components=========================================
     public Image getImg() {
-        Image taskImg = new Image("images/task_default.png", "Icono tarea");
+        Image taskImg = new Image("images/task_default.png", translator.get("alt_task_icon"));
         return switch (emergencyLevel) {
-            case "low", "LOW", "Baja", "Baix" -> {
-                taskImg = new Image("images/task_low.png", "Tarea de emergencia baja");
+            case "Low", "Bajo", "Baix" -> {
+                taskImg = new Image("images/task_low.png", translator.get("alt_task_low_icon"));
                 yield taskImg;
             }
-            case "medium", "MEDIUM", "Media", "Mitjà" -> {
-                taskImg = new Image("images/task_medium.png", "Tarea de emergencia media");
+            case "Medium", "Medio",  "MEDIUM", "Mitjà" -> {
+                taskImg = new Image("images/task_medium.png", translator.get("alt_task_medium_icon"));
                 yield taskImg;
             }
-            case "high", "HIGH", "Alta", "Alt" -> {
-                taskImg = new Image("images/task_high.png", "Tarea de emergencia alta");
+            case "High", "Alto", "Alt"-> {
+                taskImg = new Image("images/task_high.png", translator.get("alt_task_high_icon"));
                 yield taskImg;
             }
-            case "veryHigh", "VERYHIGH", "Muy alta", "MOLT ALT" -> {
-                taskImg = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
+            case "VERY HIGH", "MUY ALTO", "MOLT ALT" -> {
+                taskImg = new Image("images/task_veryHigh.png", translator.get("alt_task_very_high_icon"));
                 yield taskImg;
             }
             default -> taskImg;
@@ -146,17 +146,11 @@ public class TaskComponent extends VerticalLayout {
         emergencyLevelSpan.addClassName("task-priority");
 
         switch (priority) {
-            case "LOW":
-                emergencyLevelSpan.setText("Baja");
-                break;
-            case "MODERATE":
-                emergencyLevelSpan.setText("Moderada");
-                break;
-            case "URGENT":
-                emergencyLevelSpan.setText("Urgente");
-                break;
-        }
-
+            case "LOW" -> emergencyLevelSpan.setText(translator.get("low_priority"));
+            case "MODERATE" -> emergencyLevelSpan.setText(translator.get("moderate_priority"));
+            case "URGENT" -> emergencyLevelSpan.setText(translator.get("urgent_priority"));
+            default -> emergencyLevelSpan.setText("Default");
+        };
         return emergencyLevelSpan;
     }
 
