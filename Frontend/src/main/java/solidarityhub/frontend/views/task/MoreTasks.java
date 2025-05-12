@@ -337,24 +337,27 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private String formatTaskType(TaskType taskType) {
-        if (taskType == null) return "No especificado";
+        if (taskType == null) {
+            return translator.get("task_type_not_specified");
+        }
+
         return switch (taskType) {
-            case MEDICAL -> "Médica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            case SAFETY -> "Seguridad";
+            case MEDICAL -> translator.get("task_type_medical");
+            case POLICE -> translator.get("task_type_police");
+            case FIREFIGHTERS -> translator.get("task_type_firefighters");
+            case CLEANING -> translator.get("task_type_cleaning");
+            case FEED -> translator.get("task_type_feed");
+            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
+            case BUILDING -> translator.get("task_type_building");
+            case CLOTHING -> translator.get("task_type_clothing");
+            case REFUGE -> translator.get("task_type_refuge");
+            case OTHER -> translator.get("task_type_other");
+            case SEARCH -> translator.get("task_type_search");
+            case LOGISTICS -> translator.get("task_type_logistics");
+            case COMMUNICATION -> translator.get("task_type_communication");
+            case MOBILITY -> translator.get("task_type_mobility");
+            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
+            case SAFETY -> translator.get("task_type_safety");
         };
     }
 }

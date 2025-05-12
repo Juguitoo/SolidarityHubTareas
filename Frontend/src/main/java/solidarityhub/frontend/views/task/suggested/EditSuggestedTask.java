@@ -25,20 +25,20 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
     private TaskDTO selectedTask;
     protected final CatastropheDTO selectedCatastrophe;
 
-    @Autowired
+
     public EditSuggestedTask() {
         super();
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+    }
 
-        // Cambiar el título de la vista
-        getElement().getChildren()
-                .filter(element -> element.getChildren()
-                        .anyMatch(child -> child.getTag().equals("h1")))
-                .findFirst().flatMap(header -> header.getChildren()
-                        .filter(child -> child.getTag().equals("h1"))
-                        .findFirst()).ifPresent(title -> title.setText("Editar tarea sugerida"));
+    @Override
+    protected void buildView() {
+        super.buildView();
 
-        taskPreview.enabledEditButton(false);
+        // Aseguramos que taskPreview no sea null antes de usar enabledEditButton
+        if (taskPreview != null) {
+            taskPreview.enabledEditButton(false);
+        }
     }
 
     //===============================Load data=========================================
@@ -48,22 +48,30 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
         if (selectedTask != null) {
             loadTaskData();
         } else {
-            Notification.show("No se seleccionó ninguna tarea sugerida a editar");
+            Notification.show(translator.get("no_suggested_task_selected"));
             UI.getCurrent().navigate("suggested-tasks");
         }
     }
 
     private void loadTaskData() {
         try {
-                setFormValues(selectedTask);
-                Notification.show("Tarea cargada correctamente");
+            setFormValues(selectedTask);
+            Notification.show(translator.get("task_loaded_success"));
         } catch (Exception e) {
-            Notification.show("Error al cargar la tarea: " + e.getMessage());
+            Notification.show(translator.get("error_loading_task") + e.getMessage());
             UI.getCurrent().navigate("suggested-tasks");
         }
     }
 
     private void setFormValues(TaskDTO task) {
+        // Asegurarse de que los componentes están inicializados
+        if (taskName == null || taskDescription == null || taskPriority == null ||
+                taskEmergency == null || starDateTimePicker == null || endDatePicker == null) {
+            Notification.show(translator.get("form_not_initialized"));
+            UI.getCurrent().navigate("suggested-tasks");
+            return;
+        }
+
         taskName.setValue(task.getName());
         taskDescription.setValue(task.getDescription());
         taskPriority.setValue(task.getPriority());
@@ -77,38 +85,58 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
             starDateTimePicker.setMin(LocalDateTime.now());
         }
 
-        List<String> needs = new ArrayList<>(needService.getNeedsWithoutTask(task.getCatastropheId()).stream()
-                .map(NeedDTO::getDescription)
-                .toList());
-        List<String> taskNeeds = task.getNeeds().stream()
-                .map(NeedDTO::getDescription)
-                .toList();
-        needs.addAll(taskNeeds);
+        // Cargar necesidades
+        try {
+            List<String> needs = new ArrayList<>(needService.getNeedsWithoutTask(task.getCatastropheId()).stream()
+                    .map(NeedDTO::getDescription)
+                    .toList());
+            List<String> taskNeeds = task.getNeeds().stream()
+                    .map(NeedDTO::getDescription)
+                    .toList();
+            needs.addAll(taskNeeds);
 
-        needsMultiSelectComboBox.setItems(needs);
-        needsMultiSelectComboBox.select(taskNeeds);
-
-        endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
-
-        Set<String> volunteerNames = task.getVolunteers().stream()
-                .map(VolunteerDTO::getFirstName)
-                .collect(Collectors.toSet());
-
-
-        if (volunteerNames.isEmpty()) {
-            volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
-            volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
-        } else {
-            volunteerMultiSelectComboBox.setItems(volunteerNames);
-            volunteerMultiSelectComboBox.select(volunteerNames);
+            needsMultiSelectComboBox.setItems(needs);
+            needsMultiSelectComboBox.select(taskNeeds);
+        } catch (Exception e) {
+            Notification.show(translator.get("error_loading_needs") + e.getMessage());
         }
 
-        taskPreview.updateName(task.getName());
-        taskPreview.updateDescription(task.getDescription());
-        taskPreview.updateDate(formatDate(task.getStartTimeDate()));
-        taskPreview.updatePriority(task.getPriority().toString());
-        taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
-        taskPreview.enabledEditButton(false);
+        // Configurar fecha estimada de finalización
+        if (task.getEstimatedEndTimeDate() != null) {
+            endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
+        }
+
+        // Configurar ubicación
+        if (task.getMeetingDirection() != null) {
+            taskLocation.setValue(task.getMeetingDirection());
+        }
+
+        // Configurar voluntarios
+        try {
+            Set<String> volunteerNames = task.getVolunteers().stream()
+                    .map(VolunteerDTO::getFirstName)
+                    .collect(Collectors.toSet());
+
+            if (volunteerNames.isEmpty()) {
+                volunteerMultiSelectComboBox.setItems(translator.get("auto_select_volunteers"));
+                volunteerMultiSelectComboBox.select(translator.get("auto_select_volunteers"));
+            } else {
+                volunteerMultiSelectComboBox.setItems(volunteerNames);
+                volunteerMultiSelectComboBox.select(volunteerNames);
+            }
+        } catch (Exception e) {
+            Notification.show(translator.get("error_loading_volunteers") + e.getMessage());
+        }
+
+        // Actualizar vista previa si existe
+        if (taskPreview != null) {
+            taskPreview.updateName(task.getName());
+            taskPreview.updateDescription(task.getDescription());
+            taskPreview.updateDate(formatDate(task.getStartTimeDate()));
+            taskPreview.updatePriority(task.getPriority().toString());
+            taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
+            taskPreview.enabledEditButton(false);
+        }
     }
 
     //===============================Get Components=========================================
@@ -116,15 +144,14 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
     protected Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button updateButton = new Button("Aceptar");
+        Button updateButton = new Button(translator.get("update_button"));
         updateButton.addClickListener(e -> updateTask());
 
-        Button cancelButton = new Button("Salir");
+        Button cancelButton = new Button(translator.get("cancel_button"));
         cancelButton.addClickListener(e -> {
             VaadinSession.getCurrent().setAttribute("cache", false);
             getUI().ifPresent(ui -> ui.navigate("suggested-tasks"));
         });
-
 
         buttons.add(cancelButton, updateButton);
         setAlignSelf(Alignment.END, buttons);
@@ -148,7 +175,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                 List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
                 selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
                         .map(name -> {
-                            if (name.equals("Elegir voluntarios automáticamente")) {
+                            if (name.equals(translator.get("auto_select_volunteers"))) {
                                 finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
                             }
                             return volunteerService.getVolunteers("", new TaskDTO()).stream()
@@ -159,14 +186,12 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
-
-
                 TaskDTO suggestedTaskDTO = new TaskDTO(
                         taskName.getValue(),
                         taskDescription.getValue(),
                         starDateTimePicker.getValue(),
                         endDatePicker.getValue().atTime(23, 59),
-                        needs.getFirst().getTaskType(),
+                        needs.isEmpty() ? null : needs.getFirst().getTaskType(),
                         taskPriority.getValue(),
                         taskEmergency.getValue(),
                         selectedTask.getStatus(),
@@ -179,15 +204,15 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                 taskService.addTask(suggestedTaskDTO);
                 taskService.taskCache.clear();
                 taskService.suggestedTasksCache.remove(selectedTask);
-                Notification.show("Tarea actualizada correctamente");
+                Notification.show(translator.get("task_updated_success"));
                 VaadinSession.getCurrent().setAttribute("cache", true);
                 UI.getCurrent().navigate("tasks");
             } catch (Exception e) {
-                Notification.show("Error al actualizar la tarea: " + e.getMessage(),
+                Notification.show(translator.get("error_updating_task") + e.getMessage(),
                         5000, Notification.Position.MIDDLE);
             }
         } else {
-            Notification.show("Por favor, complete todos los campos obligatorios",
+            Notification.show(translator.get("check_fields"),
                     3000, Notification.Position.MIDDLE);
             VaadinSession.getCurrent().setAttribute("cache", false);
         }

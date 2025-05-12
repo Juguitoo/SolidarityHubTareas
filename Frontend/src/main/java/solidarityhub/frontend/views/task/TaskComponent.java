@@ -19,7 +19,6 @@ import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.i18n.Translator;
 
-import javax.print.attribute.standard.Media;
 import java.util.Collections;
 import java.util.Locale;
 
@@ -37,14 +36,7 @@ public class TaskComponent extends VerticalLayout {
     private TaskType taskType;
 
     public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel, TaskType taskType) {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        initializeTranslator();
 
         this.taskId = taskId;
         this.taskName = name;
@@ -58,14 +50,7 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public TaskComponent(TaskDTO taskDTO) {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        initializeTranslator();
 
         this.taskId = taskDTO.getId();
         this.taskName = taskDTO.getName();
@@ -76,6 +61,17 @@ public class TaskComponent extends VerticalLayout {
         this.taskType = taskDTO.getType();
 
         creatComponent();
+    }
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void creatComponent() {
@@ -93,9 +89,9 @@ public class TaskComponent extends VerticalLayout {
         footer.add(getPriorityLevelComponent(), getNeedTypeComponent(), getSettingsComponent());
 
         add(
-            header,
-            new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
-            footer
+                header,
+                new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
+                footer
         );
     }
 
@@ -145,16 +141,21 @@ public class TaskComponent extends VerticalLayout {
         Span emergencyLevelSpan = new Span();
         emergencyLevelSpan.addClassName("task-priority");
 
+        // Traducir la prioridad según el valor
+        String priorityText;
         switch (priority) {
-            case "LOW" -> emergencyLevelSpan.setText(translator.get("low_priority"));
-            case "MODERATE" -> emergencyLevelSpan.setText(translator.get("moderate_priority"));
-            case "URGENT" -> emergencyLevelSpan.setText(translator.get("urgent_priority"));
-            default -> emergencyLevelSpan.setText("Default");
-        };
+            case "LOW" -> priorityText = translator.get("low_priority");
+            case "MODERATE" -> priorityText = translator.get("moderate_priority");
+            case "URGENT" -> priorityText = translator.get("urgent_priority");
+            default -> priorityText = priority; // Si no coincide, usar el valor original
+        }
+
+        emergencyLevelSpan.setText(priorityText);
         return emergencyLevelSpan;
     }
 
     public Component getNeedTypeComponent() {
+        // Utilizar el método formatTaskType que ahora usa el traductor
         Span needTypeSpan = new Span(formatTaskType(taskType));
         needTypeSpan.addClassName("need-type");
         return needTypeSpan;
@@ -216,26 +217,26 @@ public class TaskComponent extends VerticalLayout {
     //===============================Format Methods=========================================
     private String formatTaskType(TaskType taskType) {
         if (taskType == null) {
-            return "No especificado";
+            return translator.get("task_type_not_specified");
         }
 
         return switch (taskType) {
-            case MEDICAL -> "Medica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            default -> "Otro";
+            case MEDICAL -> translator.get("task_type_medical");
+            case POLICE -> translator.get("task_type_police");
+            case FIREFIGHTERS -> translator.get("task_type_firefighters");
+            case CLEANING -> translator.get("task_type_cleaning");
+            case FEED -> translator.get("task_type_feed");
+            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
+            case BUILDING -> translator.get("task_type_building");
+            case CLOTHING -> translator.get("task_type_clothing");
+            case REFUGE -> translator.get("task_type_refuge");
+            case OTHER -> translator.get("task_type_other");
+            case SEARCH -> translator.get("task_type_search");
+            case LOGISTICS -> translator.get("task_type_logistics");
+            case COMMUNICATION -> translator.get("task_type_communication");
+            case MOBILITY -> translator.get("task_type_mobility");
+            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
+            case SAFETY -> translator.get("task_type_safety");
         };
     }
 }

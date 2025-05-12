@@ -1,5 +1,6 @@
 package solidarityhub.frontend.views.task;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -13,7 +14,6 @@ import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.*;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -68,6 +68,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected TextField taskLocation;
     protected MultiSelectComboBox<String> volunteerMultiSelectComboBox;
     protected MultiSelectComboBox<String> needsMultiSelectComboBox;
+    protected ComboBox<TaskType> taskType;
 
     //Volunteers list
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
@@ -83,14 +84,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
 
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        initializeTranslator();
+
         taskName = new TextField(translator.get("preview_task_name"));
         taskDescription = new TextArea(translator.get("preview_task_description"));
         taskPriority = new ComboBox<>(translator.get("preview_task_priority"));
@@ -100,7 +95,18 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation = new TextField(translator.get("preview_meeting_point"));
         volunteerMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_volunteers"));
         needsMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_needs"));
+        taskType = new ComboBox<>(translator.get("preview_task_type"));
+    }
 
+    protected void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     @Override
@@ -120,13 +126,39 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         HeaderComponent header = new HeaderComponent(translator.get("add_task_button"), "tasks");
 
         add(
-            header,
-            getPreview(),
-            getForms(),
-            getButtons()
+                header,
+                getPreview(),
+                getForms(),
+                getButtons()
         );
 
         setAlignItems(Alignment.CENTER);
+        setupPreviewWithTranslations();
+    }
+
+    protected void setupPreviewWithTranslations() {
+        // Actualizar la vista previa con valores traducidos
+        if (taskPreview != null) {
+            taskPreview.updatePriority(translator.get("preview_task_priority"));
+            taskPreview.updateName(translator.get("preview_task_name"));
+            taskPreview.updateDescription(translator.get("preview_task_description"));
+            taskPreview.updateEmergencyLevel(translator.get("preview_task_emergency_level"));
+        }
+    }
+
+    protected void setupStatusComboBox() {
+        // Este método será sobrecargado en EditTaskView
+        // para configurar el ComboBox de estado
+    }
+
+    protected String formatStatus(Status status) {
+        if (status == null) return "";
+
+        return switch (status) {
+            case TO_DO -> translator.get("status_todo");
+            case IN_PROGRESS -> translator.get("status_in_progress");
+            case FINISHED -> translator.get("status_finished");
+        };
     }
 
     private void saveNewTask(){
@@ -260,7 +292,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     if (endDatePicker.getValue() != null &&
                             endDatePicker.getValue().isBefore(startValue)) {
                         endDatePicker.setValue(startValue);
-                    } else if (endDatePicker.getValue().isBefore(startValue)) {
+                    } else if (endDatePicker.getValue() != null && endDatePicker.getValue().isBefore(startValue)) {
                         endDatePicker.setValue(null);
                     }
                 }
@@ -289,6 +321,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             }
         });
 
+        // Configurar el ComboBox de estado si existe
+        setupStatusComboBox();
 
         //Responsive
         addTaskForm.setColspan(taskDescription, 2);
@@ -606,21 +640,21 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         needsListBox.setWidthFull();
 
         needsListBox.setRenderer(
-            new ComponentRenderer<>(need -> {
-                HorizontalLayout needContent = new HorizontalLayout();
-                needContent.addClassName("listBox__item");
+                new ComponentRenderer<>(need -> {
+                    HorizontalLayout needContent = new HorizontalLayout();
+                    needContent.addClassName("listBox__item");
 
-                Span needDescription = new Span(need.getDescription());
-                needDescription.addClassName("needContent--description");
-                Span needType = new Span(formatTaskType(need.getTaskType()));
-                needType.addClassName("need-type");
+                    Span needDescription = new Span(need.getDescription());
+                    needDescription.addClassName("needContent--description");
+                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    needType.addClassName("need-type");
 
-                needContent.add(needDescription, needType);
-                needContent.setPadding(false);
-                needContent.setSpacing(false);
+                    needContent.add(needDescription, needType);
+                    needContent.setPadding(false);
+                    needContent.setSpacing(false);
 
-                return needContent;
-            })
+                    return needContent;
+                })
         );
 
         Span infoText = new Span(translator.get("select_needs_same_type"));
@@ -670,7 +704,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() &&
                 !taskLocation.isEmpty();
     }
-
     protected boolean isFormFilled() {
         return !taskName.isEmpty() ||
                 !taskDescription.isEmpty() ||
@@ -755,7 +788,12 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         if (priority != null) {
-            taskPreview.updatePriority(priority.toString());
+            String priorityText = switch (priority) {
+                case LOW -> translator.get("low_priority");
+                case MODERATE -> translator.get("moderate_priority");
+                case URGENT -> translator.get("urgent_priority");
+            };
+            taskPreview.updatePriority(priorityText);
         }
 
         if (emergencyLevel != null) {
@@ -772,28 +810,28 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
-    private String formatTaskType(TaskType taskType) {
+    protected String formatTaskType(TaskType taskType) {
         if (taskType == null) {
-            return "No especificado";
+            return translator.get("task_type_not_specified");
         }
 
         return switch (taskType) {
-            case MEDICAL -> "Medica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            default -> "Otro";
+            case MEDICAL -> translator.get("task_type_medical");
+            case POLICE -> translator.get("task_type_police");
+            case FIREFIGHTERS -> translator.get("task_type_firefighters");
+            case CLEANING -> translator.get("task_type_cleaning");
+            case FEED -> translator.get("task_type_feed");
+            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
+            case BUILDING -> translator.get("task_type_building");
+            case CLOTHING -> translator.get("task_type_clothing");
+            case REFUGE -> translator.get("task_type_refuge");
+            case OTHER -> translator.get("task_type_other");
+            case SEARCH -> translator.get("task_type_search");
+            case LOGISTICS -> translator.get("task_type_logistics");
+            case COMMUNICATION -> translator.get("task_type_communication");
+            case MOBILITY -> translator.get("task_type_mobility");
+            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
+            case SAFETY -> translator.get("task_type_safety");
         };
     }
 }

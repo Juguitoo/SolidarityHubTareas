@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -8,8 +9,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import lombok.Setter;
+import solidarityhub.frontend.i18n.Translator;
+
+import java.util.Locale;
 
 
 @Getter
@@ -20,6 +25,7 @@ public class CatastropheComponent extends Div {
     private String date;
     @Setter
     private String emergencyLevel;
+    private static Translator translator;
 
 
     public CatastropheComponent() {
@@ -33,7 +39,20 @@ public class CatastropheComponent extends Div {
         this.date = date;
         this.emergencyLevel = emergencyLevel;
 
+        initializeTranslator();
         setupComponent();
+    }
+
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
 
@@ -43,22 +62,23 @@ public class CatastropheComponent extends Div {
 
         // Crear el componente para la imagen según el nivel de emergencia
         Component imageComponent;
-        if (emergencyLevel.contains("bajo")) {
+        if (emergencyLevel.toLowerCase().contains(translator.get("low_emergency_level").toLowerCase())) {
             Icon icon = VaadinIcon.WARNING.create();
             icon.setColor("#4CAF50"); // verde
             icon.setSize("24px");
             imageComponent = icon;
-        } else if (emergencyLevel.contains("medio")) {
+        } else if (emergencyLevel.toLowerCase().contains(translator.get("medium_emergency_level").toLowerCase())) {
             Icon icon = VaadinIcon.WARNING.create();
             icon.setColor("#FFC107"); // amarillo
             icon.setSize("24px");
             imageComponent = icon;
-        } else if (emergencyLevel.contains("alto")) {
+        } else if (emergencyLevel.toLowerCase().contains(translator.get("high_emergency_level").toLowerCase()) &&
+                !emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
             Icon icon = VaadinIcon.WARNING.create();
             icon.setColor("#FF5722"); // naranja
             icon.setSize("24px");
             imageComponent = icon;
-        } else if (emergencyLevel.contains("MUY ALTO")) {
+        } else if (emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
             Icon icon = VaadinIcon.WARNING.create();
             icon.setColor("#F44336"); // rojo
             icon.setSize("24px");
@@ -91,10 +111,11 @@ public class CatastropheComponent extends Div {
         if (!emergencyLevel.isEmpty()) {
             Span levelSpan = new Span(emergencyLevel);
             levelSpan.addClassName("catastrophe-level");
-            if (emergencyLevel.contains("alto")) {
+            if (emergencyLevel.toLowerCase().contains(translator.get("high_emergency_level").toLowerCase()) &&
+                    !emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
                 levelSpan.getElement().getStyle().set("color", "#FF5722");
                 levelSpan.getElement().getStyle().set("font-weight", "bold");
-            } else if (emergencyLevel.contains("MUY ALTO")) {
+            } else if (emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
                 levelSpan.getElement().getStyle().set("color", "#F44336");
                 levelSpan.getElement().getStyle().set("font-weight", "bold");
                 levelSpan.getElement().getStyle().set("text-transform", "uppercase");
