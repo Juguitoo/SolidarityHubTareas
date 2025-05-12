@@ -103,7 +103,7 @@ public class TaskComponent extends VerticalLayout {
     public Image getImg() {
         Image taskImg = new Image("images/task_default.png", translator.get("alt_task_icon"));
         return switch (emergencyLevel) {
-            case "Low", "Bajo", "Baix" -> {
+            case "LOW", "Low", "Bajo", "Baix" -> {
                 taskImg = new Image("images/task_low.png", translator.get("alt_task_low_icon"));
                 yield taskImg;
             }
@@ -111,11 +111,11 @@ public class TaskComponent extends VerticalLayout {
                 taskImg = new Image("images/task_medium.png", translator.get("alt_task_medium_icon"));
                 yield taskImg;
             }
-            case "High", "Alto", "Alt"-> {
+            case "HIGH", "High", "Alto", "Alt"-> {
                 taskImg = new Image("images/task_high.png", translator.get("alt_task_high_icon"));
                 yield taskImg;
             }
-            case "VERY HIGH", "MUY ALTO", "MOLT ALT" -> {
+            case "VERYHIGH", "MUY ALTO", "MOLT ALT" -> {
                 taskImg = new Image("images/task_veryHigh.png", translator.get("alt_task_very_high_icon"));
                 yield taskImg;
             }
