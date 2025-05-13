@@ -1,6 +1,9 @@
 package solidarityhub.frontend.views.catastrophe;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.model.Catastrophe;
 import solidarityhub.frontend.model.GPSCoordinates;
 import solidarityhub.frontend.model.enums.EmergencyLevel;
@@ -22,11 +25,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 
 @Route("add-catastrophe")
 @PageTitle("Añadir Catástrofe")
 public class AddCatastropheView extends VerticalLayout {
+    private static Translator translator;
 
     private final TextField nameField;
     private final TextArea descriptionField;
@@ -40,6 +45,15 @@ public class AddCatastropheView extends VerticalLayout {
     private final CatastropheService catastropheService;
 
     public AddCatastropheView(CatastropheService catastropheService) {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         this.catastropheService = catastropheService;
         addClassName("add-catastrophe-view");
 
@@ -55,52 +69,52 @@ public class AddCatastropheView extends VerticalLayout {
         backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
         backButton.addClassName("back-button");
 
-        H1 title = new H1("Añadir Catástrofe");
+        H1 title = new H1(translator.get("add_catastrophe_title"));
         title.addClassName("title");
 
         header.add(backButton, title);
 
         // Crear campos del formulario alineados con la estructura de la base de datos
-        nameField = new TextField("Nombre de la catástrofe");
+        nameField = new TextField(translator.get("add_catastrophe_name"));
         nameField.setRequired(true);
-        nameField.setPlaceholder("Terremoto en...");
+        nameField.setPlaceholder(translator.get("add_catastrophe_name_placeholder"));
         nameField.setMaxLength(255);
-        nameField.setHelperText("Máximo 255 caracteres");
+        nameField.setHelperText(translator.get("add_catastrophe_text_helper"));
 
-        descriptionField = new TextArea("Descripción");
-        descriptionField.setPlaceholder("Información detallada sobre la catástrofe...");
+        descriptionField = new TextArea(translator.get("add_catastrophe_description"));
+        descriptionField.setPlaceholder(translator.get("add_catastrophe_description_placeholder"));
         descriptionField.setHeight("150px");
         descriptionField.setMaxLength(255);
-        descriptionField.setHelperText("Máximo 255 caracteres");
+        descriptionField.setHelperText(translator.get("add_catastrophe_text_helper"));
 
-        dateField = new DatePicker("Fecha de inicio");
+        dateField = new DatePicker(translator.get("add_catastrophe_start_date"));
         dateField.setValue(LocalDate.now());
         dateField.setRequired(true);
 
-        locationXField = new NumberField("Coordenada X (Longitud)");
+        locationXField = new NumberField(translator.get("add_catastrophe_coordX"));
         locationXField.setValue(0.0);
         locationXField.setStep(0.000001);
         locationXField.setStepButtonsVisible(true);
-        locationXField.setHelperText("Para la ubicación geográfica");
+        locationXField.setHelperText(translator.get("add_catastrophe_coords_helper"));
 
-        locationYField = new NumberField("Coordenada Y (Latitud)");
+        locationYField = new NumberField(translator.get("add_catastrophe_coordY"));
         locationYField.setValue(0.0);
         locationYField.setStep(0.000001);
         locationYField.setStepButtonsVisible(true);
-        locationYField.setHelperText("Para la ubicación geográfica");
+        locationYField.setHelperText(translator.get("add_catastrophe_coords_helper"));
 
-        emergencyLevelComboBox = new ComboBox<>("Nivel de emergencia");
+        emergencyLevelComboBox = new ComboBox<>(translator.get("add_catastrophe_emergency_level"));
         emergencyLevelComboBox.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
         emergencyLevelComboBox.setValue(EmergencyLevel.MEDIUM);
         emergencyLevelComboBox.setRequired(true);
         emergencyLevelComboBox.setItemLabelGenerator(this::formatEmergencyLevel);
 
         // Crear botones
-        saveButton = new Button("Guardar");
+        saveButton = new Button(translator.get("add_catastrophe_save_button"));
         saveButton.addClassName("search-button");
         saveButton.addClickListener(e -> guardarCatastrofe());
 
-        cancelButton = new Button("Cancelar");
+        cancelButton = new Button(translator.get("add_catastrophe_cancel_button"));
         cancelButton.addClassName("back-button");
         cancelButton.addClickListener(e -> volver());
 
@@ -123,17 +137,17 @@ public class AddCatastropheView extends VerticalLayout {
 
     private String formatEmergencyLevel(EmergencyLevel level) {
         return switch (level) {
-            case LOW -> "Bajo";
-            case MEDIUM -> "Medio";
-            case HIGH -> "Alto";
-            case VERYHIGH -> "Muy Alto";
+            case LOW -> translator.get("low_emergency_level");
+            case MEDIUM -> translator.get("medium_emergency_level");
+            case HIGH -> translator.get("high_emergency_level");
+            case VERYHIGH -> translator.get("very_high_emergency_level");
         };
     }
 
     private void guardarCatastrofe() {
         // Validar campos requeridos
         if (nameField.isEmpty() || emergencyLevelComboBox.isEmpty() || dateField.isEmpty()) {
-            Notification.show("Complete todos los campos obligatorios",
+            Notification.show(translator.get("check_fields"),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             return;
@@ -159,8 +173,8 @@ public class AddCatastropheView extends VerticalLayout {
             CatastropheDTO savedCatastrophe = catastropheService.saveCatastrophe(catastropheDTO);
 
             // Mostrar notificación de éxito
-            Notification.show("Catástrofe '" + nameField.getValue() +
-                                    "' guardada correctamente",
+            Notification.show(translator.get("catastrophe") + " '" + nameField.getValue() +
+                                    translator.get("correctly_added_catastrophe"),
                             3000, Notification.Position.BOTTOM_START)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
@@ -169,7 +183,7 @@ public class AddCatastropheView extends VerticalLayout {
 
         } catch (Exception e) {
 
-            Notification.show("Error al guardar la catástrofe: " + e.getMessage(),
+            Notification.show(translator.get("error_adding_catastrophe") + e.getMessage(),
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
 

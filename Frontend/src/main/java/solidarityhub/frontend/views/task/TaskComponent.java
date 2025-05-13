@@ -12,13 +12,19 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.model.enums.Priority;
+import solidarityhub.frontend.model.enums.TaskType;
+import solidarityhub.frontend.i18n.Translator;
 
 import java.util.Collections;
+import java.util.Locale;
 
 @Getter
 public class TaskComponent extends VerticalLayout {
+    private static Translator translator;
 
     private final int taskId;
     private String taskName;
@@ -27,27 +33,45 @@ public class TaskComponent extends VerticalLayout {
     private String priority;
     private String emergencyLevel;
     public Button editButton;
+    private TaskType taskType;
 
-    public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel) {
+    public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel, TaskType taskType) {
+        initializeTranslator();
+
         this.taskId = taskId;
         this.taskName = name;
         this.taskDescription = description;
         this.startTimeDate = startTimeDate;
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
+        this.taskType = taskType;
 
         creatComponent();
     }
 
     public TaskComponent(TaskDTO taskDTO) {
+        initializeTranslator();
+
         this.taskId = taskDTO.getId();
         this.taskName = taskDTO.getName();
         this.taskDescription = taskDTO.getDescription();
         this.startTimeDate = taskDTO.getStartTimeDate().toString();
         this.priority = taskDTO.getPriority().toString();
         this.emergencyLevel = taskDTO.getEmergencyLevel().toString();
+        this.taskType = taskDTO.getType();
 
         creatComponent();
+    }
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void creatComponent() {
@@ -62,7 +86,7 @@ public class TaskComponent extends VerticalLayout {
         footer.setWidthFull();
         footer.setJustifyContentMode(JustifyContentMode.BETWEEN);
         footer.setAlignItems(Alignment.CENTER);
-        footer.add(getPriorityLevelComponent(), getSettingsComponent());
+        footer.add(getPriorityLevelComponent(), getNeedTypeComponent(), getSettingsComponent());
 
         add(
             header,
@@ -73,22 +97,22 @@ public class TaskComponent extends VerticalLayout {
 
     //===============================Get Components=========================================
     public Image getImg() {
-        Image taskImg = new Image("images/task_default.png", "Icono tarea");
+        Image taskImg = new Image("images/task_default.png", translator.get("alt_task_icon"));
         return switch (emergencyLevel) {
-            case "low", "Baja" -> {
-                taskImg = new Image("images/task_low.png", "Tarea de emergencia baja");
+            case "LOW", "Low", "Bajo", "Baix" -> {
+                taskImg = new Image("images/task_low.png", translator.get("alt_task_low_icon"));
                 yield taskImg;
             }
-            case "medium", "Media" -> {
-                taskImg = new Image("images/task_medium.png", "Tarea de emergencia media");
+            case "Medium", "Medio",  "MEDIUM", "Mitjà" -> {
+                taskImg = new Image("images/task_medium.png", translator.get("alt_task_medium_icon"));
                 yield taskImg;
             }
-            case "high", "Alta" -> {
-                taskImg = new Image("images/task_high.png", "Tarea de emergencia alta");
+            case "HIGH", "High", "Alto", "Alt"-> {
+                taskImg = new Image("images/task_high.png", translator.get("alt_task_high_icon"));
                 yield taskImg;
             }
-            case "veryHigh", "Muy alta" -> {
-                taskImg = new Image("images/task_veryHigh.png", "Tarea de emergencia muy alta");
+            case "VERYHIGH", "MUY ALTO", "MOLT ALT" -> {
+                taskImg = new Image("images/task_veryHigh.png", translator.get("alt_task_very_high_icon"));
                 yield taskImg;
             }
             default -> taskImg;
@@ -101,6 +125,12 @@ public class TaskComponent extends VerticalLayout {
         return taskNameTitle;
     }
 
+    public Component getStartDateTimeComponent() {
+        Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
+        startDateTimeSpan.addClassName("task-date");
+        return startDateTimeSpan;
+    }
+
     public Component getTaskDescriptionComponent() {
         Div taskDescriptionSpan = new Div(taskDescription);
         taskDescriptionSpan.addClassName("task-description");
@@ -108,9 +138,26 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getPriorityLevelComponent() {
-        Span emergencyLevelSpan = new Span(priority);
+        Span emergencyLevelSpan = new Span();
         emergencyLevelSpan.addClassName("task-priority");
+
+        // Traducir la prioridad según el valor
+        String priorityText;
+        switch (priority) {
+            case "LOW" -> priorityText = translator.get("low_priority");
+            case "MODERATE" -> priorityText = translator.get("moderate_priority");
+            case "URGENT" -> priorityText = translator.get("urgent_priority");
+            default -> priorityText = priority; // Si no coincide, usar el valor original
+        }
+
+        emergencyLevelSpan.setText(priorityText);
         return emergencyLevelSpan;
+    }
+
+    public Component getNeedTypeComponent() {
+        Span needTypeSpan = new Span(formatTaskType(taskType));
+        needTypeSpan.addClassName("need-type");
+        return needTypeSpan;
     }
 
     public Component getSettingsComponent() {
@@ -121,18 +168,14 @@ public class TaskComponent extends VerticalLayout {
         Icon editTaskIcon = VaadinIcon.COG.create();
         editButton = new Button(editTaskIcon);
         editButton.addClassName("edit-button");
+        // Agregar tooltip traducido
+        editButton.getElement().setAttribute("title", translator.get("edit_task_button_tooltip"));
 
         editButton.addClickListener(event -> UI.getCurrent().navigate("editTask", QueryParameters.simple(
                 Collections.singletonMap("id", String.valueOf(this.taskId)))));
 
         buttonLayout.add(editButton);
         return buttonLayout;
-    }
-
-    public Component getStartDateTimeComponent() {
-        Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
-        startDateTimeSpan.addClassName("task-date");
-        return startDateTimeSpan;
     }
 
     //===============================Update Components=========================================
@@ -161,6 +204,11 @@ public class TaskComponent extends VerticalLayout {
         updateComponent();
     }
 
+    public void updateTaskType(TaskType taskType) {
+        this.taskType = taskType;
+        updateComponent();
+    }
+
     private void updateComponent() {
         removeAll();
         creatComponent();
@@ -168,5 +216,31 @@ public class TaskComponent extends VerticalLayout {
 
     public void enabledEditButton(Boolean enabled) {
         editButton.setEnabled(enabled);
+    }
+
+    //===============================Format Methods=========================================
+    private String formatTaskType(TaskType taskType) {
+        if (taskType == null) {
+            return translator.get("task_type_not_specified");
+        }
+
+        return switch (taskType) {
+            case MEDICAL -> translator.get("task_type_medical");
+            case POLICE -> translator.get("task_type_police");
+            case FIREFIGHTERS -> translator.get("task_type_firefighters");
+            case CLEANING -> translator.get("task_type_cleaning");
+            case FEED -> translator.get("task_type_feed");
+            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
+            case BUILDING -> translator.get("task_type_building");
+            case CLOTHING -> translator.get("task_type_clothing");
+            case REFUGE -> translator.get("task_type_refuge");
+            case OTHER -> translator.get("task_type_other");
+            case SEARCH -> translator.get("task_type_search");
+            case LOGISTICS -> translator.get("task_type_logistics");
+            case COMMUNICATION -> translator.get("task_type_communication");
+            case MOBILITY -> translator.get("task_type_mobility");
+            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
+            case SAFETY -> translator.get("task_type_safety");
+        };
     }
 }

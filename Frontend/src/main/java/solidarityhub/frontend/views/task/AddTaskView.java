@@ -1,18 +1,18 @@
 package solidarityhub.frontend.views.task;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.Need;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.*;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -36,10 +36,8 @@ import solidarityhub.frontend.model.enums.Priority;
 import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.volunteer.VolunteerInfo;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -55,19 +53,20 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final NeedService needService;
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
+    protected static Translator translator;
 
     protected CatastropheDTO selectedCatastrophe;
     protected TaskComponent taskPreview;
 
-    protected final TextField taskName = new TextField("Nombre de la tarea");
-    protected final TextArea taskDescription = new TextArea("Descripción de la tarea");
-    protected final ComboBox<Priority> taskPriority = new ComboBox<>("Prioridad");
-    protected final ComboBox<EmergencyLevel> taskEmergency = new ComboBox<>("Nivel de peligrosidad");
-    protected final DateTimePicker starDateTimePicker = new DateTimePicker("Fecha y hora de comienzo");
-    protected final DatePicker endDatePicker = new DatePicker("Fecha estimada de finalización");
-    protected final TextField taskLocation = new TextField("Punto de reunión ");
-    protected final MultiSelectComboBox<String> volunteerMultiSelectComboBox = new MultiSelectComboBox<>("Voluntarios");
-    protected final MultiSelectComboBox<String> needsMultiSelectComboBox = new MultiSelectComboBox<>("Necesidades");
+    protected TextField taskName;
+    protected TextArea taskDescription;
+    protected ComboBox<Priority> taskPriority;
+    protected ComboBox<EmergencyLevel> taskEmergency;
+    protected DateTimePicker starDateTimePicker;
+    protected DatePicker endDatePicker;
+    protected TextField taskLocation;
+    protected MultiSelectComboBox<String> volunteerMultiSelectComboBox;
+    protected MultiSelectComboBox<String> needsMultiSelectComboBox;
 
     //Volunteers list
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
@@ -76,38 +75,62 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     protected List<NeedDTO> allNeedsWithoutTask;
 
-    @Autowired
-    public AddTaskView(TaskService taskService) {
-        this.taskService = taskService;
+    protected TaskType taskType;
+
+    public AddTaskView() {
+        this.taskService = new TaskService();
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
 
-        beforeEnter(null);
-        buildView();
+        initializeTranslator();
+
+        taskName = new TextField(translator.get("preview_task_name"));
+        taskDescription = new TextArea(translator.get("preview_task_description"));
+        taskPriority = new ComboBox<>(translator.get("preview_task_priority"));
+        taskEmergency = new ComboBox<>(translator.get("preview_task_emergency_level"));
+        starDateTimePicker = new DateTimePicker(translator.get("preview_start_date"));
+        endDatePicker = new DatePicker(translator.get("preview_end_date"));
+        taskLocation = new TextField(translator.get("preview_meeting_point"));
+        volunteerMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_volunteers"));
+        needsMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_needs"));
+    }
+
+    protected void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-        catastropheService.isCatastropheSelected(event, selectedCatastrophe);
+        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
+            return;
+        }
         allNeedsWithoutTask = needService.getNeedsWithoutTask(selectedCatastrophe.getId());
+
+        buildView();
     }
 
     protected void buildView() {
         removeAll();
 
-        HeaderComponent header = new HeaderComponent("Añadir tarea", "tasks");
-
         add(
-                header,
-                getPreview(),
-                getForms(),
-                getButtons()
+            getHeader(),
+            getPreview(),
+            getForms(),
+            getButtons()
         );
 
         setAlignItems(Alignment.CENTER);
+        setupPreviewWithTranslations();
     }
 
     private void saveNewTask(){
@@ -119,29 +142,21 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 getConfirmationDialog().open();
 
             } catch (Exception ex) {
-                Notification.show("Error al guardar la tarea: " + ex.getMessage(),
+                Notification.show(translator.get("error_saving_task") + ex.getMessage(),
                         5000, Notification.Position.MIDDLE);
             }
         } else {
-            Notification.show("Por favor, complete todos los campos obligatorios",
+            Notification.show(translator.get("check_fields"),
                     3000, Notification.Position.MIDDLE);
         }
     }
 
     private TaskDTO getTaskDTO() {
-        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-        List<NeedDTO> needs = new ArrayList<>();
-        for (String need : selectedNeeds) {
-            allNeedsWithoutTask.stream()
-                    .filter(n -> n.getDescription().equals(need))
-                    .findFirst().ifPresent(needs::add);
-        }
-
         List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
         List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
         selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
                 .map(name -> {
-                    if (name.equals("Elegir voluntarios automáticamente")) {
+                    if (name.equals(translator.get("auto_select_volunteers"))) {
                         finalSelectedVolunteers.addAll(allVolunteersList.subList(0, 1));
                     }
                     return allVolunteersList.stream()
@@ -152,19 +167,38 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
 
-        // Verificar que endDatePicker.getValue() no sea nulo antes de llamar a atTime()
+
         LocalDateTime endDateTime = null;
         if (endDatePicker.getValue() != null) {
             endDateTime = endDatePicker.getValue().atTime(23, 59);
         }
 
         return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
-                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
+                getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
+    }
+
+    private List<NeedDTO> getNeedsList() {
+        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+        List<NeedDTO> needs = new ArrayList<>();
+        for (String need : selectedNeeds) {
+            allNeedsWithoutTask.stream()
+                    .filter(n -> n.getDescription().equals(need))
+                    .findFirst().ifPresent(needs::add);
+        }
+        return needs;
+    }
+
+    private TaskType getTaskType(){
+        List<NeedDTO> needs = getNeedsList();
+        return needs.isEmpty() ? null : needs.getFirst().getTaskType();
     }
 
     //===============================Get Components=========================================
+    protected Component getHeader(){
+        return new HeaderComponent(translator.get("add_task_title"), "tasks");
+    }
+
     protected Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
         preview.addClassName("previewContainer");
@@ -173,11 +207,12 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
         taskPreview = new TaskComponent(
                 0,
-                "Nombre de la tarea",
-                "Descripción de la tarea...",
+                translator.get("preview_task_name"),
+                translator.get("preview_task_description"),
                 formatDate(LocalDateTime.now()),
-                "Prioridad",
-                "Nivel de peligrosidad"
+                translator.get("preview_task_priority"),
+                translator.get("preview_task_emergency_level"),
+                TaskType.OTHER
         );
         taskPreview.enabledEditButton(false);
         setAlignSelf(Alignment.CENTER, taskPreview);
@@ -201,9 +236,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
         taskPriority.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
         taskPriority.setItemLabelGenerator(priority -> switch (priority) {
-            case LOW -> "Baja";
-            case MODERATE -> "Moderada";
-            case URGENT -> "Urgente";
+            case LOW -> translator.get("low_priority");
+            case MODERATE -> translator.get("moderate_priority");
+            case URGENT -> translator.get("urgent_priority");
         });
         taskPriority.setRequiredIndicatorVisible(true);
         taskPriority.setRequired(true);
@@ -216,16 +251,16 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         starDateTimePicker.setRequiredIndicatorVisible(true);
         starDateTimePicker.setMin(LocalDateTime.now());
         starDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
-        starDateTimePicker.setHelperText("Sirve, además, como fecha de encuentro con los voluntarios ");
+        starDateTimePicker.setHelperText(translator.get("start_date_field_helper"));
 
         endDatePicker.setRequiredIndicatorVisible(true);
         endDatePicker.setMin(LocalDate.now());
         endDatePicker.setI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
-        endDatePicker.setHelperText("Esta fecha debe ser posterior a la fecha de comienzo");
+        endDatePicker.setHelperText(translator.get("end_date_field_helper"));
 
         taskLocation.setRequiredIndicatorVisible(true);
         taskLocation.setRequired(true);
-        taskLocation.setHelperText("Indique la dirección de encuentro de los voluntarios");
+        taskLocation.setHelperText(translator.get("meeting_point_helper"));
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation);
 
@@ -240,7 +275,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     if (endDatePicker.getValue() != null &&
                             endDatePicker.getValue().isBefore(startValue)) {
                         endDatePicker.setValue(startValue);
-                    } else if (endDatePicker.getValue().isBefore(startValue)) {
+                    } else if (endDatePicker.getValue() != null && endDatePicker.getValue().isBefore(startValue)) {
                         endDatePicker.setValue(null);
                     }
                 }
@@ -259,16 +294,15 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     }else {
                         taskLocation.setInvalid(true);
                         taskLocation.setValue("");
-                        Notification.show("La dirección ingresada no es válida. Por favor, intentelo de nuevo.", 3000, Notification.Position.MIDDLE);
+                        Notification.show(translator.get("wrong_meeting_point"), 3000, Notification.Position.MIDDLE);
                     }
                 }else{
                     taskLocation.setInvalid(true);
                     taskLocation.setValue("");
-                    Notification.show("La dirección ingresada no es válida. Por favor, intentelo de nuevo.", 3000, Notification.Position.MIDDLE);
+                    Notification.show(translator.get("wrong_meeting_point"), 3000, Notification.Position.MIDDLE);
                 }
             }
         });
-
 
         //Responsive
         addTaskForm.setColspan(taskDescription, 2);
@@ -282,7 +316,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     protected Component getVolunteersForm(){
-        volunteerMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
+        volunteerMultiSelectComboBox.setPlaceholder(translator.get("click_to_select"));
         volunteerMultiSelectComboBox.setReadOnly(true);
         volunteerMultiSelectComboBox.setRequiredIndicatorVisible(true);
         volunteerMultiSelectComboBox.setRequired(true);
@@ -293,7 +327,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
                 // Si no hay fechas seleccionadas, mostrar notificación
                 Notification notification = Notification.show(
-                        "Selecciona fecha para comprobar qué voluntarios están disponibles",
+                        translator.get("select_date_to_filter"),
                         3000,
                         Notification.Position.MIDDLE
                 );
@@ -309,7 +343,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     protected Component getNeedsForm() {
-        needsMultiSelectComboBox.setPlaceholder("Hacer clic para seleccionar");
+        needsMultiSelectComboBox.setPlaceholder(translator.get("click_to_select"));
         needsMultiSelectComboBox.setReadOnly(true);
         needsMultiSelectComboBox.setRequiredIndicatorVisible(true);
         needsMultiSelectComboBox.setRequired(true);
@@ -324,10 +358,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected Component getButtons(){
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button saveTaskButton = new Button("Añadir");
+        Button saveTaskButton = new Button(translator.get("add_button"));
         saveTaskButton.addClickListener(e -> saveNewTask());
 
-        Button cancel = new Button("Cancelar");
+        Button cancel = new Button(translator.get("cancel_button"));
         cancel.addClickListener(e -> exitWithoutSavingDialog());
 
         buttons.add(cancel, saveTaskButton);
@@ -336,64 +370,42 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return buttons;
     }
 
-    private Dialog getConfirmationDialog() {
-        Dialog confirmDialog = new Dialog();
-        confirmDialog.setHeaderTitle("Tarea creada con éxito");
-
-        confirmDialog.add(
-                new Span("La tarea " + taskName.getValue() + " ha sido creada correctamente.\n" + "¿Que deasea hacer?")
-        );
-        VaadinSession.getCurrent().setAttribute("cache", true);
-        Button addNewTaskButton = new Button("Crear otra tarea", e -> {
-            confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate("addtask"));
-        });
-
-        Button closeButton = new Button("Salir", e -> {
-            confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate("tasks"));
-        });
-
-        confirmDialog.getFooter().add(addNewTaskButton, closeButton);
-        return confirmDialog;
-    }
-
     protected String getEmergencyLevelString(EmergencyLevel level) {
         return switch (level) {
-            case LOW -> "Baja";
-            case MEDIUM -> "Media";
-            case HIGH -> "Alta";
-            case VERYHIGH -> "Muy alta";
+            case LOW -> translator.get("low_emergency_level");
+            case MEDIUM -> translator.get("medium_emergency_level");
+            case HIGH -> translator.get("high_emergency_level");
+            case VERYHIGH -> translator.get("very_high_emergency_level");
         };
     }
 
     //=============================== Dialogs =========================================
     private Dialog getVolunteersDialogContent() {
         Dialog volunteerDialog = new Dialog();
-        volunteerDialog.setHeaderTitle("Seleccione los voluntarios");
+        volunteerDialog.setHeaderTitle(translator.get("select_volunteers"));
 
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
 
         Checkbox volunteerCheckbox = new Checkbox();
-        volunteerCheckbox.setLabel("Elegir voluntarios automáticamente");
+        volunteerCheckbox.setLabel(translator.get("auto_select_volunteers"));
 
         Tabs tabs = new Tabs(
-                new Tab("Todos los voluntarios"),
-                new Tab("Por Distancia"),
-                new Tab("Por Habilidades")
+                new Tab(translator.get("all_volunteers")),
+                new Tab(translator.get("by_distance")),
+                new Tab(translator.get("by_skills"))
         );
 
         MultiSelectListBox<VolunteerDTO> volunteersListBox = new MultiSelectListBox<>();
         volunteersListBox.setWidthFull();
 
         // No volunteers message
-        Span noVolunteersMessage = new Span("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+        Span noVolunteersMessage = new Span(translator.get("no_available_volunteers"));
         noVolunteersMessage.setVisible(false);
 
         // Comprobar si tenemos fechas seleccionadas
         if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
-            Notification.show("Primero debe seleccionar las fechas de inicio y fin de la tarea",
+            Notification.show(translator.get("first_select_dates"),
                     3000, Notification.Position.MIDDLE);
             volunteerDialog.close();
             return volunteerDialog;
@@ -427,8 +439,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             infoLayout.add(nameSpan, emailSpan);
 
             // Badge de disponibilidad
+            Span availabilityBadge;
             if(volunteer.getAvailabilityStatus() > 0){
-                Span availabilityBadge = new Span("Disponible");
+                availabilityBadge = new Span("Disponible");
                 availabilityBadge.getStyle()
                         .set("background-color", "var(--lumo-success-color)")
                         .set("color", "white")
@@ -449,7 +462,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
                 return layout;
             }else{
-                Span availabilityBadge = new Span("No disponible");
+                availabilityBadge = new Span("No disponible");
                 availabilityBadge.getStyle()
                         .set("background-color", "var(--lumo-error-color)")
                         .set("color", "white")
@@ -468,27 +481,25 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                         .set("border-radius", "4px")
                         .set("background-color", "rgba(244, 67, 54, 0.1)");
 
-                return layout;
             }
+            return layout;
         });
 
         volunteersListBox.setRenderer(renderer);
 
         volunteersListBox.setItems(allVolunteersList);
 
-        // Listener para cambios de pestaña
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
 
-            // Ocultar mensaje de error por defecto
             noVolunteersMessage.setVisible(false);
 
             switch (selectedTabName) {
-                case "Todos los voluntarios":
+                case "Todos los voluntarios", "All Volunteers", "Tots els voluntaris":
                     if (allVolunteersList.isEmpty()) {
                         allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
                         if(allVolunteersList.isEmpty()) {
-                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles para las fechas seleccionadas");
+                            noVolunteersMessage.setText(translator.get("no_available_volunteers"));
                             noVolunteersMessage.setVisible(true);
                         } else {
                             volunteersListBox.setItems(allVolunteersList);
@@ -498,9 +509,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     }
                     break;
 
-                case "Por Distancia":
+                case "Por distancia", "By distance", "Per distància":
                     if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
-                        Notification.show("Seleccione una necesidad primero para poder filtrar por distancia",
+                        Notification.show(translator.get("first_select_need_distance"),
                                 3000, Notification.Position.MIDDLE);
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
@@ -509,7 +520,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     if (distanceVolunteersList.isEmpty()) {
                         distanceVolunteersList = new ArrayList<>(volunteerService.getVolunteers("distancia", currentTaskDTO));
                         if(distanceVolunteersList.isEmpty()) {
-                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles cercanos a la ubicación");
+                            noVolunteersMessage.setText(translator.get("no_near_volunteers"));
                             noVolunteersMessage.setVisible(true);
                         } else {
                             volunteersListBox.setItems(distanceVolunteersList);
@@ -519,9 +530,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     }
                     break;
 
-                case "Por Habilidades":
+                case "Por habilidades", "By skills", "Per habilitats":
                     if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
-                        Notification.show("Seleccione una necesidad primero para poder filtrar por habilidades",
+                        Notification.show(translator.get("first_select_need_skill"),
                                 3000, Notification.Position.MIDDLE);
                         tabs.setSelectedTab(tabs.getTabAt(0));
                         return;
@@ -530,7 +541,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                     if (skillsVolunteersList.isEmpty()) {
                         skillsVolunteersList = new ArrayList<>(volunteerService.getVolunteers("habilidades", currentTaskDTO));
                         if(skillsVolunteersList.isEmpty()) {
-                            noVolunteersMessage.setText("No se encontraron voluntarios disponibles con las habilidades requeridas");
+                            noVolunteersMessage.setText(translator.get("no_skill_volunteers"));
                             noVolunteersMessage.setVisible(true);
                         } else {
                             volunteersListBox.setItems(skillsVolunteersList);
@@ -549,10 +560,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         dialogContent.add(volunteerCheckbox, tabs, noVolunteersMessage, volunteersListBox);
 
         // Footer
-        Button saveButton = new Button("Guardar", e -> {
+        Button saveButton = new Button(translator.get("save_button"), e -> {
             if (volunteerCheckbox.getValue()) {
-                volunteerMultiSelectComboBox.setItems("Elegir voluntarios automáticamente");
-                volunteerMultiSelectComboBox.select("Elegir voluntarios automáticamente");
+                volunteerMultiSelectComboBox.setItems(translator.get("auto_select_volunteers"));
+                volunteerMultiSelectComboBox.select(translator.get("auto_select_volunteers"));
             } else {
                 Set<String> selectedVolunteersNames = volunteersListBox.getSelectedItems().stream()
                         .map(VolunteerDTO::getFirstName)
@@ -565,7 +576,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             volunteerDialog.close();
         });
 
-        Button cancelButton = new Button("Cancelar", e -> volunteerDialog.close());
+        Button cancelButton = new Button(translator.get("cancel_button"), e -> volunteerDialog.close());
 
         volunteerDialog.getFooter().add(cancelButton, saveButton);
         volunteerDialog.add(dialogContent);
@@ -576,7 +587,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     private Dialog getNeedsDialogContent() {
         Dialog needsDialog = new Dialog();
 
-        needsDialog.setHeaderTitle("Seleccione las necesidades a cubrir");
+        needsDialog.setHeaderTitle(translator.get("select_needs"));
 
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
@@ -586,24 +597,24 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         needsListBox.setWidthFull();
 
         needsListBox.setRenderer(
-            new ComponentRenderer<>(need -> {
-                HorizontalLayout needContent = new HorizontalLayout();
-                needContent.addClassName("listBox__item");
+                new ComponentRenderer<>(need -> {
+                    HorizontalLayout needContent = new HorizontalLayout();
+                    needContent.addClassName("listBox__item");
 
-                Span needDescription = new Span(need.getDescription());
-                needDescription.addClassName("needContent--description");
-                Span needType = new Span(formatTaskType(need.getTaskType()));
-                needType.addClassName("listBox__item-detail");
+                    Span needDescription = new Span(need.getDescription());
+                    needDescription.addClassName("needContent--description");
+                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    needType.addClassName("need-type");
 
-                needContent.add(needDescription, needType);
-                needContent.setPadding(false);
-                needContent.setSpacing(false);
+                    needContent.add(needDescription, needType);
+                    needContent.setPadding(false);
+                    needContent.setSpacing(false);
 
-                return needContent;
-            })
+                    return needContent;
+                })
         );
 
-        Span infoText = new Span("Solo es posible elegir necesidades de un único tipo.");
+        Span infoText = new Span(translator.get("select_needs_same_type"));
         infoText.addClassName("needsDialog--infoText");
 
         dialogContent.add(infoText, needsListBox);
@@ -620,7 +631,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         });
 
         // Footer
-        Button saveButton = new Button("Guardar", e -> {
+        Button saveButton = new Button(translator.get("save_button"), e -> {
             Set<String> selectedNeedDescriptions = needsListBox.getSelectedItems().stream()
                     .map(NeedDTO::getDescription)
                     .collect(Collectors.toSet());
@@ -630,12 +641,34 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             needsMultiSelectComboBox.select(selectedNeedDescriptions);
             needsDialog.close();
         });
-        Button cancelButton = new Button("Cancelar", e -> needsDialog.close());
+        Button cancelButton = new Button(translator.get("cancel_button"), e -> needsDialog.close());
         needsDialog.getFooter().add(cancelButton, saveButton);
 
         needsDialog.add(dialogContent);
 
         return needsDialog;
+    }
+
+    private Dialog getConfirmationDialog() {
+        Dialog confirmDialog = new Dialog();
+        confirmDialog.setHeaderTitle(translator.get("correct_task"));
+
+        confirmDialog.add(
+                new Span(translator.get("the_task") + taskName.getValue() + translator.get("successfully_added") +"\n" + translator.get("next_step"))
+        );
+        VaadinSession.getCurrent().setAttribute("cache", true);
+        Button addNewTaskButton = new Button(translator.get("create_other_task"), e -> {
+            confirmDialog.close();
+            getUI().ifPresent(ui -> ui.navigate("addtask"));
+        });
+
+        Button closeButton = new Button(translator.get("exit_button"), e -> {
+            confirmDialog.close();
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        });
+
+        confirmDialog.getFooter().add(addNewTaskButton, closeButton);
+        return confirmDialog;
     }
 
     //===============================Validate Form=========================================
@@ -665,19 +698,19 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected void exitWithoutSavingDialog() {
         if (isFormFilled()) {
             Dialog confirmDialog = new Dialog();
-            confirmDialog.setHeaderTitle("Confirmación");
+            confirmDialog.setHeaderTitle(translator.get("confirm_title"));
 
             VerticalLayout dialogContent = new VerticalLayout();
-            dialogContent.add(new Span("¿Está seguro de que desea cancelar? Los cambios no guardados se perderán."));
+            dialogContent.add(new Span(translator.get("confirm_text")));
 
-            Button confirmButton = new Button("Confirmar", event -> {
+            Button confirmButton = new Button(translator.get("confirm_button"), event -> {
                 confirmDialog.close();
                 VaadinSession.getCurrent().setAttribute("cache", true);
                 getUI().ifPresent(ui -> ui.navigate("tasks"));
             });
             confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-            Button cancelButton = new Button("Cancelar", event -> confirmDialog.close());
+            Button cancelButton = new Button(translator.get("cancel_button"), event -> confirmDialog.close());
             cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
             confirmDialog.getFooter().add(cancelButton, confirmButton);
@@ -689,23 +722,32 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     //===============================Modify Preview=========================================
+    protected void setupPreviewWithTranslations() {
+        if (taskPreview != null) {
+            taskPreview.updatePriority(translator.get("preview_task_priority"));
+            taskPreview.updateName(translator.get("preview_task_name"));
+            taskPreview.updateDescription(translator.get("preview_task_description"));
+            taskPreview.updateEmergencyLevel(translator.get("preview_task_emergency_level"));
+        }
+    }
+
     protected void setupFormListeners() {
         taskName.addValueChangeListener(e ->
-                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue())
+                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue())
         );
 
         taskDescription.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue()));
 
         taskPriority.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue()));
 
         taskEmergency.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue(), taskType, starDateTimePicker.getValue()));
 
         starDateTimePicker.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                updatePreviewDate(e.getValue());
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, e.getValue());
             }
             allVolunteersList.clear();
             distanceVolunteersList.clear();
@@ -721,10 +763,12 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         needsMultiSelectComboBox.addSelectionListener(e -> {
             skillsVolunteersList.clear();
             distanceVolunteersList.clear();
+            taskType = getTaskType();
+            updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue());
         });
     }
 
-    protected void updatePreview(String name, String description, Priority priority, EmergencyLevel emergencyLevel) {
+    protected void updatePreview(String name, String description, Priority priority, EmergencyLevel emergencyLevel, TaskType taskType, LocalDateTime date) {
 
         if (name != null && !name.trim().isEmpty()) {
             taskPreview.updateName(name);
@@ -735,16 +779,25 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         if (priority != null) {
-            taskPreview.updatePriority(priority.toString());
+            String priorityText = switch (priority) {
+                case LOW -> translator.get("low_priority");
+                case MODERATE -> translator.get("moderate_priority");
+                case URGENT -> translator.get("urgent_priority");
+            };
+            taskPreview.updatePriority(priorityText);
         }
 
         if (emergencyLevel != null) {
             taskPreview.updateEmergencyLevel(getEmergencyLevelString(emergencyLevel));
         }
-    }
 
-    protected void updatePreviewDate(LocalDateTime date) {
-        taskPreview.updateDate(formatDate(date));
+        if(taskType != null){
+            taskPreview.updateTaskType(taskType);
+        }
+
+        if(date != null){
+            taskPreview.updateDate(formatDate(date));
+        }
     }
 
     //===============================Format Methods=========================================
@@ -752,28 +805,38 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     }
 
-    private String formatTaskType(TaskType taskType) {
+    protected String formatTaskType(TaskType taskType) {
         if (taskType == null) {
-            return "No especificado";
+            return translator.get("task_type_not_specified");
         }
 
         return switch (taskType) {
-            case MEDICAL -> "Medica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            default -> "Otro";
+            case MEDICAL -> translator.get("task_type_medical");
+            case POLICE -> translator.get("task_type_police");
+            case FIREFIGHTERS -> translator.get("task_type_firefighters");
+            case CLEANING -> translator.get("task_type_cleaning");
+            case FEED -> translator.get("task_type_feed");
+            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
+            case BUILDING -> translator.get("task_type_building");
+            case CLOTHING -> translator.get("task_type_clothing");
+            case REFUGE -> translator.get("task_type_refuge");
+            case OTHER -> translator.get("task_type_other");
+            case SEARCH -> translator.get("task_type_search");
+            case LOGISTICS -> translator.get("task_type_logistics");
+            case COMMUNICATION -> translator.get("task_type_communication");
+            case MOBILITY -> translator.get("task_type_mobility");
+            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
+            case SAFETY -> translator.get("task_type_safety");
+        };
+    }
+
+    protected String formatStatus(Status status) {
+        if (status == null) return "";
+
+        return switch (status) {
+            case TO_DO -> translator.get("status_todo");
+            case IN_PROGRESS -> translator.get("status_in_progress");
+            case FINISHED -> translator.get("status_finished");
         };
     }
 }

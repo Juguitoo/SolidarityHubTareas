@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import solidarityhub.backend.config.FcmService;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.dto.VolunteerDTO;
 import solidarityhub.backend.model.*;
+import solidarityhub.backend.model.enums.Status;
 import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
@@ -22,14 +22,17 @@ public class TaskController {
     private final NeedService needService;
     private final NotificationService notificationService;
     private final CatastropheService catastropheService;
+    private final PDFCertificateService pdfService;
 
     @Autowired
-    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService, NotificationService notificationService, CatastropheService catastropheService, FcmService fcmService) {
+    public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService,
+                          NotificationService notificationService, CatastropheService catastropheService, PDFCertificateService pdfService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
         this.needService = needService;
         this.catastropheService = catastropheService;
         this.notificationService = notificationService;
+        this.pdfService = pdfService;
     }
 
     @GetMapping
@@ -194,6 +197,9 @@ public class TaskController {
             notificationService.notifyApp(volunteer.getNotificationToken(),
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
+            if(taskDTO.getStatus() == Status.FINISHED && task.getAcceptedVolunteers().contains(volunteer)) {
+                pdfService.createPDFDocument(volunteer, task);
+            }
         }
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();

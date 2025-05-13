@@ -34,7 +34,7 @@ public class StorageService {
                 }
             } catch (RestClientException e) {
                 e.printStackTrace();
-                return getExampleStorages(5);
+                return new ArrayList<>();
             }
         }
         return storageCache;
@@ -57,12 +57,5 @@ public class StorageService {
                 .collect(Collectors.toList());
     }
 
-    // Almacenes de ejemplo
-    private List<StorageDTO> getExampleStorages(int limit) {
-        List<StorageDTO> exampleStorages = new ArrayList<>();
-        for (int i = 0; i < limit; i++) {
-            exampleStorages.add(new StorageDTO("Almacén Ejemplo " + (i + 1), false));
-        }
-        return exampleStorages;
-    }
+    public void clearCache(){storageCache.clear();}
 }

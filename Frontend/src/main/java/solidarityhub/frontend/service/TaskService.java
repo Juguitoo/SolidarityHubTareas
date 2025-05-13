@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import solidarityhub.frontend.dto.BackendDTOObservableService;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
@@ -78,8 +79,7 @@ public class TaskService {
     }
 
     public List<TaskDTO> getTasksByCatastrophe(int catastropheId) {
-        return getTasks().stream()
-                .filter(task -> task.getCatastropheId() == catastropheId).toList();
+        return BackendDTOObservableService.GetInstancia().getTaskList().getValues().stream().filter(task -> task.getCatastropheId() == catastropheId).collect(Collectors.toList());
     }
 
     public List<TaskDTO> getToDoTasksByCatastrophe(int catastropheId, int limit) {

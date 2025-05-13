@@ -1,5 +1,6 @@
-package solidarityhub.frontend.views.task;
+package solidarityhub.frontend.views.task.suggested;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -9,17 +10,21 @@ import com.vaadin.flow.server.VaadinSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
+import solidarityhub.frontend.views.task.TaskComponent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @PageTitle("Suggested Tasks")
 @Route("suggested-tasks")
 public class SuggestedTasks extends VerticalLayout {
+    private static Translator translator;
     private final TaskService taskService;
     private final NeedService needService;
     private final CatastropheDTO selectedCatastrophe;
@@ -27,16 +32,29 @@ public class SuggestedTasks extends VerticalLayout {
 
     @Autowired
     public SuggestedTasks(TaskService taskService, NeedService needService) {
+        initializeTranslator();
+
         this.taskService = taskService;
         this.needService = needService;
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
-        //Header
-        HeaderComponent header = new HeaderComponent("Tareas sugeridas", "tasks");
+        // Header
+        HeaderComponent header = new HeaderComponent(translator.get("suggested_tasks_button"), "tasks");
 
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
         add(header, getSuggestedTasks());
+    }
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private VerticalLayout getSuggestedTasks() {
@@ -48,7 +66,7 @@ public class SuggestedTasks extends VerticalLayout {
             suggestedTasks = taskService.suggestedTasksCache.stream()
                     .filter(task -> Objects.equals(task.getCatastropheId(), selectedCatastrophe.getId()))
                     .toList();
-        }else if (needService.getNeedsWithoutTaskCount(selectedCatastrophe.getId()) > 2) {
+        } else {
             try {
                 suggestedTasks = taskService.getSuggestedTasks(selectedCatastrophe.getId());
                 List<TaskComponent> tasks = suggestedTasks.stream()
@@ -60,12 +78,12 @@ public class SuggestedTasks extends VerticalLayout {
                     clickableTask.addClassName("suggested-task");
                 });
             } catch (Exception e) {
-                suggestedTasksLayout.add(new Span("Error al cargar tareas: " + e.getMessage()));
+                suggestedTasksLayout.add(new Span(translator.get("error_loading_suggested_tasks") + ": " + e.getMessage()));
             }
         }
 
         if (suggestedTasksDiv.isEmpty()) {
-            suggestedTasksLayout.add(new Span("No hay tareas sugeridas para esta catástrofe."));
+            suggestedTasksLayout.add(new Span(translator.get("no_suggested_tasks")));
         } else {
             suggestedTasksDiv.forEach(suggestedTasksLayout::add);
         }
@@ -86,6 +104,7 @@ public class SuggestedTasks extends VerticalLayout {
         });
 
         clickableTask.getStyle().set("cursor", "pointer");
+        clickableTask.getElement().setAttribute("title", translator.get("click_to_edit"));
         return clickableTask;
     }
 }

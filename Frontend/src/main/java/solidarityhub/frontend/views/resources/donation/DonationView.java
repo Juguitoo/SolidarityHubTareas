@@ -18,11 +18,11 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import solidarityhub.frontend.model.enums.DonationType;
-import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.DonationService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +30,6 @@ import java.util.Set;
 public class DonationView extends VerticalLayout {
 
     private final DonationService donationService;
-    private final CatastropheService catastropheService;
     private final CatastropheDTO selectedCatastrophe;
 
     private final Grid<DonationDTO> donationGrid;
@@ -40,11 +39,14 @@ public class DonationView extends VerticalLayout {
     private Grid.Column<DonationDTO> statusColumn;
     private Grid.Column<DonationDTO> donorColumn;
 
+    private Set<DonationType> typeFilterValues = new HashSet<>();
+    private Set<DonationStatus> statusFilterValues = new HashSet<>();
+    private String donorFilterValue = "";
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public DonationView(CatastropheDTO catastrophe) {
         this.donationService = new DonationService();
-        this.catastropheService = new CatastropheService();
         this.selectedCatastrophe = catastrophe;
 
         this.donationGrid = new Grid<>(DonationDTO.class, false);
@@ -155,12 +157,8 @@ public class DonationView extends VerticalLayout {
         typeFilter.setItems(DonationType.values());
         typeFilter.setItemLabelGenerator(this::formatDonationType);
         typeFilter.addValueChangeListener(event -> {
-            donationDataProvider.clearFilters();
-            Set<DonationType> selectedTypes = event.getValue();
-            if (!selectedTypes.isEmpty()) {
-                donationDataProvider.addFilter(donation ->
-                        selectedTypes.contains(donation.getType()));
-            }
+            typeFilterValues = event.getValue();
+            applyAllFilters();
         });
         typeColumn.setHeader(getGridFilterHeader("Tipo", typeFilter, typeColumn));
 
@@ -169,27 +167,18 @@ public class DonationView extends VerticalLayout {
         statusFilter.setItems(DonationStatus.values());
         statusFilter.setItemLabelGenerator(this::formatDonationStatus);
         statusFilter.addValueChangeListener(event -> {
-            donationDataProvider.clearFilters();
-            Set<DonationStatus> selectedStatuses = event.getValue();
-            if (!selectedStatuses.isEmpty()) {
-                donationDataProvider.addFilter(donation ->
-                        selectedStatuses.contains(donation.getStatus()));
-            }
+            statusFilterValues = event.getValue();
+            applyAllFilters();
         });
         statusColumn.setHeader(getGridFilterHeader("Estado", statusFilter, statusColumn));
 
         TextField donorFilter = new TextField();
         donorFilter.setPlaceholder("Buscar donante");
         donorFilter.setValueChangeMode(ValueChangeMode.LAZY);
+        donorFilter.setClearButtonVisible(true);
         donorFilter.addValueChangeListener(event -> {
-            donationDataProvider.clearFilters();
-            if (!event.getValue().isEmpty()) {
-                donationDataProvider.setFilter(donation ->
-                        (donation.getDonorName() != null &&
-                                StringUtils.containsIgnoreCase(donation.getDonorName(), event.getValue())) ||
-                                (donation.getDonorDni() != null &&
-                                        StringUtils.containsIgnoreCase(donation.getDonorDni(), event.getValue())));
-            }
+            donorFilterValue = event.getValue();
+            applyAllFilters();
         });
         donorColumn.setHeader(getGridFilterHeader("Donante", donorFilter, donorColumn));
     }
@@ -205,6 +194,28 @@ public class DonationView extends VerticalLayout {
         return filterHeader;
     }
 
+    private void applyAllFilters() {
+        donationDataProvider.clearFilters();
+
+        if (!typeFilterValues.isEmpty()) {
+            donationDataProvider.addFilter(donation ->
+                    typeFilterValues.contains(donation.getType()));
+        }
+
+        if (!statusFilterValues.isEmpty()) {
+            donationDataProvider.addFilter(donation ->
+                    statusFilterValues.contains(donation.getStatus()));
+        }
+
+        if (!donorFilterValue.isEmpty()) {
+            donationDataProvider.addFilter(donation ->
+                    (donation.getDonorName() != null &&
+                            StringUtils.containsIgnoreCase(donation.getDonorName(), donorFilterValue)) ||
+                            (donation.getDonorDni() != null &&
+                                    StringUtils.containsIgnoreCase(donation.getDonorDni(), donorFilterValue)));
+        }
+    }
+
     //===============================Format Methods=========================================
     private String formatDonationType(DonationType type) {
         if (type == null) {
@@ -215,7 +226,6 @@ public class DonationView extends VerticalLayout {
             case FINANCIAL -> "Económica";
             case MATERIAL -> "Material";
             case SERVICE -> "Servicio";
-            default -> type.toString();
         };
     }
 
@@ -229,7 +239,6 @@ public class DonationView extends VerticalLayout {
             case IN_PROGRESS -> "En proceso";
             case SCHEDULED -> "Programada";
             case CANCELLED -> "Cancelada";
-            default -> status.toString();
         };
     }
 

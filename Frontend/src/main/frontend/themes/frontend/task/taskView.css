@@ -80,6 +80,15 @@
     width: 100%;
 }
 
+.need-type{
+    background-color: #DADFE4;
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+    font-size: 0.8em;
+    height: fit-content;
+}
+
 .v-dragged {
     opacity: 0.6;
     transform: scale(0.95);

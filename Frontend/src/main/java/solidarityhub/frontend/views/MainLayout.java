@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -17,9 +18,12 @@ import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 import solidarityhub.frontend.views.resources.MainResourcesView;
 import solidarityhub.frontend.views.task.TaskView;
+
+import java.util.Locale;
 
 /**
  * The main view is a top-level placeholder for other views.
@@ -27,21 +31,72 @@ import solidarityhub.frontend.views.task.TaskView;
 @Layout
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
+    private static Translator translator;
 
     private boolean minimized = false;
-    private H1 viewTitle;
     private SideNav sideNav;
     private VerticalLayout drawerContent;
     private Span appName;
     private Button logoButton;
     private Div selectedCatastropheInfo;
+    private ComboBox<String> languageSelector;
 
     public MainLayout() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         setPrimarySection(Section.DRAWER);
         getElement().setAttribute("class", "main-layout");
+
+        // Agregar selector de idiomas a la barra superior
+        addToNavbar(createTopBar());
+
+        // Agregar contenido del drawer
         addDrawerContent();
 
         UI.getCurrent().addAfterNavigationListener(event -> updateSelectedCatastropheInfo());
+    }
+
+    private Component createTopBar() {
+        HorizontalLayout topBar = new HorizontalLayout();
+        topBar.addClassName("top-bar");
+        topBar.setWidthFull();
+        topBar.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        topBar.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        // Selector de idioma
+        languageSelector = new ComboBox<>();
+        languageSelector.setAllowCustomValue(false);
+        languageSelector.addClassName("language-selector");
+        languageSelector.setItems("Español", "Valencià", "English");
+        languageSelector.setValue(getIdiomaActual());
+
+        languageSelector.addValueChangeListener(event -> {
+            String selected = event.getValue();
+            Locale newLocale = switch (selected) {
+                case "English" -> new Locale("en");
+                case "Valencià" -> new Locale("va");
+                default -> new Locale("es");
+            };
+
+            // Guardamos el locale en sesión
+            VaadinSession.getCurrent().setAttribute(Locale.class, newLocale);
+
+            // Establecemos el nuevo locale para la UI actual
+            UI.getCurrent().setLocale(newLocale);
+
+            // Recargamos la vista actual
+            UI.getCurrent().getPage().reload();
+        });
+
+        topBar.add(languageSelector);
+        return topBar;
     }
 
     private void addDrawerContent() {
@@ -107,7 +162,7 @@ public class MainLayout extends AppLayout {
             infoLayout.setPadding(false);
 
             // Título "Catástrofe seleccionada:"
-            H4 title = new H4("Catástrofe seleccionada:");
+            H4 title = new H4(translator.get("selected_catastrophe"));
             title.addClassName("selected-catastrophe-title");
 
             // Nombre de la catástrofe
@@ -115,7 +170,7 @@ public class MainLayout extends AppLayout {
             catastropheName.addClassName("selected-catastrophe-name");
 
             // Botón para cambiar de catástrofe
-            Button changeButton = new Button("Cambiar", VaadinIcon.EXCHANGE.create());
+            Button changeButton = new Button(translator.get("change_catastrophe"), VaadinIcon.EXCHANGE.create());
             changeButton.addClassName("change-catastrophe-button");
             changeButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheSelectionView.class));
 
@@ -124,11 +179,13 @@ public class MainLayout extends AppLayout {
             selectedCatastropheInfo.setVisible(true);
         } else {
             // Si no hay catástrofe seleccionada, mostrar un mensaje o redirigir
-            Button selectButton = new Button("Seleccionar catástrofe", VaadinIcon.PLUS.create());
+            Button selectButton = new Button(translator.get("select_catastrophe_title"), VaadinIcon.PLUS.create());
             selectButton.addClassName("select-catastrophe-button");
             selectButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheSelectionView.class));
+            H4 no_catastrophe = new H4(translator.get("no_selected_catastrophe"));
+            no_catastrophe.addClassName("no-catastrophe-title");
 
-            selectedCatastropheInfo.add(new H4("No hay catástrofe seleccionada"), selectButton);
+            selectedCatastropheInfo.add(no_catastrophe, selectButton);
             selectedCatastropheInfo.setVisible(true);
         }
     }
@@ -156,9 +213,7 @@ public class MainLayout extends AppLayout {
             selectedCatastropheInfo.setVisible(false);
 
             // Vaciar las etiquetas para evitar que ocupen espacio
-            UI.getCurrent().access(() -> {
-                sideNav.getItems().forEach(item -> item.setLabel(""));
-            });
+            UI.getCurrent().access(() -> sideNav.getItems().forEach(item -> item.setLabel("")));
 
         } else {
             // Expandir el drawer
@@ -185,7 +240,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void updateNavigationTexts() {
-        String[] labels = {"Tareas", "Mapa", "Recursos", "Dashboard", "Contacto"};
+        String[] labels = {translator.get("label_tasks"), translator.get("label_map"), translator.get("label_resources"), translator.get("label_dashboard"), translator.get("label_contact")};
         int index = 0;
         for (SideNavItem item : sideNav.getItems()) {
             item.setLabel(labels[index++]);
@@ -197,11 +252,11 @@ public class MainLayout extends AppLayout {
         nav.getElement().setAttribute("class", "side-nav");
 
         nav.addItem(
-                createNavItem("Tareas", VaadinIcon.TASKS, TaskView.class),
-                createNavItem("Mapa", VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
-                createNavItem("Recursos", VaadinIcon.TOOLBOX, MainResourcesView.class),
-                createNavItem("Dashboard", VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
-                createNavItem("Contacto", VaadinIcon.PHONE, "http://localhost:8080/contact")
+                createNavItem(translator.get("label_tasks"), VaadinIcon.TASKS, TaskView.class),
+                createNavItem(translator.get("label_map"), VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
+                createNavItem(translator.get("label_resources"), VaadinIcon.TOOLBOX, MainResourcesView.class),
+                createNavItem(translator.get("label_dashboard"), VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
+                createNavItem(translator.get("label_contact"), VaadinIcon.PHONE, "http://localhost:8080/contact")
         );
 
         return nav;
@@ -230,5 +285,14 @@ public class MainLayout extends AppLayout {
         // Configurar el texto del elemento
         item.setLabel(label);
         return item;
+    }
+
+    private String getIdiomaActual() {
+        Locale current = UI.getCurrent().getLocale();
+        return switch (current.getLanguage()) {
+            case "en" -> "English";
+            case "va" -> "Valencià";
+            default -> "Español";
+        };
     }
 }

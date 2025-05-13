@@ -18,15 +18,6 @@
     padding: 0;
 }
 
-.listBox__item-detail{
-    background-color: #DADFE4;
-    border-radius: 4px;
-    padding: 4px;
-    text-align: center;
-    font-size: 0.8em;
-    height: fit-content;
-}
-
 .needContent--description{
     font-size: 1.1em;
 }
