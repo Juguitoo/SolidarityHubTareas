@@ -34,7 +34,6 @@ public class MainLayout extends AppLayout {
     private static Translator translator;
 
     private boolean minimized = false;
-    private H1 viewTitle;
     private SideNav sideNav;
     private VerticalLayout drawerContent;
     private Span appName;
@@ -75,14 +74,14 @@ public class MainLayout extends AppLayout {
         languageSelector = new ComboBox<>();
         languageSelector.setAllowCustomValue(false);
         languageSelector.addClassName("language-selector");
-        languageSelector.setItems("Español", "Català", "English");
+        languageSelector.setItems("Español", "Valencià", "English");
         languageSelector.setValue(getIdiomaActual());
 
         languageSelector.addValueChangeListener(event -> {
             String selected = event.getValue();
             Locale newLocale = switch (selected) {
                 case "English" -> new Locale("en");
-                case "Català" -> new Locale("ca");
+                case "Valencià" -> new Locale("va");
                 default -> new Locale("es");
             };
 
@@ -214,9 +213,7 @@ public class MainLayout extends AppLayout {
             selectedCatastropheInfo.setVisible(false);
 
             // Vaciar las etiquetas para evitar que ocupen espacio
-            UI.getCurrent().access(() -> {
-                sideNav.getItems().forEach(item -> item.setLabel(""));
-            });
+            UI.getCurrent().access(() -> sideNav.getItems().forEach(item -> item.setLabel("")));
 
         } else {
             // Expandir el drawer
@@ -294,7 +291,7 @@ public class MainLayout extends AppLayout {
         Locale current = UI.getCurrent().getLocale();
         return switch (current.getLanguage()) {
             case "en" -> "English";
-            case "ca" -> "Català";
+            case "va" -> "Valencià";
             default -> "Español";
         };
     }

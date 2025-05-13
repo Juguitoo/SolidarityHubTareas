@@ -9,7 +9,11 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import lombok.extern.slf4j.Slf4j;
+import org.pingu.web.BackendObservableService.observableList.Observer;
+import org.pingu.web.BackendObservableService.observableList.ObserverChange;
 import org.springframework.beans.factory.annotation.Autowired;
+import solidarityhub.frontend.dto.BackendDTOObservableService;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.i18n.Translator;
@@ -36,10 +40,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+@Slf4j
 @PageTitle("Tareas")
 @Route("tasks")
 @Menu(order = 1, icon = LineAwesomeIconUrl.TASKS_SOLID)
-public class TaskView extends VerticalLayout implements BeforeEnterObserver {
+public class TaskView extends VerticalLayout implements BeforeEnterObserver, Observer {
     protected static Translator translator;
 
     private final TaskService taskService;
@@ -55,6 +60,8 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             UI.getCurrent().setLocale(new Locale("es"));
         }
         translator = new Translator(UI.getCurrent().getLocale());
+
+        //BackendDTOObservableService.GetInstancia().getTaskList().getValues().attach(this, ObserverChange.ADD_ALL);
 
         this.taskService = new TaskService();
         catastropheService = new CatastropheService();
@@ -320,5 +327,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             case HIGH -> translator.get("high_emergency_level");
             case VERYHIGH -> translator.get("very_high_emergency_level");
         };
+    }
+
+    @Override
+    public void update(ObserverChange change) {
+        log.info("Se ha actualizado");
     }
 }

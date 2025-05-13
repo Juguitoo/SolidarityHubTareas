@@ -128,6 +128,13 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
             Notification.show(translator.get("error_loading_volunteers") + e.getMessage());
         }
 
+        taskPreview.updateName(task.getName());
+        taskPreview.updateDescription(task.getDescription());
+        taskPreview.updateDate(formatDate(task.getStartTimeDate()));
+        taskPreview.updatePriority(task.getPriority().toString());
+        taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
+        taskPreview.updateTaskType(task.getType());
+        taskPreview.enabledEditButton(false);
         // Actualizar vista previa si existe
         if (taskPreview != null) {
             taskPreview.updateName(task.getName());

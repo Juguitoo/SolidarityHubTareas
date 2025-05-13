@@ -89,9 +89,9 @@ public class TaskComponent extends VerticalLayout {
         footer.add(getPriorityLevelComponent(), getNeedTypeComponent(), getSettingsComponent());
 
         add(
-                header,
-                new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
-                footer
+            header,
+            new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
+            footer
         );
     }
 
@@ -155,7 +155,6 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getNeedTypeComponent() {
-        // Utilizar el método formatTaskType que ahora usa el traductor
         Span needTypeSpan = new Span(formatTaskType(taskType));
         needTypeSpan.addClassName("need-type");
         return needTypeSpan;
@@ -202,6 +201,11 @@ public class TaskComponent extends VerticalLayout {
 
     public void updateEmergencyLevel(String emergencyLevel) {
         this.emergencyLevel = emergencyLevel;
+        updateComponent();
+    }
+
+    public void updateTaskType(TaskType taskType) {
+        this.taskType = taskType;
         updateComponent();
     }
 

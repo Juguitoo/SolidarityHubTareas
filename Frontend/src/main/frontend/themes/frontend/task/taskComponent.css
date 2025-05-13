@@ -8,12 +8,19 @@
     align-items: stretch;
     overflow: hidden;
     box-sizing: border-box;
+    width: 200px;
 }
 
 .task-title {
     font-weight: bold;
     font-size: 1.2rem;
     color: #212121;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
 }
 
 .task-description {
