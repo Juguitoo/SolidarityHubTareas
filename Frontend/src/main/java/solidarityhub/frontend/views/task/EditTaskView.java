@@ -53,6 +53,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     @Override
     protected void buildView() {
         super.buildView();
+        loadTaskData();
 
         if (taskPreview != null) {
             taskPreview.enabledEditButton(false);
@@ -110,7 +111,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             }
 
             taskId = Integer.parseInt(parameterMap.get("id").getFirst());
-            loadTaskData();
         } catch (NumberFormatException e) {
             Notification.show(translator.get("task_not_found"));
             UI.getCurrent().navigate("tasks");
