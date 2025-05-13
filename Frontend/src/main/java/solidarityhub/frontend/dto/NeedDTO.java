@@ -1,7 +1,5 @@
 package solidarityhub.frontend.dto;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solidarityhub.frontend.model.GPSCoordinates;
@@ -16,7 +14,6 @@ public class NeedDTO {
     private String description;
     private UrgencyLevel urgency;
 
-    @Enumerated(EnumType.STRING)
     private TaskType taskType;
 
     private GPSCoordinates location;
