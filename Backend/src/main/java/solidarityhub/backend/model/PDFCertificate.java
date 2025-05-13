@@ -31,4 +31,9 @@ public class PDFCertificate {
         this.volunteer = volunteer;
         this.task = task;
     }
+
+    public PDFCertificate(String titulo, byte[] contenido) {
+        this.titulo = titulo;
+        this.contenido = contenido;
+    }
 }

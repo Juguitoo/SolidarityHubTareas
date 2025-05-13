@@ -17,7 +17,7 @@ class PDFControllerTest {
     private PDFCertificateRepository documentoPDFRepository;
 
     @InjectMocks
-    private PDFController pdfController;
+    private PDFCertificateController pdfController;
 
     @BeforeEach
     void setUp() {
