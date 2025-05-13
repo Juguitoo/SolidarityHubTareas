@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import solidarityhub.backend.config.FcmService;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.dto.VolunteerDTO;
@@ -23,11 +22,11 @@ public class TaskController {
     private final NeedService needService;
     private final NotificationService notificationService;
     private final CatastropheService catastropheService;
-    private final PDFService pdfService;
+    private final PDFCertificateService pdfService;
 
     @Autowired
     public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService,
-                          NotificationService notificationService, CatastropheService catastropheService, PDFService pdfService) {
+                          NotificationService notificationService, CatastropheService catastropheService, PDFCertificateService pdfService) {
         this.taskService = taskService;
         this.volunteerService = volunteerService;
         this.needService = needService;
@@ -198,7 +197,7 @@ public class TaskController {
             notificationService.notifyApp(volunteer.getNotificationToken(),
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
-            if(taskDTO.getStatus() == Status.FINISHED){
+            if(taskDTO.getStatus() == Status.FINISHED && task.getAcceptedVolunteers().contains(volunteer)) {
                 pdfService.createPDFDocument(volunteer, task);
             }
         }

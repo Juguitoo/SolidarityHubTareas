@@ -7,16 +7,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import solidarityhub.backend.repository.PDFDocumentRepository;
+import solidarityhub.backend.repository.PDFCertificateRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class PDFControllerTest {
 
     @Mock
-    private PDFDocumentRepository documentoPDFRepository;
+    private PDFCertificateRepository documentoPDFRepository;
 
     @InjectMocks
     private PDFController pdfController;

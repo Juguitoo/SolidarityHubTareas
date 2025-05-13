@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import solidarityhub.backend.model.*;
 import solidarityhub.backend.model.enums.*;
-import solidarityhub.backend.repository.PDFDocumentRepository;
+import solidarityhub.backend.repository.PDFCertificateRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,10 +20,10 @@ import static org.mockito.Mockito.*;
 class PDFServiceTest {
 
     @Mock
-    private PDFDocumentRepository pdfDocumentRepository;
+    private PDFCertificateRepository pdfDocumentRepository;
 
     @InjectMocks
-    private PDFService pdfService;
+    private PDFCertificateService pdfService;
 
     @BeforeEach
     void setUp() {
@@ -35,7 +35,7 @@ class PDFServiceTest {
         // Arrange
         Volunteer volunteer = createTestVolunteer("12345678A", "John");
         Task task = createTestTask(1);
-        when(pdfDocumentRepository.save(any(PDFDocument.class))).thenReturn(new PDFDocument());
+        when(pdfDocumentRepository.save(any(PDFCertificate.class))).thenReturn(new PDFCertificate());
 
         // Act
         // Este test puede fallar debido a recursos de PDF no disponibles en el entorno de prueba
@@ -43,7 +43,7 @@ class PDFServiceTest {
             pdfService.createPDFDocument(volunteer, task);
 
             // Assert
-            verify(pdfDocumentRepository, times(1)).save(any(PDFDocument.class));
+            verify(pdfDocumentRepository, times(1)).save(any(PDFCertificate.class));
         } catch (Exception e) {
             // Si se lanza una excepción, seguimos considerando el test como pasado
             // En un entorno de prueba real, modificaríamos el servicio para mejor testabilidad

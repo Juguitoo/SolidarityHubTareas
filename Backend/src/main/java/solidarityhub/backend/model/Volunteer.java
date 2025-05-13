@@ -44,7 +44,7 @@ public class Volunteer extends Person {
     private List<Task> acceptedTasks;
 
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Certificate> certificates;
+    private List<PDFCertificate> certificates;
 
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
     private List<Notification> notifications;

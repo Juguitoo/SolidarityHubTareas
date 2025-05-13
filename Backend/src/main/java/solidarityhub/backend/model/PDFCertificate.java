@@ -3,29 +3,32 @@ package solidarityhub.backend.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Getter
 @NoArgsConstructor
-public class Certificate {
+@Getter
+public class PDFCertificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Setter
-    private String title;
-    @Setter
-    private String description;
+    private String titulo;
 
-    @Setter
     @ManyToOne
     @JoinColumn(name = "volunteer_dni")
     private Volunteer volunteer;
 
-    public Certificate(String title, String description, Volunteer volunteer){
-        this.title = title;
-        this.description = description;
+    @ManyToOne
+    @JoinColumn(name = "task_id")
+    private Task task;
+
+    @Lob
+    private byte[] contenido;
+
+    public PDFCertificate (String titulo, Volunteer volunteer, Task task, byte[] contenido) {
+        this.titulo = titulo;
+        this.contenido = contenido;
         this.volunteer = volunteer;
+        this.task = task;
     }
 }

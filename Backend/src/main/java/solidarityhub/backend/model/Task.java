@@ -76,9 +76,13 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications;
 
+    @OneToMany(mappedBy = "task", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<PDFCertificate> certificates;
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status,
                 List<Volunteer> volunteers, String meetingDirection) {
+        this.certificates = new ArrayList<>();
         this.notifications = new ArrayList<>();
         this.needs = needs;
         this.taskName = taskName;
@@ -103,6 +107,7 @@ public class Task {
     public Task(){
         this.creationDate = LocalDate.now();
         this.notifications = new ArrayList<>();
+        this.certificates = new ArrayList<>();
     }
 
     public void addNotification(Notification notification) {

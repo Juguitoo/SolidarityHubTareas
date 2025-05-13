@@ -7,10 +7,10 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Service;
-import solidarityhub.backend.model.PDFDocument;
+import solidarityhub.backend.model.PDFCertificate;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.Volunteer;
-import solidarityhub.backend.repository.PDFDocumentRepository;
+import solidarityhub.backend.repository.PDFCertificateRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,9 +18,9 @@ import java.io.InputStream;
 import java.time.LocalDate;
 
 @Service
-public class PDFService {
-    private final PDFDocumentRepository documentoPDFRepository;
-    public PDFService(PDFDocumentRepository documentoPDFRepository) {
+public class PDFCertificateService {
+    private final PDFCertificateRepository documentoPDFRepository;
+    public PDFCertificateService(PDFCertificateRepository documentoPDFRepository) {
         this.documentoPDFRepository = documentoPDFRepository;
     }
 
@@ -179,7 +179,7 @@ public class PDFService {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
-            PDFDocument certificate = new PDFDocument("certificate_" + volunteer.getDni() + "_" + task.getId() + ".pdf", outputStream.toByteArray());
+            PDFCertificate certificate = new PDFCertificate("certificate_" + volunteer.getDni() + "_" + task.getId() + ".pdf", volunteer, task,  outputStream.toByteArray());
             documentoPDFRepository.save(certificate);
         } catch (IOException e) {
             e.printStackTrace();
