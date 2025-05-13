@@ -3,10 +3,10 @@ package solidarityhub.frontend.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.model.enums.Status;
-import solidarityhub.frontend.model.enums.TaskType;
+import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.Priority;
+import org.pingu.domain.enums.Status;
+import org.pingu.domain.enums.TaskType;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -31,13 +31,14 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import solidarityhub.frontend.dto.VolunteerDTO;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.model.enums.Status;
-import solidarityhub.frontend.model.enums.TaskType;
+import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.Priority;
+import org.pingu.domain.enums.Status;
+import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.views.HeaderComponent;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

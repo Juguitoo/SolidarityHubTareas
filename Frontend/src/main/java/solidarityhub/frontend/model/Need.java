@@ -1,13 +1,10 @@
 package solidarityhub.frontend.model;
 
-
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.frontend.model.enums.TaskType;
-import solidarityhub.frontend.model.enums.UrgencyLevel;
+import org.pingu.domain.enums.TaskType;
+import org.pingu.domain.enums.UrgencyLevel;
 
 @Getter
 @NoArgsConstructor
@@ -21,7 +18,6 @@ public class Need {
     private UrgencyLevel urgency;
 
     @Setter
-    @Enumerated(EnumType.STRING)
     private TaskType taskType;
 
     @Setter

@@ -1,10 +1,8 @@
 package solidarityhub.frontend.service;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.server.VaadinSession;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -12,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
 
 import java.util.Arrays;
 import java.util.Collections;

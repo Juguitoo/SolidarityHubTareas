@@ -16,8 +16,8 @@ import com.vaadin.flow.router.PageTitle;
 import org.apache.commons.lang3.StringUtils;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
-import solidarityhub.frontend.model.enums.DonationStatus;
-import solidarityhub.frontend.model.enums.DonationType;
+import org.pingu.domain.enums.DonationStatus;
+import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.service.DonationService;
 
 import java.time.format.DateTimeFormatter;

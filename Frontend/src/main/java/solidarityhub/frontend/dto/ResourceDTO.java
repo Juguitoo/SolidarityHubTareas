@@ -4,8 +4,7 @@ package solidarityhub.frontend.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.frontend.model.Storage;
-import solidarityhub.frontend.model.enums.ResourceType;
+import org.pingu.domain.enums.ResourceType;
 
 @NoArgsConstructor
 @Getter

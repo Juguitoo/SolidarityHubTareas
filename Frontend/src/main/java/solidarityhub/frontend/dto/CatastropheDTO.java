@@ -3,7 +3,7 @@ package solidarityhub.frontend.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solidarityhub.frontend.model.Catastrophe;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
+import org.pingu.domain.enums.EmergencyLevel;
 
 import java.time.LocalDate;
 

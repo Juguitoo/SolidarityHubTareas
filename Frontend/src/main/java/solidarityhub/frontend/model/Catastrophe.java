@@ -1,6 +1,6 @@
 package solidarityhub.frontend.model;
 
-import solidarityhub.frontend.model.enums.EmergencyLevel;
+import org.pingu.domain.enums.EmergencyLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

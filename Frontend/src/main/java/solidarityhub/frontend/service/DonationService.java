@@ -9,11 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.DonationDTO;
-import solidarityhub.frontend.model.Donation;
-import solidarityhub.frontend.model.enums.DonationType;
-import solidarityhub.frontend.model.enums.DonationStatus;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

@@ -1,11 +1,9 @@
 package solidarityhub.frontend.model;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.frontend.model.enums.ResourceType;
+import org.pingu.domain.enums.ResourceType;
 
 @Getter
 @NoArgsConstructor
@@ -16,7 +14,6 @@ public class Resource {
     private String name;
 
     @Setter
-    @Enumerated(EnumType.STRING)
     private ResourceType type;
 
     @Setter

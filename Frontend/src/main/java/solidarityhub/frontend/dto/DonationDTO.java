@@ -4,8 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import solidarityhub.frontend.model.Donation;
-import solidarityhub.frontend.model.enums.DonationType;
-import solidarityhub.frontend.model.enums.DonationStatus;
+import org.pingu.domain.enums.DonationType;
+import org.pingu.domain.enums.DonationStatus;
 
 import java.time.LocalDate;
 

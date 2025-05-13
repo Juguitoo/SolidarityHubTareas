@@ -3,10 +3,6 @@ package solidarityhub.frontend.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.frontend.model.GPSCoordinates;
-import solidarityhub.frontend.model.Resource;
-
-import java.util.List;
 
 @NoArgsConstructor
 @Setter

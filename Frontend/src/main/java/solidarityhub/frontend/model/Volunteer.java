@@ -3,7 +3,7 @@ package solidarityhub.frontend.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.enums.TaskType;
+import org.pingu.domain.enums.TaskType;
 
 import java.util.ArrayList;
 import java.util.List;

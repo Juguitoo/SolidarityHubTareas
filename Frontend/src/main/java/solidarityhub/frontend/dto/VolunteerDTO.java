@@ -1,7 +1,7 @@
 package solidarityhub.frontend.dto;
 
 import lombok.Getter;
-import solidarityhub.backend.model.enums.TaskType;
+import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.model.Volunteer;
 import lombok.NoArgsConstructor;
 

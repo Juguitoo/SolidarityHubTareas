@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.StorageDTO;
-import solidarityhub.frontend.model.GPSCoordinates;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
