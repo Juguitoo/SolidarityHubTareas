@@ -1,7 +1,7 @@
 package solidarityhub.frontend.service;
 
 import org.springframework.web.client.RestTemplate;
-import solidarityhub.frontend.dto.DonorDTO;
+import org.pingu.domain.DTO.DonorDTO;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

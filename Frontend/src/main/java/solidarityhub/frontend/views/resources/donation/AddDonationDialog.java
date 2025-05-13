@@ -18,7 +18,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
-import solidarityhub.frontend.dto.DonorDTO;
+import org.pingu.domain.DTO.DonorDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.model.enums.DonationStatus;
 import solidarityhub.frontend.model.enums.DonationType;

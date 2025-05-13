@@ -8,7 +8,6 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
@@ -68,7 +67,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected TextField taskLocation;
     protected MultiSelectComboBox<String> volunteerMultiSelectComboBox;
     protected MultiSelectComboBox<String> needsMultiSelectComboBox;
-    protected ComboBox<TaskType> taskType;
 
     //Volunteers list
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
@@ -76,6 +74,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
 
     protected List<NeedDTO> allNeedsWithoutTask;
+
+    protected TaskType taskType;
 
     public AddTaskView() {
         this.taskService = new TaskService();
@@ -95,7 +95,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation = new TextField(translator.get("preview_meeting_point"));
         volunteerMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_volunteers"));
         needsMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_needs"));
-        taskType = new ComboBox<>(translator.get("preview_task_type"));
     }
 
     protected void initializeTranslator() {
@@ -123,42 +122,15 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected void buildView() {
         removeAll();
 
-        HeaderComponent header = new HeaderComponent(translator.get("add_task_button"), "tasks");
-
         add(
-                header,
-                getPreview(),
-                getForms(),
-                getButtons()
+            getHeader(),
+            getPreview(),
+            getForms(),
+            getButtons()
         );
 
         setAlignItems(Alignment.CENTER);
         setupPreviewWithTranslations();
-    }
-
-    protected void setupPreviewWithTranslations() {
-        // Actualizar la vista previa con valores traducidos
-        if (taskPreview != null) {
-            taskPreview.updatePriority(translator.get("preview_task_priority"));
-            taskPreview.updateName(translator.get("preview_task_name"));
-            taskPreview.updateDescription(translator.get("preview_task_description"));
-            taskPreview.updateEmergencyLevel(translator.get("preview_task_emergency_level"));
-        }
-    }
-
-    protected void setupStatusComboBox() {
-        // Este método será sobrecargado en EditTaskView
-        // para configurar el ComboBox de estado
-    }
-
-    protected String formatStatus(Status status) {
-        if (status == null) return "";
-
-        return switch (status) {
-            case TO_DO -> translator.get("status_todo");
-            case IN_PROGRESS -> translator.get("status_in_progress");
-            case FINISHED -> translator.get("status_finished");
-        };
     }
 
     private void saveNewTask(){
@@ -180,14 +152,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private TaskDTO getTaskDTO() {
-        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-        List<NeedDTO> needs = new ArrayList<>();
-        for (String need : selectedNeeds) {
-            allNeedsWithoutTask.stream()
-                    .filter(n -> n.getDescription().equals(need))
-                    .findFirst().ifPresent(needs::add);
-        }
-
         List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
         List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
         selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
@@ -203,19 +167,38 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        TaskType taskType = needs.isEmpty() ? null : needs.getFirst().getTaskType();
 
-        // Verificar que endDatePicker.getValue() no sea nulo antes de llamar a atTime()
+
         LocalDateTime endDateTime = null;
         if (endDatePicker.getValue() != null) {
             endDateTime = endDatePicker.getValue().atTime(23, 59);
         }
 
         return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
-                taskType, taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, needs, selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
+                getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
+    }
+
+    private List<NeedDTO> getNeedsList() {
+        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+        List<NeedDTO> needs = new ArrayList<>();
+        for (String need : selectedNeeds) {
+            allNeedsWithoutTask.stream()
+                    .filter(n -> n.getDescription().equals(need))
+                    .findFirst().ifPresent(needs::add);
+        }
+        return needs;
+    }
+
+    private TaskType getTaskType(){
+        List<NeedDTO> needs = getNeedsList();
+        return needs.isEmpty() ? null : needs.getFirst().getTaskType();
     }
 
     //===============================Get Components=========================================
+    protected Component getHeader(){
+        return new HeaderComponent(translator.get("add_task_title"), "tasks");
+    }
+
     protected Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
         preview.addClassName("previewContainer");
@@ -321,9 +304,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             }
         });
 
-        // Configurar el ComboBox de estado si existe
-        setupStatusComboBox();
-
         //Responsive
         addTaskForm.setColspan(taskDescription, 2);
         addTaskForm.setResponsiveSteps(
@@ -388,28 +368,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;
-    }
-
-    private Dialog getConfirmationDialog() {
-        Dialog confirmDialog = new Dialog();
-        confirmDialog.setHeaderTitle(translator.get("correct_task"));
-
-        confirmDialog.add(
-                new Span(translator.get("the_task") + taskName.getValue() + translator.get("successfully_added") +"\n" + translator.get("next_step"))
-        );
-        VaadinSession.getCurrent().setAttribute("cache", true);
-        Button addNewTaskButton = new Button(translator.get("create_other_task"), e -> {
-            confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate("addtask"));
-        });
-
-        Button closeButton = new Button(translator.get("exit_button"), e -> {
-            confirmDialog.close();
-            getUI().ifPresent(ui -> ui.navigate("tasks"));
-        });
-
-        confirmDialog.getFooter().add(addNewTaskButton, closeButton);
-        return confirmDialog;
     }
 
     protected String getEmergencyLevelString(EmergencyLevel level) {
@@ -481,8 +439,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             infoLayout.add(nameSpan, emailSpan);
 
             // Badge de disponibilidad
+            Span availabilityBadge;
             if(volunteer.getAvailabilityStatus() > 0){
-                Span availabilityBadge = new Span(translator.get("available"));
+                availabilityBadge = new Span("Disponible");
                 availabilityBadge.getStyle()
                         .set("background-color", "var(--lumo-success-color)")
                         .set("color", "white")
@@ -503,7 +462,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
                 return layout;
             }else{
-                Span availabilityBadge = new Span(translator.get("unavailable"));
+                availabilityBadge = new Span("No disponible");
                 availabilityBadge.getStyle()
                         .set("background-color", "var(--lumo-error-color)")
                         .set("color", "white")
@@ -522,19 +481,17 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                         .set("border-radius", "4px")
                         .set("background-color", "rgba(244, 67, 54, 0.1)");
 
-                return layout;
             }
+            return layout;
         });
 
         volunteersListBox.setRenderer(renderer);
 
         volunteersListBox.setItems(allVolunteersList);
 
-        // Listener para cambios de pestaña
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
 
-            // Ocultar mensaje de error por defecto
             noVolunteersMessage.setVisible(false);
 
             switch (selectedTabName) {
@@ -692,6 +649,28 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return needsDialog;
     }
 
+    private Dialog getConfirmationDialog() {
+        Dialog confirmDialog = new Dialog();
+        confirmDialog.setHeaderTitle(translator.get("correct_task"));
+
+        confirmDialog.add(
+                new Span(translator.get("the_task") + taskName.getValue() + translator.get("successfully_added") +"\n" + translator.get("next_step"))
+        );
+        VaadinSession.getCurrent().setAttribute("cache", true);
+        Button addNewTaskButton = new Button(translator.get("create_other_task"), e -> {
+            confirmDialog.close();
+            getUI().ifPresent(ui -> ui.navigate("addtask"));
+        });
+
+        Button closeButton = new Button(translator.get("exit_button"), e -> {
+            confirmDialog.close();
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        });
+
+        confirmDialog.getFooter().add(addNewTaskButton, closeButton);
+        return confirmDialog;
+    }
+
     //===============================Validate Form=========================================
     protected boolean validateForm() {
         return !taskName.isEmpty() &&
@@ -704,6 +683,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() &&
                 !taskLocation.isEmpty();
     }
+
     protected boolean isFormFilled() {
         return !taskName.isEmpty() ||
                 !taskDescription.isEmpty() ||
@@ -742,23 +722,32 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     //===============================Modify Preview=========================================
+    protected void setupPreviewWithTranslations() {
+        if (taskPreview != null) {
+            taskPreview.updatePriority(translator.get("preview_task_priority"));
+            taskPreview.updateName(translator.get("preview_task_name"));
+            taskPreview.updateDescription(translator.get("preview_task_description"));
+            taskPreview.updateEmergencyLevel(translator.get("preview_task_emergency_level"));
+        }
+    }
+
     protected void setupFormListeners() {
         taskName.addValueChangeListener(e ->
-                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue())
+                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue())
         );
 
         taskDescription.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue()));
 
         taskPriority.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue()));
 
         taskEmergency.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue(), taskType, starDateTimePicker.getValue()));
 
         starDateTimePicker.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                updatePreviewDate(e.getValue());
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, e.getValue());
             }
             allVolunteersList.clear();
             distanceVolunteersList.clear();
@@ -774,10 +763,12 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         needsMultiSelectComboBox.addSelectionListener(e -> {
             skillsVolunteersList.clear();
             distanceVolunteersList.clear();
+            taskType = getTaskType();
+            updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue());
         });
     }
 
-    protected void updatePreview(String name, String description, Priority priority, EmergencyLevel emergencyLevel) {
+    protected void updatePreview(String name, String description, Priority priority, EmergencyLevel emergencyLevel, TaskType taskType, LocalDateTime date) {
 
         if (name != null && !name.trim().isEmpty()) {
             taskPreview.updateName(name);
@@ -799,10 +790,14 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         if (emergencyLevel != null) {
             taskPreview.updateEmergencyLevel(getEmergencyLevelString(emergencyLevel));
         }
-    }
 
-    protected void updatePreviewDate(LocalDateTime date) {
-        taskPreview.updateDate(formatDate(date));
+        if(taskType != null){
+            taskPreview.updateTaskType(taskType);
+        }
+
+        if(date != null){
+            taskPreview.updateDate(formatDate(date));
+        }
     }
 
     //===============================Format Methods=========================================
@@ -832,6 +827,16 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             case MOBILITY -> translator.get("task_type_mobility");
             case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
             case SAFETY -> translator.get("task_type_safety");
+        };
+    }
+
+    protected String formatStatus(Status status) {
+        if (status == null) return "";
+
+        return switch (status) {
+            case TO_DO -> translator.get("status_todo");
+            case IN_PROGRESS -> translator.get("status_in_progress");
+            case FINISHED -> translator.get("status_finished");
         };
     }
 }
