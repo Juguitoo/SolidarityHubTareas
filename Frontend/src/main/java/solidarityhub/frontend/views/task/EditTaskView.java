@@ -22,6 +22,7 @@ import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.views.HeaderComponent;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Route("editTask")
@@ -78,7 +79,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
         // 2. Redirigir a selección de catástrofes si no hay una seleccionada
         if (selectedCatastrophe == null) {
-            Notification.show(translator.get("no_catastrophe_selected"));
+            Notification.show(translator.get("select_catastrophe_warning"));
             UI.getCurrent().navigate(""); // Navegar a la vista de selección de catástrofes
             return;
         }
@@ -142,9 +143,12 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         // 2. Luego asignamos los valores
         taskName.setValue(task.getName());
         taskDescription.setValue(task.getDescription());
-        taskPriority.setValue(task.getPriority());
-        taskEmergency.setValue(task.getEmergencyLevel());
-        taskStatusComboBox.setValue(task.getStatus());
+        Priority priority = task.getPriority();
+        taskPriority.setValue(Priority.valueOf(priority.toString()));
+        EmergencyLevel emergencyLevel = task.getEmergencyLevel();
+        taskEmergency.setValue(EmergencyLevel.valueOf(emergencyLevel.toString()));
+        Status status = task.getStatus();
+        taskStatusComboBox.setValue(Status.valueOf(status.toString()));
 
         // Configurar fechas
         starDateTimePicker.setMin(null);  // Permitir editar fechas pasadas
@@ -262,66 +266,16 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     //===============================Task actions=========================================
     private void updateTask() {
         if (validateForm()) {
-            try {
-                // Obtener necesidades seleccionadas
-                List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-                List<NeedDTO> needs = new ArrayList<>();
-                for (String need : selectedNeeds) {
-                    needService.getAllNeeds(selectedCatastrophe.getId()).stream()
-                            .filter(n -> n.getDescription().equals(need))
-                            .findFirst().ifPresent(needs::add);
+                Status estado = taskStatusComboBox.getValue();
+                if(estado == Status.FINISHED) {
+                    getCreateCertificatesDialog().thenAccept(result->{
+                        if(result) {
+                            proceedWithUpdateTask();
+                        }
+                    });
+                }else{
+                    proceedWithUpdateTask();
                 }
-
-                if (needs.isEmpty()) {
-                    Notification.show(translator.get("check_fields"),
-                            3000, Notification.Position.MIDDLE);
-                    return;
-                }
-
-                // Obtener voluntarios seleccionados
-                List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
-                volunteerMultiSelectComboBox.getSelectedItems()
-                        .forEach(name -> {
-                            if (name.equals(translator.get("auto_select_volunteers"))) {
-                                // Autoselección de voluntarios
-                                selectedVolunteers.addAll(allVolunteersList.subList(0, Math.min(1, allVolunteersList.size())));
-                            } else {
-                                // Búsqueda manual de voluntarios por nombre
-                                allVolunteersList.stream()
-                                        .filter(v -> v.getFirstName().equals(name))
-                                        .findFirst()
-                                        .ifPresent(selectedVolunteers::add);
-                            }
-                        });
-
-                // Crear DTO con los datos actualizados
-                TaskDTO updatedTaskDTO = new TaskDTO(
-                        taskName.getValue(),
-                        taskDescription.getValue(),
-                        starDateTimePicker.getValue(),
-                        endDatePicker.getValue().atTime(23, 59),
-                        needs.getFirst().getTaskType(),
-                        taskPriority.getValue(),
-                        taskEmergency.getValue(),
-                        taskStatusComboBox.getValue(),
-                        needs,
-                        selectedVolunteers,
-                        selectedCatastrophe.getId(),
-                        taskLocation.getValue()
-                );
-
-                // Actualizar en backend
-                taskService.updateTask(taskId, updatedTaskDTO);
-                taskService.clearCache();
-                Notification.show(translator.get("task_updated_success"));
-
-                // Navegar de vuelta a la lista
-                VaadinSession.getCurrent().setAttribute("cache", true);
-                UI.getCurrent().navigate("tasks");
-            } catch (Exception e) {
-                Notification.show(translator.get("error_updating_task") + e.getMessage(),
-                        5000, Notification.Position.MIDDLE);
-            }
         } else {
             Notification.show(translator.get("check_fields"),
                     3000, Notification.Position.MIDDLE);
@@ -356,5 +310,95 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
         confirmDialog.getFooter().add(cancelButton, confirmButton);
         confirmDialog.open();
+    }
+
+    @Override
+    protected boolean validateForm() {
+        return super.validateForm() && !taskStatusComboBox.isEmpty();
+    }
+
+    private CompletableFuture<Boolean> getCreateCertificatesDialog() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        Dialog confirmDialog = new Dialog();
+        confirmDialog.setHeaderTitle(translator.get("create_certificates_title"));
+
+        confirmDialog.add(new Span(translator.get("create_certificates_text")));
+
+        Button confirmButton = new Button(translator.get("confirm_button"), e -> {
+            confirmDialog.close();
+            future.complete(true);
+        });
+
+        Button closeButton = new Button(translator.get("cancel_button"), e -> {
+            confirmDialog.close();
+            future.complete(false);
+        });
+
+        confirmDialog.getFooter().add(closeButton, confirmButton);
+        confirmDialog.open();
+        return future;
+    }
+
+    private void proceedWithUpdateTask() {
+        try{
+            // Obtener necesidades seleccionadas
+            List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+            List<NeedDTO> needs = new ArrayList<>();
+            for (String need : selectedNeeds) {
+                needService.getAllNeeds(selectedCatastrophe.getId()).stream()
+                        .filter(n -> n.getDescription().equals(need))
+                        .findFirst().ifPresent(needs::add);
+            }
+
+            if (needs.isEmpty()) {
+                Notification.show(translator.get("check_fields"),
+                        3000, Notification.Position.MIDDLE);
+                return;
+            }
+
+            // Obtener voluntarios seleccionados
+            List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
+            volunteerMultiSelectComboBox.getSelectedItems()
+                    .forEach(name -> {
+                        if (name.equals(translator.get("auto_select_volunteers"))) {
+                            // Autoselección de voluntarios
+                            selectedVolunteers.addAll(allVolunteersList.subList(0, Math.min(1, allVolunteersList.size())));
+                        } else {
+                            // Búsqueda manual de voluntarios por nombre
+                            allVolunteersList.stream()
+                                    .filter(v -> v.getFirstName().equals(name))
+                                    .findFirst()
+                                    .ifPresent(selectedVolunteers::add);
+                        }
+                    });
+
+            // Crear DTO con los datos actualizados
+            TaskDTO updatedTaskDTO = new TaskDTO(
+                    taskName.getValue(),
+                    taskDescription.getValue(),
+                    starDateTimePicker.getValue(),
+                    endDatePicker.getValue().atTime(23, 59),
+                    needs.getFirst().getTaskType(),
+                    taskPriority.getValue(),
+                    taskEmergency.getValue(),
+                    taskStatusComboBox.getValue(),
+                    needs,
+                    selectedVolunteers,
+                    selectedCatastrophe.getId(),
+                    taskLocation.getValue()
+            );
+
+            // Actualizar en backend
+            taskService.updateTask(taskId, updatedTaskDTO);
+            taskService.clearCache();
+            Notification.show(translator.get("task_updated_success"));
+
+            // Navegar de vuelta a la lista
+            VaadinSession.getCurrent().setAttribute("cache", true);
+            UI.getCurrent().navigate("tasks");
+        } catch (Exception e) {
+            Notification.show(translator.get("error_updating_task") + e.getMessage(),
+                    5000, Notification.Position.MIDDLE);
+        }
     }
 }
