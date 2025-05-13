@@ -20,8 +20,8 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
 import org.pingu.domain.DTO.DonorDTO;
 import solidarityhub.frontend.i18n.Translator;
-import solidarityhub.frontend.model.enums.DonationStatus;
-import solidarityhub.frontend.model.enums.DonationType;
+import org.pingu.domain.enums.DonationStatus;
+import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.service.DonationService;
 import solidarityhub.frontend.service.DonorService;
 

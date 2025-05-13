@@ -1,14 +1,12 @@
 package solidarityhub.frontend.model;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.enums.EmergencyLevel;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.model.enums.Status;
-import solidarityhub.frontend.model.enums.TaskType;
+import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.Priority;
+import org.pingu.domain.enums.Status;
+import org.pingu.domain.enums.TaskType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,19 +32,15 @@ public class Task {
     private LocalDateTime estimatedEndTimeDate;
 
     @Setter
-    @Enumerated(EnumType.STRING)
     private TaskType type;
 
     @Setter
-    @Enumerated(EnumType.STRING)
     private Priority priority;
 
     @Setter
-    @Enumerated(EnumType.STRING)
     private EmergencyLevel emergencyLevel;
 
     @Setter
-    @Enumerated(EnumType.STRING)
     private Status status;
 
     @Setter

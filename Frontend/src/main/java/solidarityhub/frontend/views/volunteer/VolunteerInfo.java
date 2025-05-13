@@ -1,15 +1,12 @@
 package solidarityhub.frontend.views.volunteer;
 
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import solidarityhub.backend.model.enums.TaskType;
+import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.dto.VolunteerDTO;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class VolunteerInfo extends HorizontalLayout {
     private final VolunteerDTO volunteer;

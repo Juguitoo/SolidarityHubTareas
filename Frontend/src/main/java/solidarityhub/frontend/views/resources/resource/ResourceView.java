@@ -19,7 +19,7 @@ import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
-import solidarityhub.frontend.model.enums.ResourceType;
+import org.pingu.domain.enums.ResourceType;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
 import java.util.*;

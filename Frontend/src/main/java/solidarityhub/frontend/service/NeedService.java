@@ -7,12 +7,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.model.Need;
-import solidarityhub.frontend.model.enums.TaskType;
-import solidarityhub.frontend.model.enums.UrgencyLevel;
+import org.pingu.domain.enums.TaskType;
+import org.pingu.domain.enums.UrgencyLevel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class NeedService {

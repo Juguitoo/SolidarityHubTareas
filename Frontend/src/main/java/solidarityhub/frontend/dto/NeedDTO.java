@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import solidarityhub.frontend.model.GPSCoordinates;
 import solidarityhub.frontend.model.Need;
-import solidarityhub.frontend.model.enums.TaskType;
-import solidarityhub.frontend.model.enums.UrgencyLevel;
+import org.pingu.domain.enums.TaskType;
+import org.pingu.domain.enums.UrgencyLevel;
 
 @NoArgsConstructor
 @Getter

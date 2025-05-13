@@ -15,9 +15,8 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.model.enums.TaskType;
 import solidarityhub.frontend.i18n.Translator;
+import org.pingu.domain.enums.TaskType;
 
 import java.util.Collections;
 import java.util.Locale;

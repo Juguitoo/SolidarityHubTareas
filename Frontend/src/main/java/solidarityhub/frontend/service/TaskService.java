@@ -6,20 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.BackendDTOObservableService;
-import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.dto.VolunteerDTO;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.model.enums.Status;
-import solidarityhub.frontend.model.enums.TaskType;
+import org.pingu.domain.enums.Status;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Service

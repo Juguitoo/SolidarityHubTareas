@@ -6,7 +6,7 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.model.Catastrophe;
 import solidarityhub.frontend.model.GPSCoordinates;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
+import org.pingu.domain.enums.EmergencyLevel;
 import solidarityhub.frontend.service.CatastropheService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;

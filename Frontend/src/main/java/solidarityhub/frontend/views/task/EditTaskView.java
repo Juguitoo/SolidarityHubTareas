@@ -12,15 +12,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.dto.TaskDTO;
-import solidarityhub.frontend.model.enums.EmergencyLevel;
-import solidarityhub.frontend.model.enums.Priority;
-import solidarityhub.frontend.model.enums.Status;
 import solidarityhub.frontend.dto.NeedDTO;
+import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
+import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.Priority;
+import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.views.HeaderComponent;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
