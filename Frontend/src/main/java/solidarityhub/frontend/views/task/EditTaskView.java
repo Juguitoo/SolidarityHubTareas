@@ -10,8 +10,10 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
+import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
@@ -59,10 +61,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     @Override
     protected Component getForms() {
-        // Obtener el formulario base de la clase padre
         var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
 
-        // Configurar el ComboBox de estado
         taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
         taskStatusComboBox.setItemLabelGenerator(this::formatStatus);
         taskStatusComboBox.setRequiredIndicatorVisible(true);
@@ -72,19 +72,29 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return formLayout;
     }
 
+    private void updateTaskPreview(TaskDTO task) {
+        if (taskPreview != null) {
+            taskPreview.updateName(task.getName());
+            taskPreview.updateDescription(task.getDescription());
+            taskPreview.updateDate(formatDate(task.getStartTimeDate()));
+            taskPreview.updatePriority(task.getPriority().toString());
+            taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
+            taskPreview.updateTaskType(task.getType());
+            taskPreview.enabledEditButton(false);
+        }
+    }
+
+    //===============================Get Task Data=========================================
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String parameter) {
-        // 1. Verificar si selectedCatastrophe está disponible
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
-        // 2. Redirigir a selección de catástrofes si no hay una seleccionada
         if (selectedCatastrophe == null) {
             Notification.show(translator.get("select_catastrophe_warning"));
-            UI.getCurrent().navigate(""); // Navegar a la vista de selección de catástrofes
+            UI.getCurrent().navigate("");
             return;
         }
 
-        // 3. Procesar el parámetro de ID de tarea
         QueryParameters queryParameters = beforeEvent.getLocation().getQueryParameters();
         Map<String, List<String>> parameterMap = queryParameters.getParameters();
 
@@ -95,12 +105,10 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         }
 
         try {
-            // 4. Inicializar allNeedsWithoutTask si es necesario
             if (allNeedsWithoutTask == null) {
                 allNeedsWithoutTask = needService.getNeedsWithoutTask(selectedCatastrophe.getId());
             }
 
-            // 5. Cargar la tarea
             taskId = Integer.parseInt(parameterMap.get("id").getFirst());
             loadTaskData();
         } catch (NumberFormatException e) {
@@ -120,7 +128,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                 UI.getCurrent().navigate("tasks");
                 return;
             }
-            // Aseguramos que los componentes estén inicializados antes de establecer valores
+
             setFormValues(originalTask);
             Notification.show(translator.get("task_loaded_success"));
         } catch (Exception e) {
@@ -135,12 +143,10 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             return;
         }
 
-        // 1. Primero configuramos todos los ComboBox con sus items
         taskPriority.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
         taskEmergency.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
         taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
 
-        // 2. Luego asignamos los valores
         taskName.setValue(task.getName());
         taskDescription.setValue(task.getDescription());
         Priority priority = task.getPriority();
@@ -150,7 +156,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         Status status = task.getStatus();
         taskStatusComboBox.setValue(Status.valueOf(status.toString()));
 
-        // Configurar fechas
         starDateTimePicker.setMin(null);  // Permitir editar fechas pasadas
         starDateTimePicker.setValue(task.getStartTimeDate());
 
@@ -159,39 +164,12 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             endDatePicker.setValue(task.getEstimatedEndTimeDate().toLocalDate());
         }
 
-        // Configurar ubicación de la tarea
         taskLocation.setValue(task.getMeetingDirection());
 
-        // Configurar necesidades y voluntarios
         configureNeeds(task);
         configureVolunteers(task);
 
-        // Actualizar la vista previa
         updateTaskPreview(task);
-    }
-
-    @Override
-    protected boolean isFormFilled() {
-        return taskName != null && !taskName.isEmpty() ||
-                taskDescription != null && !taskDescription.isEmpty() ||
-                taskPriority != null && taskPriority.getValue() != null ||
-                taskEmergency != null && taskEmergency.getValue() != null ||
-                needsMultiSelectComboBox != null && !needsMultiSelectComboBox.getSelectedItems().isEmpty() ||
-                starDateTimePicker != null && starDateTimePicker.getValue() != null ||
-                volunteerMultiSelectComboBox != null && !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
-                taskLocation != null && !taskLocation.isEmpty();
-    }
-
-    private void updateTaskPreview(TaskDTO task) {
-        if (taskPreview != null) {
-            taskPreview.updateName(task.getName());
-            taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatDate(task.getStartTimeDate()));
-            taskPreview.updatePriority(task.getPriority().toString());
-            taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
-            taskPreview.updateTaskType(task.getType());
-            taskPreview.enabledEditButton(false);
-        }
     }
 
     private void configureNeeds(TaskDTO task) {
@@ -209,6 +187,20 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
             needsMultiSelectComboBox.setItems(uniqueNeeds);
             needsMultiSelectComboBox.select(taskNeedDescriptions);
+
+            List<NeedDTO> combinedNeeds = new ArrayList<>(allNeedsWithoutTask);
+            combinedNeeds.addAll(task.getNeeds());
+
+            List<NeedDTO> uniqueCombinedNeeds = new ArrayList<>(combinedNeeds.stream()
+                    .collect(Collectors.toMap(
+                            NeedDTO::getDescription,  // Clave para identificar duplicados
+                            need -> need,             // Valor
+                            (existing, replacement) -> existing)) // En caso de duplicado, mantener el existente
+                    .values());
+
+            needsListBox.setItems(uniqueCombinedNeeds);
+
+            needsListBox.select(task.getNeeds());
         } catch (Exception e) {
             Notification.show("Error al cargar la tarea" + e.getMessage());
         }
@@ -263,6 +255,70 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return buttons;
     }
 
+    @Override
+    protected Dialog getNeedsDialogContent() {
+        Dialog needsDialog = new Dialog();
+        needsDialog.setHeaderTitle(translator.get("select_needs"));
+
+        VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
+
+        needsListBox.setWidthFull();
+
+        needsListBox.setRenderer(
+                new ComponentRenderer<>(need -> {
+                    HorizontalLayout needContent = new HorizontalLayout();
+                    needContent.addClassName("listBox__item");
+
+                    Span needDescription = new Span(need.getDescription());
+                    needDescription.addClassName("needContent--description");
+                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    needType.addClassName("need-type");
+
+                    needContent.add(needDescription, needType);
+                    needContent.setPadding(false);
+                    needContent.setSpacing(false);
+
+                    return needContent;
+                })
+        );
+
+        Span infoText = new Span(translator.get("select_needs_same_type"));
+        infoText.addClassName("needsDialog--infoText");
+
+        dialogContent.add(infoText, needsListBox);
+
+        //Needs type filter
+        needsListBox.addSelectionListener(event -> {
+            Set<NeedDTO> selectedNeeds = event.getValue();
+            if (!selectedNeeds.isEmpty()) {
+                TaskType selectedType = selectedNeeds.iterator().next().getTaskType();
+                needsListBox.setItemEnabledProvider(needDTO -> selectedType.equals(needDTO.getTaskType()));
+            } else {
+                needsListBox.setItemEnabledProvider(needDTO -> true);
+            }
+        });
+
+        // Footer
+        Button saveButton = new Button(translator.get("save_button"), e -> {
+            Set<String> selectedNeedDescriptions = needsListBox.getSelectedItems().stream()
+                    .map(NeedDTO::getDescription)
+                    .collect(Collectors.toSet());
+
+            needsMultiSelectComboBox.clear();
+            needsMultiSelectComboBox.setItems(selectedNeedDescriptions);
+            needsMultiSelectComboBox.select(selectedNeedDescriptions);
+            needsDialog.close();
+        });
+
+        Button cancelButton = new Button(translator.get("cancel_button"), e -> needsDialog.close());
+        needsDialog.getFooter().add(cancelButton, saveButton);
+
+        needsDialog.add(dialogContent);
+
+        return needsDialog;
+    }
+
     //===============================Task actions=========================================
     private void updateTask() {
         if (validateForm()) {
@@ -312,9 +368,22 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         confirmDialog.open();
     }
 
+    //===============================Validate Form=========================================
     @Override
     protected boolean validateForm() {
         return super.validateForm() && !taskStatusComboBox.isEmpty();
+    }
+
+    @Override
+    protected boolean isFormFilled() {
+        return taskName != null && !taskName.isEmpty() ||
+                taskDescription != null && !taskDescription.isEmpty() ||
+                taskPriority != null && taskPriority.getValue() != null ||
+                taskEmergency != null && taskEmergency.getValue() != null ||
+                needsMultiSelectComboBox != null && !needsMultiSelectComboBox.getSelectedItems().isEmpty() ||
+                starDateTimePicker != null && starDateTimePicker.getValue() != null ||
+                volunteerMultiSelectComboBox != null && !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
+                taskLocation != null && !taskLocation.isEmpty();
     }
 
     private CompletableFuture<Boolean> getCreateCertificatesDialog() {

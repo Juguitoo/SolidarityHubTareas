@@ -59,6 +59,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected CatastropheDTO selectedCatastrophe;
     protected TaskComponent taskPreview;
 
+    //Form components
     protected TextField taskName;
     protected TextArea taskDescription;
     protected ComboBox<Priority> taskPriority;
@@ -68,6 +69,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected TextField taskLocation;
     protected MultiSelectComboBox<String> volunteerMultiSelectComboBox;
     protected MultiSelectComboBox<String> needsMultiSelectComboBox;
+
+    //Dialog forms
+    MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
 
     //Volunteers list
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
@@ -585,7 +589,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return volunteerDialog;
     }
 
-    private Dialog getNeedsDialogContent() {
+    protected Dialog getNeedsDialogContent() {
         Dialog needsDialog = new Dialog();
 
         needsDialog.setHeaderTitle(translator.get("select_needs"));
@@ -593,7 +597,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
 
-        MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
         needsListBox.setItems(allNeedsWithoutTask);
         needsListBox.setWidthFull();
 
