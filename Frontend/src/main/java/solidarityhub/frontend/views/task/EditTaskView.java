@@ -143,12 +143,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         // 2. Luego asignamos los valores
         taskName.setValue(task.getName());
         taskDescription.setValue(task.getDescription());
-        Priority priority = task.getPriority();
-        taskPriority.setValue(Priority.valueOf(priority.toString()));
-        EmergencyLevel emergencyLevel = task.getEmergencyLevel();
-        taskEmergency.setValue(EmergencyLevel.valueOf(emergencyLevel.toString()));
-        Status status = task.getStatus();
-        taskStatusComboBox.setValue(Status.valueOf(status.toString()));
+        taskPriority.setValue(task.getPriority());
+        taskEmergency.setValue(task.getEmergencyLevel());
+        taskStatusComboBox.setValue(task.getStatus());
 
         // Configurar fechas
         starDateTimePicker.setMin(null);  // Permitir editar fechas pasadas
