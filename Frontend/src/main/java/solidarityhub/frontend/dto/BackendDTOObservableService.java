@@ -20,19 +20,14 @@ public class BackendDTOObservableService extends Singleton implements BackendObs
     protected BackendDTOObservableService() {
         try {
             log.info("Iniciando los observadores del backend");
-            NeedList = new BackendDTOObservableList<>("/solidarityhub/needs", 3, new ParameterizedTypeReference<>() {});
-            Thread.sleep(1000); // Espera entre servicios para no explotar el back
 
-            CatastropheList = new BackendDTOObservableList<>("/solidarityhub/catastrophes", 5,  new ParameterizedTypeReference<>() {});
+            CatastropheList = new BackendDTOObservableList<>("http://localhost:8082/solidarityhub/catastrophes", 5,  new ParameterizedTypeReference<>() {});
             Thread.sleep(1000);
 
-            StorageList = new BackendDTOObservableList<>("/solidarityhub/storages", 5,  new ParameterizedTypeReference<>() {});
+            StorageList = new BackendDTOObservableList<>("http://localhost:8082/solidarityhub/storages", 5,  new ParameterizedTypeReference<>() {});
             Thread.sleep(1000);
 
-            TaskList = new BackendDTOObservableList<>("/solidarityhub/tasks", 3, new ParameterizedTypeReference<>() {});
-            Thread.sleep(1000);
-
-            VolunteerList = new BackendDTOObservableList<>("/solidarityhub/volunteers", 3,  new ParameterizedTypeReference<>() {});
+            TaskList = new BackendDTOObservableList<>("http://localhost:8082/solidarityhub/tasks", 3, new ParameterizedTypeReference<>() {});
             Thread.sleep(1000);
         }
         catch (InterruptedException e){
@@ -41,27 +36,21 @@ public class BackendDTOObservableService extends Singleton implements BackendObs
         }
     }
 
-    private final BackendDTOObservableList<NeedDTO> NeedList;
     private final BackendDTOObservableList<CatastropheDTO> CatastropheList;
     private final BackendDTOObservableList<StorageDTO> StorageList;
     private final BackendDTOObservableList<TaskDTO> TaskList;
-    private final BackendDTOObservableList<VolunteerDTO> VolunteerList;
 
     @Override
     public void shutdown(){
-        NeedList.shutdown();
         CatastropheList.shutdown();
         StorageList.shutdown();
         TaskList.shutdown();;
-        VolunteerList.shutdown();
     }
 
     @Override
     public void update(){
-        NeedList.update();
         CatastropheList.update();
         StorageList.update();
         TaskList.update();
-        VolunteerList.update();
     }
 }
