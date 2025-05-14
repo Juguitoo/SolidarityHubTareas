@@ -30,7 +30,6 @@ public class PDFCertificateService {
             document.addPage(page);
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                // Cargar imagen (logo)
                 InputStream imageStream = getClass().getResourceAsStream("/static/logo.png");
                 if (imageStream == null) {
                     throw new IOException("No se encontró el recurso /static/logo.png");
@@ -95,9 +94,9 @@ public class PDFCertificateService {
                     contentStream.beginText();
                     contentStream.setFont(PDType1Font.HELVETICA, 12);
                     contentStream.newLineAtOffset(textX, textY - i * rowHeight);
-                    contentStream.showText(personData[i][0]);
+                    contentStream.showText(sanitize(personData[i][0]));
                     contentStream.newLineAtOffset(colWidths[0], 0);
-                    contentStream.showText(personData[i][1]);
+                    contentStream.showText(sanitize(personData[i][1]));
                     contentStream.endText();
                 }
 
@@ -113,6 +112,7 @@ public class PDFCertificateService {
                 numRows = 6;
                 // Dibujar filas horizontales
                 for (int i = 0; i <= numRows; i++) {
+                    //if(i == 1 && task.getTaskDescription().length() > )
                     contentStream.moveTo(tableX, tableYTask - i * rowHeight);
                     contentStream.lineTo(tableX + tableWidth, tableYTask - i * rowHeight);
                 }
@@ -143,9 +143,9 @@ public class PDFCertificateService {
                     contentStream.beginText();
                     contentStream.setFont(PDType1Font.HELVETICA, 12);
                     contentStream.newLineAtOffset(textX, textY - i * rowHeight);
-                    contentStream.showText(taskData[i][0]);
+                    contentStream.showText(sanitize(taskData[i][0]));
                     contentStream.newLineAtOffset(colWidths[0], 0);
-                    contentStream.showText(taskData[i][1]);
+                    contentStream.showText(sanitize(taskData[i][1]));
                     contentStream.endText();
                 }
 
@@ -167,7 +167,7 @@ public class PDFCertificateService {
                 contentStream.beginText();
                 contentStream.setFont(PDType1Font.HELVETICA, 12);
                 contentStream.newLineAtOffset(50, tableYTask - rowHeight * numRows - 150);
-                contentStream.showText("Valencia, " + LocalDate.now().toString().replace("-", "/"));
+                contentStream.showText(sanitize("Valencia, " + LocalDate.now().toString().replace("-", "/")));
                 contentStream.endText();
 
                 contentStream.beginText();
@@ -346,5 +346,12 @@ public class PDFCertificateService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String sanitize(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("\n", " ").replace("\r", " ");
     }
 }
