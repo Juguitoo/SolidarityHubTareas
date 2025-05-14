@@ -83,6 +83,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected List<NeedDTO> allNeedsWithoutTask;
 
     protected TaskType taskType;
+    protected int nAutoSelectVolunteers;
 
     public AddTaskView() {
         this.taskService = new TaskService();
@@ -158,23 +159,23 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
-    private TaskDTO getTaskDTO() {
+    protected TaskDTO getTaskDTO() {
+        CatastropheDTO catastropheDTO = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
         LocalDateTime endDateTime = null;
         if (endDatePicker.getValue() != null) {
             endDateTime = endDatePicker.getValue().atTime(23, 59);
         }
 
         return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
-                getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteersList, selectedCatastrophe.getId(), taskLocation.getValue());
+                getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteersList, catastropheDTO.getId(), taskLocation.getValue());
     }
 
-    private List<NeedDTO> getNeedsList() {
+    protected List<NeedDTO> getNeedsList() {
         List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
         List<NeedDTO> needs = new ArrayList<>();
         for (String need : selectedNeeds) {
             allNeedsWithoutTask.stream()
-                    .filter(n -> n.getDescription().equals(need))
-                    .findFirst().ifPresent(needs::add);
+                    .filter(n -> n.getDescription().equals(need)).forEach(needs::add);
         }
         return needs;
     }
@@ -567,6 +568,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             if (volunteerCheckbox.getValue()) {
                 volunteerMultiSelectComboBox.setItems(translator.get("auto_select_volunteers"));
                 volunteerMultiSelectComboBox.select(translator.get("auto_select_volunteers"));
+                nAutoSelectVolunteers = volunteersQuantity.getValue();
 
                 selectedVolunteersList = allVolunteersList.stream()
                         .limit(volunteersQuantity.getValue())

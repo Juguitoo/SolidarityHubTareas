@@ -133,7 +133,6 @@ public class PDFCertificateService {
 
                 String[][] taskData = {
                         {"Título", task.getTaskName()},
-                        {"Descripción", task.getTaskDescription()},
                         {"Peligrosidad", task.getEmergencyLevel().toString()},
                         {"Urgencia", task.getPriority().toString()},
                         {"Fecha de inicio", task.getStartTimeDate().toLocalDate().toString()},
@@ -353,5 +352,9 @@ public class PDFCertificateService {
             return "";
         }
         return text.replace("\n", " ").replace("\r", " ");
+    }
+
+    public void delete(int id) {
+        documentoPDFRepository.deleteById(id);
     }
 }

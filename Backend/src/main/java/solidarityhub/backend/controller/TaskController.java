@@ -118,9 +118,6 @@ public class TaskController {
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
                     "Se le ha asignado una nueva tarea: " + task.getTaskName());
-            notificationService.save(notification);
-
-            volunteerService.save(volunteer);
         }
         taskService.save(task);
 
@@ -191,13 +188,16 @@ public class TaskController {
             }
 
             Notification notification = getNotification(volunteer, task, "Tarea actualizada");
+            task.addNotification(notification);
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
-            notificationService.save(notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
             if(taskDTO.getStatus() == Status.FINISHED && task.getAcceptedVolunteers().contains(volunteer)) {
+                List<PDFCertificate> certificates = volunteer.getCertificates().stream().filter(c -> c.getTask().getId() == task.getId()).toList();
+
+                certificates.forEach(c -> pdfService.delete(c.getId()));
                 pdfService.createPDFDocument(volunteer, task);
             }
         }

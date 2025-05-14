@@ -21,6 +21,7 @@ import solidarityhub.frontend.dto.VolunteerDTO;
 import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
+import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.views.HeaderComponent;
 
 import java.util.*;
@@ -31,13 +32,19 @@ import java.util.stream.Collectors;
 @PageTitle("Editar tarea")
 public class EditTaskView extends AddTaskView implements HasUrlParameter<String> {
 
+    private final NeedService needService;
     private int taskId;
     private final ComboBox<Status> taskStatusComboBox;
     private CatastropheDTO selectedCatastrophe;
+    private List<NeedDTO> allNeeds;
+    private List<VolunteerDTO> allVolunteers;
 
-    public EditTaskView() {
+    public EditTaskView(NeedService needService) {
         super();
         this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
+        this.needService = needService;
+        this.allNeeds = new ArrayList<>();
+        this.allVolunteers = new ArrayList<>();
     }
 
     @Override
@@ -46,6 +53,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
             return;
         }
+        allNeeds = needService.getAllNeeds(selectedCatastrophe.getId());
 
         buildView();
     }
@@ -205,13 +213,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private void configureVolunteers(TaskDTO task) {
         try {
-            if (task.getVolunteers() == null || task.getVolunteers().isEmpty()) {
-                // Si no hay voluntarios, configurar la opción de autoselección
-                volunteerMultiSelectComboBox.setItems(translator.get("auto_select_volunteers"));
-                volunteerMultiSelectComboBox.select(translator.get("auto_select_volunteers"));
-                return;
-            }
-
             List<String> volunteerNames = task.getVolunteers().stream()
                     .map(VolunteerDTO::getFirstName)
                     .filter(Objects::nonNull)
@@ -411,7 +412,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
             List<NeedDTO> needs = new ArrayList<>();
             for (String need : selectedNeeds) {
-                needService.getAllNeeds(selectedCatastrophe.getId()).stream()
+                allNeeds.stream()
                         .filter(n -> n.getDescription().equals(need))
                         .findFirst().ifPresent(needs::add);
             }
@@ -424,17 +425,16 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
             // Obtener voluntarios seleccionados
             List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
-            volunteerMultiSelectComboBox.getSelectedItems()
-                    .forEach(name -> {
+            allVolunteers = volunteerService.getVolunteers("None", getTaskDTO());
+            Set<String> names = volunteerMultiSelectComboBox.getSelectedItems();
+            names.forEach(name -> {
                         if (name.equals(translator.get("auto_select_volunteers"))) {
                             // Autoselección de voluntarios
-                            selectedVolunteers.addAll(allVolunteersList.subList(0, Math.min(1, allVolunteersList.size())));
+                            selectedVolunteers.addAll(allVolunteers.stream().limit(nAutoSelectVolunteers).toList());
                         } else {
                             // Búsqueda manual de voluntarios por nombre
-                            allVolunteersList.stream()
-                                    .filter(v -> v.getFirstName().equals(name))
-                                    .findFirst()
-                                    .ifPresent(selectedVolunteers::add);
+                            allVolunteers.stream()
+                                    .filter(v -> v.getFirstName().equals(name)).forEach(selectedVolunteers::add);
                         }
                     });
 
@@ -466,5 +466,16 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             Notification.show(translator.get("error_updating_task") + e.getMessage(),
                     5000, Notification.Position.MIDDLE);
         }
+    }
+
+    @Override
+    protected List<NeedDTO> getNeedsList() {
+        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+        List<NeedDTO> needs = new ArrayList<>();
+        for (String need : selectedNeeds) {
+            allNeeds.stream()
+                    .filter(n -> n.getDescription().equals(need)).forEach(needs::add);
+        }
+        return needs;
     }
 }
