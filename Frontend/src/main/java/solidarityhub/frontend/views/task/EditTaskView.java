@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 @Route("editTask")
 @PageTitle("Editar tarea")
 public class EditTaskView extends AddTaskView implements HasUrlParameter<String> {
+    private Button generateCertificatesButton;
 
     private final NeedService needService;
     private int taskId;
@@ -160,6 +161,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         taskPriority.setValue(task.getPriority());
         taskEmergency.setValue(task.getEmergencyLevel());
         taskStatusComboBox.setValue(task.getStatus());
+        if(task.getStatus() == Status.FINISHED) {
+            generateCertificatesButton.setVisible(true);
+        }
 
         starDateTimePicker.setMin(null);  // Permitir editar fechas pasadas
         starDateTimePicker.setValue(task.getStartTimeDate());
@@ -236,6 +240,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     @Override
     protected Component getButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
+        buttons.setWidthFull();
 
         Button updateButton = new Button(translator.get("update_button"));
         updateButton.addClickListener(e -> updateTask());
@@ -247,10 +252,23 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         deleteButton.addClickListener(e -> deleteTask());
 
-        buttons.add(cancelButton, deleteButton, updateButton);
+        generateCertificatesButton = new Button(translator.get("generate_certificates_button"));
+        generateCertificatesButton.addClickListener(e -> generateCertificates());
+        generateCertificatesButton.setVisible(false);
+
+        HorizontalLayout certificatesButtonLayout = new HorizontalLayout();
+        certificatesButtonLayout.add(generateCertificatesButton);
+        certificatesButtonLayout.setWidthFull();
+        certificatesButtonLayout.setJustifyContentMode(JustifyContentMode.START);
+        certificatesButtonLayout.setAlignItems(Alignment.CENTER);
+
+        buttons.add(certificatesButtonLayout, cancelButton, deleteButton, updateButton);
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;
+    }
+
+    private void generateCertificates() {
     }
 
     @Override
