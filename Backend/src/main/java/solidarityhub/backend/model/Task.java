@@ -76,7 +76,7 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notifications;
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
     private List<PDFCertificate> certificates;
 
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
