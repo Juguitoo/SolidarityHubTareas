@@ -6,6 +6,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
@@ -77,6 +78,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> distanceVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
+    protected List<VolunteerDTO> selectedVolunteersList = new ArrayList<>();
 
     protected List<NeedDTO> allNeedsWithoutTask;
 
@@ -157,30 +159,13 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private TaskDTO getTaskDTO() {
-        List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
-        List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
-        selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
-                .map(name -> {
-                    if (name.equals(translator.get("auto_select_volunteers"))) {
-                        finalSelectedVolunteers.addAll(allVolunteersList.subList(0, 1));
-                    }
-                    return allVolunteersList.stream()
-                            .filter(v -> v.getFirstName().equals(name))
-                            .findFirst()
-                            .orElse(null);
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-
-
         LocalDateTime endDateTime = null;
         if (endDatePicker.getValue() != null) {
             endDateTime = endDatePicker.getValue().atTime(23, 59);
         }
 
         return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
-                getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteers, selectedCatastrophe.getId(), taskLocation.getValue());
+                getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteersList, selectedCatastrophe.getId(), taskLocation.getValue());
     }
 
     private List<NeedDTO> getNeedsList() {
@@ -386,14 +371,32 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     //=============================== Dialogs =========================================
     private Dialog getVolunteersDialogContent() {
+        TaskDTO currentTaskDTO = getTaskDTO();
+        if(allVolunteersList.isEmpty()) {
+            allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
+        }
+
         Dialog volunteerDialog = new Dialog();
         volunteerDialog.setHeaderTitle(translator.get("select_volunteers"));
 
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
 
+        HorizontalLayout autoSelectLayout = new HorizontalLayout();
+        autoSelectLayout.setAlignItems(Alignment.CENTER);
+
         Checkbox volunteerCheckbox = new Checkbox();
         volunteerCheckbox.setLabel(translator.get("auto_select_volunteers"));
+
+        IntegerField volunteersQuantity = new IntegerField();
+        volunteersQuantity.setValue(2);
+        volunteersQuantity.setStepButtonsVisible(true);
+        volunteersQuantity.setMin(1);
+        volunteersQuantity.setMax(allVolunteersList.size());
+        volunteersQuantity.setEnabled(false);
+        volunteersQuantity.setWidth("100px");
+
+        autoSelectLayout.add(volunteerCheckbox, volunteersQuantity);
 
         Tabs tabs = new Tabs(
                 new Tab(translator.get("all_volunteers")),
@@ -404,11 +407,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         MultiSelectListBox<VolunteerDTO> volunteersListBox = new MultiSelectListBox<>();
         volunteersListBox.setWidthFull();
 
-        // No volunteers message
         Span noVolunteersMessage = new Span(translator.get("no_available_volunteers"));
         noVolunteersMessage.setVisible(false);
 
-        // Comprobar si tenemos fechas seleccionadas
         if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
             Notification.show(translator.get("first_select_dates"),
                     3000, Notification.Position.MIDDLE);
@@ -416,14 +417,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             return volunteerDialog;
         }
 
-        // Obtener todos los voluntarios y comprobar disponibilidad
-        TaskDTO currentTaskDTO = getTaskDTO();
-        if(allVolunteersList.isEmpty()) {
-            allVolunteersList = new ArrayList<>(volunteerService.getVolunteers("disponibilidad", currentTaskDTO));
-        }
-
-        // Configurar el visualizador de voluntarios
-        // POSIBLE REFACTORING: EXTRACT METHOD
         ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
             // Mostrar información del voluntario con una etiqueta clara de disponibilidad
             HorizontalLayout layout = new HorizontalLayout();
@@ -489,11 +482,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             }
             return layout;
         });
-
         volunteersListBox.setRenderer(renderer);
-
         volunteersListBox.setItems(allVolunteersList);
-
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
 
@@ -558,18 +548,32 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             }
         });
 
-        volunteerCheckbox.addClickListener(checkboxClickEvent ->
-                volunteersListBox.setEnabled(!volunteerCheckbox.getValue())
-        );
+        volunteersListBox.select(selectedVolunteersList);
+        if (volunteerMultiSelectComboBox.getSelectedItems().contains(translator.get("auto_select_volunteers"))) {
+            volunteerCheckbox.setValue(true);
+            volunteersListBox.setEnabled(false);
+            volunteersQuantity.setEnabled(true);
+            volunteersQuantity.setValue(selectedVolunteersList.size());
+        }
+        volunteerCheckbox.addClickListener(checkboxClickEvent -> {
+            volunteersListBox.setEnabled(!volunteerCheckbox.getValue());
+            volunteersQuantity.setEnabled(volunteerCheckbox.getValue());
+        });
 
-        dialogContent.add(volunteerCheckbox, tabs, noVolunteersMessage, volunteersListBox);
+        dialogContent.add(autoSelectLayout,tabs, noVolunteersMessage, volunteersListBox);
 
         // Footer
         Button saveButton = new Button(translator.get("save_button"), e -> {
             if (volunteerCheckbox.getValue()) {
                 volunteerMultiSelectComboBox.setItems(translator.get("auto_select_volunteers"));
                 volunteerMultiSelectComboBox.select(translator.get("auto_select_volunteers"));
+
+                selectedVolunteersList = allVolunteersList.stream()
+                        .limit(volunteersQuantity.getValue())
+                        .collect(Collectors.toList());
+
             } else {
+                selectedVolunteersList = volunteersListBox.getSelectedItems().stream().toList();
                 Set<String> selectedVolunteersNames = volunteersListBox.getSelectedItems().stream()
                         .map(VolunteerDTO::getFirstName)
                         .collect(Collectors.toSet());
@@ -581,7 +585,21 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             volunteerDialog.close();
         });
 
-        Button cancelButton = new Button(translator.get("cancel_button"), e -> volunteerDialog.close());
+        Button cancelButton = new Button(translator.get("cancel_button"), e -> {
+            volunteersListBox.select(selectedVolunteersList);
+            volunteersListBox.getSelectedItems().stream()
+                    .filter(item -> !volunteerMultiSelectComboBox.getSelectedItems().contains(item.getFirstName()))
+                    .forEach(volunteersListBox::deselect);
+            if (volunteerMultiSelectComboBox.getSelectedItems().contains(translator.get("auto_select_volunteers"))) {
+                volunteerCheckbox.setValue(true);
+                volunteersListBox.setEnabled(false);
+            } else {
+                volunteerCheckbox.setValue(false);
+                volunteersListBox.setEnabled(true);
+            }
+
+            volunteerDialog.close();
+        });
 
         volunteerDialog.getFooter().add(cancelButton, saveButton);
         volunteerDialog.add(dialogContent);
