@@ -8,6 +8,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -22,6 +23,7 @@ import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.NeedService;
+import solidarityhub.frontend.service.PDFCertificateService;
 import solidarityhub.frontend.views.HeaderComponent;
 
 import java.util.*;
@@ -34,16 +36,18 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private Button generateCertificatesButton;
 
     private final NeedService needService;
+    private final PDFCertificateService pdfCertificateService;
     private int taskId;
     private final ComboBox<Status> taskStatusComboBox;
     private CatastropheDTO selectedCatastrophe;
     private List<NeedDTO> allNeeds;
     private List<VolunteerDTO> allVolunteers;
 
-    public EditTaskView(NeedService needService) {
+    public EditTaskView(NeedService needService, PDFCertificateService pdfCertificateService) {
         super();
         this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
         this.needService = needService;
+        this.pdfCertificateService = pdfCertificateService;
         this.allNeeds = new ArrayList<>();
         this.allVolunteers = new ArrayList<>();
     }
@@ -269,6 +273,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     }
 
     private void generateCertificates() {
+        pdfCertificateService.createPDFCertificate(taskId);
+        Notification.show(translator.get("certificates_generated"), 3000, Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
     @Override

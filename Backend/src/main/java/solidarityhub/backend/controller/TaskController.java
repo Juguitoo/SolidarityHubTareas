@@ -198,7 +198,7 @@ public class TaskController {
                 List<PDFCertificate> certificates = volunteer.getCertificates().stream().filter(c -> c.getTask().getId() == task.getId()).toList();
 
                 certificates.forEach(c -> pdfService.delete(c.getId()));
-                pdfService.createPDFDocument(volunteer, task);
+                pdfService.createPDFCertificate(volunteer, task);
             }
         }
 
