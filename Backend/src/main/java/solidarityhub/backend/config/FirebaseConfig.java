@@ -14,7 +14,7 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            InputStream serviceAccount = new FileInputStream("Backend/src/main/java/solidarityhub/backend/config/key.json");
+            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("config/key.json");
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
