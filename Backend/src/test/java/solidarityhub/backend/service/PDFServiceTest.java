@@ -40,7 +40,7 @@ class PDFServiceTest {
         // Act
         // Este test puede fallar debido a recursos de PDF no disponibles en el entorno de prueba
         try {
-            pdfService.createPDFDocument(volunteer, task);
+            pdfService.createPDFCertificate(volunteer, task);
 
             // Assert
             verify(pdfDocumentRepository, times(1)).save(any(PDFCertificate.class));

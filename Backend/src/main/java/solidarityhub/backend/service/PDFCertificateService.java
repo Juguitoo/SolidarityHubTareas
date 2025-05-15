@@ -24,7 +24,7 @@ public class PDFCertificateService {
         this.documentoPDFRepository = documentoPDFRepository;
     }
 
-    public void createPDFDocument(Volunteer volunteer, Task task) {
+    public void createPDFCertificate(Volunteer volunteer, Task task) {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
@@ -185,7 +185,7 @@ public class PDFCertificateService {
         }
     }
 
-    public void createGenericPDFDocument() {
+    public void createGenericPDFCertificate() {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
