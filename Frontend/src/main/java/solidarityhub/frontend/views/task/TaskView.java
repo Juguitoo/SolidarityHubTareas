@@ -116,6 +116,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver, Obs
     private Component getTasks(){
         HorizontalLayout tasksListsLayout = new HorizontalLayout();
         tasksListsLayout.addClassName("tasksLists__layout");
+        tasksListsLayout.setWidthFull();
+        tasksListsLayout.setAlignItems(Alignment.CENTER);
+
         tasksListsLayout.add(
                 getToDoTasks(),
                 getDoingTasks(),

@@ -1,14 +1,14 @@
 .task-card {
-    background-color: #f0f0f0;
-    border-radius: 24px ;
+    display: flex;
+    flex-direction: column;
+    height: 200px;
     padding: 1rem;
     box-shadow: var(--card-shadow);
     transition: transform 0.2s;
-    display: flex;
     align-items: stretch;
     overflow: hidden;
-    box-sizing: border-box;
-    width: 200px;
+    background-color: #f0f0f0;
+    border-radius: 24px ;
 }
 
 .task-title {
@@ -28,7 +28,7 @@
     color: #616161;
     text-align: justify;
     height: 60px;
-
+    width: 255px;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;

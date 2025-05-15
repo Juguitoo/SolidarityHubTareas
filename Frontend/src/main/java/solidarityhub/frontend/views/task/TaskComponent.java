@@ -75,11 +75,18 @@ public class TaskComponent extends VerticalLayout {
 
     private void creatComponent() {
         addClassName("task-card");
+        setWidthFull();
+        setMinWidth("100%");
 
         HorizontalLayout header = new HorizontalLayout();
+        header.setWidthFull();
         header.add(getTaskNameComponent(), getStartDateTimeComponent());
         header.setJustifyContentMode(JustifyContentMode.BETWEEN);
         header.setAlignItems(Alignment.CENTER);
+
+        HorizontalLayout contentLayout = new HorizontalLayout(getImg(), getTaskDescriptionComponent());
+        contentLayout.setWidthFull();
+        contentLayout.setFlexGrow(1, getTaskDescriptionComponent());
 
         HorizontalLayout footer = new HorizontalLayout();
         footer.setWidthFull();
@@ -89,7 +96,7 @@ public class TaskComponent extends VerticalLayout {
 
         add(
             header,
-            new HorizontalLayout(getImg(), getTaskDescriptionComponent()),
+            contentLayout,
             footer
         );
     }
@@ -140,13 +147,12 @@ public class TaskComponent extends VerticalLayout {
         Span emergencyLevelSpan = new Span();
         emergencyLevelSpan.addClassName("task-priority");
 
-        // Traducir la prioridad según el valor
         String priorityText;
         switch (priority) {
             case "LOW" -> priorityText = translator.get("low_priority");
             case "MODERATE" -> priorityText = translator.get("moderate_priority");
             case "URGENT" -> priorityText = translator.get("urgent_priority");
-            default -> priorityText = priority; // Si no coincide, usar el valor original
+            default -> priorityText = priority;
         }
 
         emergencyLevelSpan.setText(priorityText);
