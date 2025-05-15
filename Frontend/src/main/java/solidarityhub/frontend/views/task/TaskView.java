@@ -135,8 +135,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         todoTitle.addClassName("section-title");
         toDoLayout.add(todoTitle);
 
-        Div taskListContainer = new Div();
-        taskListContainer.addClassName("task-list__container");
         List<TaskComponent> toDoTasks;
 
         try {
@@ -145,15 +143,13 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     .toList();
 
             if (toDoTasks.isEmpty()) {
-                taskListContainer.add(new Span(translator.get("no_todo_tasks")));
+                toDoLayout.add(new Span(translator.get("no_todo_tasks")));
             } else {
-                toDoTasks.forEach(taskListContainer::add);
+                toDoTasks.forEach(toDoLayout::add);
             }
         } catch (Exception e) {
-            taskListContainer.add(new Span(translator.get("error_todo_tasks") + e.getMessage()));
+            toDoLayout.add(new Span(translator.get("error_todo_tasks") + e.getMessage()));
         }
-
-        toDoLayout.add(taskListContainer);
 
         configureDropTarget(toDoLayout, Status.TO_DO);
 
@@ -168,8 +164,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         doingTitle.addClassName("section-title");
         inProgressLayout.add(doingTitle);
 
-        Div taskListContainer = new Div();
-        taskListContainer.addClassName("task-list__container");
         List<TaskComponent> doingTasks;
 
         try {
@@ -178,15 +172,14 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     .toList();
 
             if (doingTasks.isEmpty()) {
-                taskListContainer.add(new Span(translator.get("no_in_progress_tasks")));
+                inProgressLayout.add(new Span(translator.get("no_in_progress_tasks")));
             } else {
-                doingTasks.forEach(taskListContainer::add);
+                doingTasks.forEach(inProgressLayout::add);
             }
         } catch (Exception e) {
-            taskListContainer.add(new Span(translator.get("error_in_progress_tasks") + e.getMessage()));
+            inProgressLayout.add(new Span(translator.get("error_in_progress_tasks") + e.getMessage()));
         }
 
-        inProgressLayout.add(taskListContainer);
 
         // Configurar como drop target
         configureDropTarget(inProgressLayout, Status.IN_PROGRESS);
@@ -202,8 +195,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         doneTitle.addClassName("section-title");
         doneLayout.add(doneTitle);
 
-        Div taskListContainer = new Div();
-        taskListContainer.addClassName("task-list__container");
         List<TaskComponent> doneTasks;
 
         try {
@@ -212,15 +203,13 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     .toList();
 
             if (doneTasks.isEmpty()) {
-                taskListContainer.add(new Span(translator.get("no_terminated_tasks")));
+                doneLayout.add(new Span(translator.get("no_terminated_tasks")));
             } else {
-                doneTasks.forEach(taskListContainer::add);
+                doneTasks.forEach(doneLayout::add);
             }
         } catch (Exception e) {
-            taskListContainer.add(new Span(translator.get("error_terminated_tasks") + e.getMessage()));
+            doneLayout.add(new Span(translator.get("error_terminated_tasks") + e.getMessage()));
         }
-
-        doneLayout.add(taskListContainer);
 
         // Configurar como drop target
         configureDropTarget(doneLayout, Status.FINISHED);

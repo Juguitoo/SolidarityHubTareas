@@ -11,12 +11,13 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 32px;
 }
 
 .task-section {
     width: 100%;
+    max-width: 500px;
     height: auto;
     background-color: white;
     border-radius: var(--card-border-radius);
@@ -29,12 +30,6 @@
     border-bottom: 2px solid #e0e0e0;
     color: #424242;
     text-align: center;
-}
-
-.task-list__container{
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
 }
 
 .action-buttons__layout{
