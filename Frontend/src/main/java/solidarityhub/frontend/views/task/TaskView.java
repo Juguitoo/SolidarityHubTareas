@@ -38,7 +38,7 @@ import java.util.Locale;
 @PageTitle("Tareas")
 @Route("tasks")
 @Menu(order = 1, icon = LineAwesomeIconUrl.TASKS_SOLID)
-public class TaskView extends VerticalLayout implements BeforeEnterObserver, Observer {
+public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     protected static Translator translator;
 
     private final TaskService taskService;
@@ -58,9 +58,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver, Obs
         //BackendDTOObservableService.GetInstancia().getTaskList().getValues().attach(this, ObserverChange.ADD_ALL);
 
         this.taskService = new TaskService();
-        catastropheService = new CatastropheService();
-
-        addClassName("tasks-container");
+        this.catastropheService = new CatastropheService();
     }
 
     @Override
@@ -81,6 +79,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver, Obs
     private void buildView() {
         removeAll();
 
+        addClassName("tasks-container");
         HeaderComponent header = new HeaderComponent(translator.get("task_view_title") + selectedCatastrophe.getName());
 
         add(
@@ -156,7 +155,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver, Obs
 
         toDoLayout.add(taskListContainer);
 
-        // Configurar como drop target
         configureDropTarget(toDoLayout, Status.TO_DO);
 
         return toDoLayout;
@@ -312,22 +310,4 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver, Obs
         });
     }
 
-    //===============================Format Methods=========================================
-    private String formatDate(LocalDateTime taskDate) {
-        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
-    }
-
-    private String formatEmergencyLevel(EmergencyLevel level) {
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
-    }
-
-    @Override
-    public void update(ObserverChange change) {
-        log.info("Se ha actualizado");
-    }
 }
