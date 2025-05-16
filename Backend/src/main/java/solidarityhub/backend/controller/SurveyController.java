@@ -23,6 +23,9 @@ public class SurveyController {
     @GetMapping
     public ResponseEntity<?> getSurveys() {
         List<SurveyDTO> surveyDTOList = new ArrayList<>();
+        surveyService.getAllSurveys().forEach(s -> {
+
+        });
         return ResponseEntity.ok(surveyDTOList);
     }
 }

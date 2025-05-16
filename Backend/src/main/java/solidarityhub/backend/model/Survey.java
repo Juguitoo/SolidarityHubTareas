@@ -23,6 +23,13 @@ public class Survey {
     @Setter
     private LocalDateTime surveyUpdatedAt;
 
+    @Setter
+    @ElementCollection
+    @CollectionTable(name = "survey_questions",
+            joinColumns = @JoinColumn(name = "survey_id"))
+    @MapKeyColumn(name = "id_question")
+    @Column(name = "question")
+    private Map<Integer, String> questions;
 
     @Setter
     @ElementCollection
@@ -33,33 +40,28 @@ public class Survey {
     private Map<Integer, Double> qualifications;
 
     @Setter
-    @ElementCollection
-    @CollectionTable(name = "survey_questions",
-            joinColumns = @JoinColumn(name = "survey_id"))
-    @MapKeyColumn(name = "id_question")
-    @Column(name = "question")
-    private Map<Integer, String> questions;
-
-
-    @Setter
     private int numberOfAnswers;
 
     @Setter
     private Double averageQualification;
 
-    public Survey(String surveyName, int numberOfAnswers, Double averageQualification) {
+    public Survey(String surveyName, int numberOfAnswers, LocalDateTime surveyCreationDate, LocalDateTime surveyUpdatedAt,Map<Integer, String> questions, Map<Integer, Double> qualifications, Double averageQualification) {
         this.surveyName = surveyName;
+        this.surveyCreationDate = surveyCreationDate;
+        this.surveyUpdatedAt = surveyUpdatedAt;
+        this.questions = questions;
+        this.qualifications = qualifications;
         this.numberOfAnswers = numberOfAnswers;
         this.averageQualification = averageQualification;
-        this.surveyCreationDate = LocalDateTime.now();
-        this.surveyUpdatedAt = LocalDateTime.now();
     }
 
     public Survey() {
         this.surveyName = "Encuesta por defecto";
-        this.numberOfAnswers = 0;
-        this.averageQualification = 0.0;
         this.surveyCreationDate = LocalDateTime.now();
         this.surveyUpdatedAt = LocalDateTime.now();
+        this.questions = null;
+        this.qualifications = null;
+        this.numberOfAnswers = 0;
+        this.averageQualification = 0.0;
     }
 }
