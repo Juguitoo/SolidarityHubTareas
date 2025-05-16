@@ -13,6 +13,7 @@ import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/solidarityhub/tasks")
@@ -278,4 +279,5 @@ public class TaskController {
         }
         return ResponseEntity.ok(suggestedTaskDTOs);
     }
+
 }

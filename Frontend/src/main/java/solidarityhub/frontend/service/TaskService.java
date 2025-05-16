@@ -9,9 +9,7 @@ import solidarityhub.frontend.dto.BackendDTOObservableService;
 import solidarityhub.frontend.dto.TaskDTO;
 import org.pingu.domain.enums.Status;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -151,6 +149,50 @@ public class TaskService {
             return new ArrayList<>();
         } catch (Exception e) {
             return new ArrayList<>();
+        }
+    }
+    // Añadir este método a TaskService.java
+    public void updateTaskStatus(int id, Status newStatus) {
+        try {
+            // Obtener la tarea actual
+            TaskDTO currentTask = getTaskById(id);
+            if (currentTask == null) {
+                return;
+            }
+
+            // Clonar la tarea y actualizar solo el estado
+            TaskDTO updatedTask = new TaskDTO(
+                    currentTask.getName(),
+                    currentTask.getDescription(),
+                    currentTask.getStartTimeDate(),
+                    currentTask.getEstimatedEndTimeDate(),
+                    currentTask.getType(),
+                    currentTask.getPriority(),
+                    currentTask.getEmergencyLevel(),
+                    newStatus, // Nuevo estado
+                    currentTask.getNeeds(),
+                    currentTask.getVolunteers(),
+                    currentTask.getCatastropheId(),
+                    currentTask.getMeetingDirection()
+            );
+
+            // Actualizar en el backend
+            restTemplate.put(baseUrl + "/" + id, updatedTask);
+
+            // Actualizar la caché localmente
+            if (!taskCache.isEmpty()) {
+                for (int i = 0; i < taskCache.size(); i++) {
+                    TaskDTO cachedTask = taskCache.get(i);
+                    if (cachedTask.getId() == id) {
+                        cachedTask.setStatus(newStatus);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Manejar la excepción
+            System.err.println("Error al actualizar el estado de la tarea: " + e.getMessage());
+            throw e;
         }
     }
 }
