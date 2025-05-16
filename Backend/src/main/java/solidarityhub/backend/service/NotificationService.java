@@ -19,7 +19,7 @@ public class NotificationService {
 
     private final JavaMailSender sender;
 
-    @Value("${spring.mail.username}")
+    @Value("SolidarityHub <${spring.mail.username}>")
     private String user;
 
     @Value("${spring.mail.password}")
@@ -40,6 +40,7 @@ public class NotificationService {
             message.setTo(receiver);
             message.setSubject(notification.getTitle());
             message.setText(notification.getBody());
+
 
             sender.send(message);
         } catch (Exception e) {
