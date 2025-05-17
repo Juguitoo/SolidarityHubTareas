@@ -45,6 +45,10 @@ public class Survey {
     @Setter
     private Double averageQualification;
 
+    @Setter
+    @ManyToMany(mappedBy = "completedSurveys")
+    private List<Volunteer> completers;
+
     public Survey(String surveyName, int numberOfAnswers, LocalDateTime surveyCreationDate, LocalDateTime surveyUpdatedAt,Map<Integer, String> questions, Map<Integer, Double> qualifications, Double averageQualification) {
         this.surveyName = surveyName;
         this.surveyCreationDate = surveyCreationDate;

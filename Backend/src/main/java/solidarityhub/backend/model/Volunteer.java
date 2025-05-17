@@ -46,7 +46,13 @@ public class Volunteer extends Person {
     @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<PDFCertificate> certificates;
 
-    @OneToMany(mappedBy = "volunteer", fetch = FetchType.EAGER)
+    @ManyToMany
+    @JoinTable(name = "volunteer_completed_surveys",
+            joinColumns = @JoinColumn(name = "volunteer_dni"),
+            inverseJoinColumns = @JoinColumn(name = "survey_id"))
+    private List<Survey> completedSurveys;
+
+    @OneToMany(mappedBy = "volunteer")
     private List<Notification> notifications;
 
     @OneToOne(cascade = CascadeType.ALL)
