@@ -43,16 +43,31 @@ public class ResourceService {
 
     //GET METHODS
 
-    public List<ResourceDTO> getResources() {
+    public List<ResourceDTO> getResources(String type, String minQuantity, String storageId, Integer catastropheId) {
         if (resourceCache == null || resourceCache.isEmpty()) {
             try {
-                ResponseEntity<ResourceDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, ResourceDTO[].class);
+                String url = baseUrl;
+                if(type != null && !type.isEmpty()) {
+                    url += "?type=" + type;
+                }
+                if(minQuantity != null && !minQuantity.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "minQuantity=" + minQuantity;
+                }
+                if(storageId != null && !storageId.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "storageId=" + storageId;
+                }
+                if(catastropheId != null) {
+                    url += (url.contains("?") ? "&" : "?") + "catastropheId=" + catastropheId;
+                }
+                ResponseEntity<ResourceDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, ResourceDTO[].class);
                 ResourceDTO[] resources = response.getBody();
+
                 if (resources != null) {
                     resourceCache = new ArrayList<>(List.of(resources));
                 } else {
                     resourceCache = new ArrayList<>();
                 }
+
             } catch (RestClientException e) {
                 return getExampleResources(5);
             }
@@ -62,7 +77,7 @@ public class ResourceService {
 
     public List<ResourceDTO> getResourcesByCatastropheId(int catastropheId) {
         try {
-            String url = baseUrl + "/catastrophe/" +  catastropheId;
+            String url = baseUrl + "?catastropheId=" +  catastropheId;
             ResponseEntity<ResourceDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, ResourceDTO[].class);
             ResourceDTO[] resources = response.getBody();
             if (resources != null) {

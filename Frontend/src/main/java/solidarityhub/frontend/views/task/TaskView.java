@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Slf4j
 @PageTitle("Tareas")
@@ -234,43 +235,158 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             TaskDTO originalTask = taskService.getTaskById(taskId);
             if (originalTask != null) {
                 if (originalTask.getStatus() == newStatus) {
-                    return;
+                    return; // No hay cambio, salir temprano
                 }
 
-                // Crear un nuevo TaskDTO con el estado actualizado
-                TaskDTO updatedTask = new TaskDTO(
-                        originalTask.getName(),
-                        originalTask.getDescription(),
-                        originalTask.getStartTimeDate(),
-                        originalTask.getEstimatedEndTimeDate(),
-                        originalTask.getType(),
-                        originalTask.getPriority(),
-                        originalTask.getEmergencyLevel(),
-                        newStatus, // Aquí actualizamos el estado
-                        originalTask.getNeeds(),
-                        originalTask.getVolunteers(),
-                        originalTask.getCatastropheId(),
-                        originalTask.getMeetingDirection()
-                );
+                // Crear un TaskDTO parcial solo con los campos que necesitamos actualizar
+                TaskDTO statusUpdateDTO = new TaskDTO();
+                statusUpdateDTO.setId(taskId);
+                statusUpdateDTO.setStatus(newStatus);
 
-                // Actualizar la tarea en el servicio
-                taskService.updateTask(taskId, updatedTask);
-                taskService.clearCache(); // Limpiar caché para forzar recarga
+                // Llamar a un método optimizado que solo actualiza el estado
+                taskService.updateTaskStatus(taskId, newStatus);
+
+                // Actualizar UI sin recargar toda la vista
+                updateTaskUIAfterStatusChange(originalTask, newStatus);
+
+                // Obtener texto traducido para el estado
+                String statusText = getStatusTranslation(newStatus);
 
                 // Mostrar notificación
-                String statusText = newStatus == Status.TO_DO ? translator.get("todo_tasks") :
-                        newStatus == Status.IN_PROGRESS ? translator.get("in_progress_tasks") : translator.get("terminated_tasks");
-                Notification.show(translator.get("task") + " '" + originalTask.getName() + "' " + translator.get("moved_to")+ statusText,
+                Notification.show(translator.get("task") + " '" + originalTask.getName() + "' " +
+                                        translator.get("moved_to") + statusText,
                                 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-
-                // Reconstruir la vista para reflejar los cambios
-                buildView();
             }
         } catch (Exception e) {
             Notification.show(translator.get("error_updating_task") + e.getMessage(),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    // Método para obtener la traducción del estado
+    private String getStatusTranslation(Status status) {
+        if (status == null) return "";
+        return switch (status) {
+            case TO_DO -> translator.get("todo_tasks");
+            case IN_PROGRESS -> translator.get("in_progress_tasks");
+            case FINISHED -> translator.get("terminated_tasks");
+        };
+    }
+
+    private void updateTaskUIAfterStatusChange(TaskDTO task, Status newStatus) {
+        Status oldStatus = task.getStatus();
+        task.setStatus(newStatus);
+
+        UI.getCurrent().access(() -> {
+            // Buscar los contenedores de tareas por estado
+            Optional<VerticalLayout> sourceContainer = findTaskContainerByStatus(oldStatus);
+            Optional<VerticalLayout> targetContainer = findTaskContainerByStatus(newStatus);
+
+            if (sourceContainer.isPresent() && targetContainer.isPresent()) {
+                // Buscar el componente de tarea a mover
+                TaskComponent taskComponent = findTaskComponentById(task.getId(), sourceContainer.get());
+
+                if (taskComponent != null) {
+                    // Eliminar de su contenedor actual
+                    sourceContainer.get().remove(taskComponent);
+
+                    // Añadir al nuevo contenedor
+                    targetContainer.get().add(taskComponent);
+
+                    // Actualizar el mensaje de "no hay tareas" si es necesario
+                    updateEmptyStateMessages(sourceContainer.get(), oldStatus);
+                    updateEmptyStateMessages(targetContainer.get(), newStatus);
+                }
+            }
+        });
+    }
+
+    private Optional<VerticalLayout> findTaskContainerByStatus(Status status) {
+        // Buscar el contenedor correspondiente al estado
+        for (int i = 0; i < getComponentCount(); i++) {
+            Component component = getComponentAt(i);
+            if (component instanceof HorizontalLayout) {
+                HorizontalLayout taskListsLayout = (HorizontalLayout) component;
+
+                for (int j = 0; j < taskListsLayout.getComponentCount(); j++) {
+                    Component column = taskListsLayout.getComponentAt(j);
+                    if (column instanceof VerticalLayout) {
+                        VerticalLayout taskColumn = (VerticalLayout) column;
+
+                        // Verificar si es la columna correcta por título
+                        if (isColumnForStatus(taskColumn, status)) {
+                            return Optional.of(taskColumn);
+                        }
+                    }
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private boolean isColumnForStatus(VerticalLayout column, Status status) {
+        // Verificar el título de la columna
+        if (column.getComponentCount() > 0) {
+            Component titleComponent = column.getComponentAt(0);
+            if (titleComponent instanceof H3) {
+                H3 title = (H3) titleComponent;
+                String titleText = title.getText();
+
+                return (status == Status.TO_DO && titleText.equals(translator.get("todo_tasks"))) ||
+                        (status == Status.IN_PROGRESS && titleText.equals(translator.get("in_progress_tasks"))) ||
+                        (status == Status.FINISHED && titleText.equals(translator.get("terminated_tasks")));
+            }
+        }
+        return false;
+    }
+
+    private TaskComponent findTaskComponentById(int taskId, VerticalLayout container) {
+        // Buscar el componente de tarea por ID en el contenedor
+        for (int i = 0; i < container.getComponentCount(); i++) {
+            Component component = container.getComponentAt(i);
+            if (component instanceof TaskComponent) {
+                TaskComponent taskComponent = (TaskComponent) component;
+                if (taskComponent.getTaskId() == taskId) {
+                    return taskComponent;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void updateEmptyStateMessages(VerticalLayout container, Status status) {
+        // Si no hay tareas después de eliminar una, mostrar mensaje
+        boolean hasTasks = false;
+        for (int i = 0; i < container.getComponentCount(); i++) {
+            if (container.getComponentAt(i) instanceof TaskComponent) {
+                hasTasks = true;
+                break;
+            }
+        }
+
+        if (!hasTasks) {
+            // No hay tareas, añadir mensaje
+            String message = "";
+            if (status == Status.TO_DO) {
+                message = translator.get("no_todo_tasks");
+            } else if (status == Status.IN_PROGRESS) {
+                message = translator.get("no_in_progress_tasks");
+            } else if (status == Status.FINISHED) {
+                message = translator.get("no_terminated_tasks");
+            }
+
+            // Eliminar cualquier mensaje existente
+            for (int i = container.getComponentCount() - 1; i >= 0; i--) {
+                Component comp = container.getComponentAt(i);
+                if (comp instanceof Span) {
+                    container.remove(comp);
+                }
+            }
+
+            // Añadir nuevo mensaje
+            container.add(new Span(message));
         }
     }
 

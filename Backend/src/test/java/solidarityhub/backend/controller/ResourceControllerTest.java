@@ -55,7 +55,7 @@ class ResourceControllerTest {
         when(resourceService.getResources()).thenReturn(resources);
 
         // Act
-        ResponseEntity<?> response = resourceController.getResources();
+        ResponseEntity<?> response = resourceController.getResources(null, null, null, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -75,7 +75,7 @@ class ResourceControllerTest {
         when(resourceService.getResourcesByCatastrophe(catastropheId)).thenReturn(resources);
 
         // Act
-        ResponseEntity<?> response = resourceController.getResources(catastropheId);
+        ResponseEntity<?> response = resourceController.getResources(null, null, null, catastropheId);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

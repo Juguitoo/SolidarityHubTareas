@@ -29,16 +29,17 @@ public class ResourceController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getResources() {
+    public ResponseEntity<?> getResources(@RequestParam(required = false) String type,
+                                          @RequestParam(required = false) String minQuantity,
+                                          @RequestParam(required = false) String storageId,
+                                          @RequestParam Integer catastropheId) {
         List<ResourceDTO> resourceDTOList = new ArrayList<>();
-        resourceService.getResources().forEach(r -> {resourceDTOList.add(new ResourceDTO(r));});
-        return ResponseEntity.ok(resourceDTOList);
-    }
-
-    @GetMapping("/catastrophe/{catastropheId}")
-    public ResponseEntity<?> getResources(@PathVariable int catastropheId) {
-        List<ResourceDTO> resourceDTOList = new ArrayList<>();
-        resourceService.getResourcesByCatastrophe(catastropheId).forEach(r -> {resourceDTOList.add(new ResourceDTO(r));});
+        if (catastropheId == null) {
+            resourceService.getResources().forEach(r -> {resourceDTOList.add(new ResourceDTO(r));});
+            return ResponseEntity.ok(resourceDTOList);
+        }
+        resourceService.filter(type, minQuantity, storageId, catastropheId)
+                .forEach(r -> {resourceDTOList.add(new ResourceDTO(r));});
         return ResponseEntity.ok(resourceDTOList);
     }
 
