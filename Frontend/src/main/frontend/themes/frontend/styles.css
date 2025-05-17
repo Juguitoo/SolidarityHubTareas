@@ -9,27 +9,109 @@
 @import url('resources/resources.css');
 
 :root {
-    --background-color: #f5f5f5;
+    --drawer-width: 260px;
+    --drawer-minimized-width: 55px;
+    --transition-duration: 0.5s;
+    --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+    --sidebar-bg-color: var(--lumo-base-color);
+    --sidebar-text-color: var(--lumo-primary-text-color);
+    --sidebar-item-hover-bg: var(--lumo-primary-color-10pct);
+    --sidebar-item-active-bg: var(--lumo-primary-color-50pct);
+    --sidebar-item-active-color: var(--lumo-base-color);
+    --logo-size: 28px;
+    --nav-icon-size: 20px;
+    --nav-item-height: 44px;
+
+    /* Modo claro */
+    --background-color: #f8fbff;
+    --surface-color: #ffffff;
+    --text-color: #1f1f1f;
+    --subtext-color: #5f5f5f;
+    --btn-text-color: #f5f5f5;
+    --field-bg-color: #D5D8DE;
+
+    --primary-color: #2b5dff;
+    --primary-light-color: #A9D1FF;
+    --primary-dark-color: #1e40c4;
+
+    --accent-color: #ff3b3f;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --info-color: #1976d2;
+
+    --sidebar-color: #e7f0ff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --border-color: #dce4f0;
+
     --card-border-radius: 24px;
     --section-spacing: 1.5rem;
     --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    --high-priority: #ff5252;
-    --medium-priority: #ffab40;
-    --low-priority: #69f0ae;
-    --default-priority: #e0e0e0;
 }
 
-div, h1, h2, p, span, a, label, input, button, select, textarea, ul, li, img, section, header, footer, nav, main {
+[data-theme="dark"] {
+    /* Modo oscuro */
+    --background-color: #121721;
+    --surface-color: #1f2530;
+    --text-color: #F0F6FC;
+    --subtext-color: #bbbbbb;
+    --btn-text-color: #f5f5f5;
+    --field-bg-color: #1e2843;
+
+    --primary-color: #1e40c4;
+    --primary-light-color: #2f5bcf;
+    --primary-dark-color: #2f5bcf;
+
+    --accent-color: #ff5e5e;
+    --success-color: #81c784;
+    --warning-color: #ffc107;
+    --info-color: #64b5f6;
+
+    --sidebar-color: #1a2233;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --border-color: #3b475a;
+    --card-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+}
+
+div, h1, h2, h3, p, span, a, label, input, button, select, textarea, ul, li, img, section, header, footer, nav, main, span {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    color: var(--text-color);
 }
 
 vaadin-button{
     cursor: pointer;
+    background-color: var(--primary-color);
+    color: var(--btn-text-color)
+}
+vaadin-button:hover{
+    background-color: var(--primary-dark-color);
+}
+
+vaadin-combo-box-overlay::part(overlay) {
+    background-color: var(--background-color);
+    background-image: none;
+    color: var(--text-color);
 }
 
 
+vaadin-combo-box::part(toggle-button){
+    color: var(--text-color);
+}
+
+vaadin-multi-select-combo-box-chip {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] vaadin-multi-select-combo-box-chip {
+    background-color: var(--primary-color);
+}
+
+vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadin-dialog-overlay::part(footer) {
+    background-color: var(--background-color);
+}
+
+/* Header */
 .header{
     display: flex;
     align-items: center;
@@ -40,22 +122,58 @@ vaadin-button{
 
 .back-button{
     justify-self: start;
-    background-color: blue;
-    color: #fff;
 }
 
-.back-button:hover {
-    background-color: #0056b3;
+.notification__icon{
+    width: 40px;
+    height: 40px;
+    padding: 6px;
+}
+
+.notification__button{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 6px;
+    align-self: end;
+    margin-left: auto;
+    background: transparent;
+    color: var(--primary-color);
+}
+.notification__button:hover{
+    color: var(--btn-text-color);
+}
+
+[data-theme="dark"] .notification__button {
+    color: var(--btn-text-color);
+}
+
+[data-theme="dark"] .notification__button:hover {
+    background-color: var(--primary-color);
 }
 
 .title{
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    color: #424242;
+    color: var(--text-color);
     font-size: 2rem;
     text-align: center;
 }
+
+/* Fields */
+vaadin-text-field, vaadin-number-field, vaadin-text-area, vaadin-date-picker, vaadin-date-time-picker, vaadin-select, vaadin-combo-box, vaadin-checkbox-group{
+    --vaadin-input-field-background: var(--field-bg-color)
+}
+
+/* Desactiva cualquier estilo hover del área completa */
+vaadin-text-area:hover::part(input-field),
+vaadin-text-area:hover::part(error-message) {
+    background-color: var(--field-bg-color);
+    border: none;
+    box-shadow: none;
+}
+
 
 .centered-checkbox-group {
     margin: auto;

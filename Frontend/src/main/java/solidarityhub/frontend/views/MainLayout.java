@@ -20,6 +20,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
+import solidarityhub.frontend.views.home.HomeView;
 import solidarityhub.frontend.views.resources.MainResourcesView;
 import solidarityhub.frontend.views.task.TaskView;
 
@@ -95,8 +96,28 @@ public class MainLayout extends AppLayout {
             UI.getCurrent().getPage().reload();
         });
 
-        topBar.add(languageSelector);
+        topBar.add(getThemeBtn(), languageSelector);
         return topBar;
+    }
+
+    private Component getThemeBtn(){
+        Span themeIcon = new Span();
+        themeIcon.setText("🌙");
+
+        Button toggleTheme = new Button(themeIcon);
+        toggleTheme.getElement().setAttribute("aria-label", "Cambiar tema");
+
+        toggleTheme.addClickListener(event -> UI.getCurrent().getPage().executeJs("""
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            const icon = next === 'dark' ? '🌙' : '🌞';
+            document.getElementById('theme-icon').textContent = icon;"""
+    ));
+        themeIcon.setId("theme-icon");
+        return toggleTheme;
     }
 
     private void addDrawerContent() {
@@ -129,7 +150,7 @@ public class MainLayout extends AppLayout {
         // Div para mostrar la catástrofe seleccionada
         selectedCatastropheInfo = new Div();
         selectedCatastropheInfo.addClassName("selected-catastrophe-info");
-        updateSelectedCatastropheInfo(); // Inicializar con la información actual
+        updateSelectedCatastropheInfo();
 
         sideNav = createNavigation();
         Scroller scroller = new Scroller(sideNav);
@@ -195,9 +216,7 @@ public class MainLayout extends AppLayout {
 
         if (minimized) {
             // Primero guardar los tooltips
-            sideNav.getItems().forEach(item -> {
-                item.getElement().setAttribute("title", item.getLabel());
-            });
+            sideNav.getItems().forEach(item -> item.getElement().setAttribute("title", item.getLabel()));
 
             // Luego colapsar el drawer
             drawerContent.getElement().setAttribute("class", "drawer-content drawer-minimized");
@@ -252,6 +271,7 @@ public class MainLayout extends AppLayout {
         nav.getElement().setAttribute("class", "side-nav");
 
         nav.addItem(
+                createNavItem("Inicio", VaadinIcon.HOME, HomeView.class),
                 createNavItem(translator.get("label_tasks"), VaadinIcon.TASKS, TaskView.class),
                 createNavItem(translator.get("label_map"), VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
                 createNavItem(translator.get("label_resources"), VaadinIcon.TOOLBOX, MainResourcesView.class),

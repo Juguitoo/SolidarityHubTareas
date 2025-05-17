@@ -130,6 +130,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected void buildView() {
         removeAll();
 
+        addClassName("addTaskView");
+
         add(
             getHeader(),
             getPreview(),

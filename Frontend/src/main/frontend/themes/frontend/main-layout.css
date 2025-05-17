@@ -1,18 +1,24 @@
-/* Variables globales */
-:root {
-  --drawer-width: 260px;
-  --drawer-minimized-width: 55px;
-  --transition-duration: 0.5s;
-  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
-  --sidebar-bg-color: var(--lumo-base-color);
-  --sidebar-text-color: var(--lumo-primary-text-color);
-  --sidebar-item-hover-bg: var(--lumo-primary-color-10pct);
-  --sidebar-item-active-bg: var(--lumo-primary-color-50pct);
-  --sidebar-item-active-color: var(--lumo-base-color);
-  --logo-size: 28px;
-  --nav-icon-size: 20px;
-  --nav-item-height: 44px;
+/* Home View */
+.home-view{
+  background-color: var(--background-color);
+  height: 100%;
 }
+
+.admin-info-card{
+  background-color: var(--primary-light-color);
+  width: 50%;
+  border-radius: var(--card-border-radius);
+}
+
+.admin-icon{
+  width: 50px;
+  height: 50px;
+}
+
+[data-theme="dark"] .theme-toggle-btn{
+  background-color: var(--field-bg-color);
+}
+
 /* Asegurar que la transición del ancho sea fluida */
 vaadin-app-layout::part(content) {
   margin-left: var(--drawer-width);

@@ -1,3 +1,7 @@
+.addTaskView{
+    background-color: var(--background-color);
+}
+
 .previewContainer{
     display: flex;
     margin: 0;
@@ -24,7 +28,7 @@
 
 .needsDialog--infoText{
     font-style: italic;
-    color: var(--lumo-secondary-text-color);
+    color: var(--text-color);
     font-size: var(--lumo-font-size-s);
     margin-bottom: 10px;
 }
@@ -38,20 +42,20 @@
 }
 
 .addTaskForm--multiSelectComboBox::part(input-field) {
-    background-color: var(--lumo-contrast-5pct);
+    background-color: var(--field-bg-color);
     cursor: pointer;
 }
 
-.addTaskForm--multiSelectComboBox::part(input-field) {
-    background-color: var(--lumo-contrast-10pct);
+.addTaskForm--multiSelectComboBox[has-value] {
+    color: var(--text-color);
 }
 
-.addTaskForm--multiSelectComboBox[has-value] {
-    color: var(--lumo-body-text-color);
+.addTaskForm--multiSelectComboBox[readonly]::part(input-field) {
+    color: var(--text-color);
 }
 
 .addTaskForm--multiSelectComboBox::part(toggle-button) {
-    color: var(--lumo-contrast-60pct);
+    color: var(--text-color);
     pointer-events: none;
 }
 

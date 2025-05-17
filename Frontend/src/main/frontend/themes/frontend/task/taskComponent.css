@@ -10,7 +10,7 @@
     overflow: hidden;
     box-shadow: var(--card-shadow);
     transition: transform 0.2s;
-    background-color: #f0f0f0;
+    background-color: var(--surface-color);
     border-radius: 24px ;
     margin-bottom: 8px;
 }
@@ -18,7 +18,7 @@
 .task-title {
     font-weight: bold;
     font-size: clamp(0.8rem, 5vw, 1.2rem);;
-    color: #212121;
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -31,7 +31,7 @@
 .task-description {
     flex: 1;
     font-size: 0.8rem;
-    color: #616161;
+    color: var(--text-color);
     text-align: justify;
     height: 60px;
     min-width: 255px;
@@ -70,5 +70,4 @@
 .edit-button:hover {
     background-color: #0056b3;
 }
-
 
