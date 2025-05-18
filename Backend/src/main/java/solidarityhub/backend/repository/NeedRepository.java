@@ -2,6 +2,7 @@ package solidarityhub.backend.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.model.Need;
 import org.springframework.data.jpa.repository.JpaRepository;
 

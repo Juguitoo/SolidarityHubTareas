@@ -43,6 +43,12 @@ public class TaskController {
         return ResponseEntity.ok(taskDTOList);
     }
 
+    @GetMapping("/catastrophe/{catastropheId}")
+    public ResponseEntity<?> getTasksByCatastropheId(@PathVariable Integer catastropheId) {
+        List<TaskDTO> taskDTOList = taskService.getTasksByCatastropheId(catastropheId);
+        return ResponseEntity.ok(taskDTOList);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getTask(@PathVariable Integer id) {
         if(taskService.getTaskById(id) == null) {

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import solidarityhub.backend.dto.StorageDTO;
 import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.repository.StorageRepository;
@@ -33,20 +34,20 @@ class StorageServiceTest {
     @Test
     void testGetStorages() {
         // Arrange
-        List<Storage> storages = new ArrayList<>();
-        storages.add(createTestStorage(1));
-        storages.add(createTestStorage(2));
-        when(storageRepository.findAll()).thenReturn(storages);
+        List<StorageDTO> storages = new ArrayList<>();
+        storages.add(new StorageDTO(createTestStorage(1)));
+        storages.add(new StorageDTO(createTestStorage(2)));
+        when(storageRepository.findStorages()).thenReturn(storages);
 
         // Act
-        List<Storage> result = storageService.getStorages();
+        List<StorageDTO> result = storageService.getStorages();
 
         // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(1, result.get(0).getId());
         assertEquals(2, result.get(1).getId());
-        verify(storageRepository, times(1)).findAll();
+        verify(storageRepository, times(1)).findStorages();
     }
 
     @Test

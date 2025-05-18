@@ -42,13 +42,6 @@ public class DonationController {
         return ResponseEntity.ok(donationDTOs);
     }
 
-//    @GetMapping("/byVolunteer")
-//    public ResponseEntity<?> getDonationsByVolunteer(@RequestParam String volunteerDni) {
-//        List<DonationDTO> donationDTOs = new ArrayList<>();
-//        donationService.getDonationsByDonor(volunteerDni).forEach(d -> donationDTOs.add(new DonationDTO(d)));
-//        return ResponseEntity.ok(donationDTOs);
-//    }
-
     @PostMapping
     public ResponseEntity<?> createDonation(@RequestBody DonationDTO donationDTO) {
         try {
