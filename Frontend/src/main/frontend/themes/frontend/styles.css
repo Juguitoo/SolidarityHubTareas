@@ -7,8 +7,13 @@
 @import url('catastrophe/addCatastrophe.css');
 @import url('catastrophe/catastropheSelectionView.css');
 @import url('resources/resources.css');
+@import url('home/homeview.css');
 
 :root {
+    --warning-color: #FFC107;
+    --warning-color-10pct: rgba(255, 193, 7, 0.1);
+    --warning-text-color: #BF8500;
+
     --drawer-width: 260px;
     --drawer-minimized-width: 55px;
     --transition-duration: 0.5s;

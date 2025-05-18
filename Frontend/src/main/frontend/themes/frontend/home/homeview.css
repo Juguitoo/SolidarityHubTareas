@@ -1,0 +1,403 @@
+/* HomeView Styles */
+
+.home-view {
+    background-color: var(--background-color);
+    min-height: 100vh;
+}
+
+/* Cards Base Styles */
+.welcome-card,
+.preferences-card,
+.recent-tasks-card,
+.quick-stats-card,
+.catastrophe-info-card,
+.catastrophe-actions-card,
+.needs-overview-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+/* Solo hover para las cards clickeables */
+.recent-tasks-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px var(--shadow-color);
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: linear-gradient(135deg, var(--primary-light-color), var(--surface-color));
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.welcome-card vaadin-horizontal-layout {
+    align-items: center;
+    width: 100%;
+}
+
+.admin-icon-large {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+    flex-grow: 0;
+    display: block;
+}
+
+.admin-name-large {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.admin-role {
+    font-size: 0.875rem;
+    color: var(--subtext-color);
+    font-style: italic;
+}
+
+.status-online {
+    color: var(--success-color);
+    font-size: 1rem;
+    animation: pulse 2s infinite;
+}
+
+.status-text {
+    font-size: 0.875rem;
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Preferences Card */
+.preferences-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.preference-label {
+    font-size: 0.875rem;
+    color: var(--subtext-color);
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.theme-toggle-btn {
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 1.125rem;
+}
+
+.language-selector {
+    width: 150px;
+}
+
+/* Recent Tasks Card */
+.recent-tasks-card {
+    border-left: 4px solid var(--info-color);
+}
+
+.task-summary {
+    background: var(--background-color);
+    border-radius: calc(var(--card-border-radius) / 2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.task-summary:hover {
+    background: var(--primary-light-color);
+    border-color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.task-status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.task-status-indicator.status-todo {
+    background-color: var(--subtext-color);
+}
+
+.task-status-indicator.status-in-progress {
+    background-color: var(--primary-color);
+}
+
+.task-status-indicator.status-finished {
+    background-color: var(--success-color);
+}
+
+.task-name {
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.task-meta {
+    font-size: 0.75rem;
+    color: var(--subtext-color);
+}
+
+.task-arrow {
+    color: var(--subtext-color);
+    transition: transform 0.2s ease;
+}
+
+.task-summary:hover .task-arrow {
+    transform: translateX(3px);
+}
+
+/* Quick Stats Card */
+.quick-stats-card {
+    border-left: 4px solid var(--success-color);
+}
+
+.stat-item {
+    background: var(--background-color);
+    border-radius: calc(var(--card-border-radius) / 2);
+    padding: 1rem;
+    transition: all 0.2s ease;
+    min-width: 100px;
+    /* Removido cursor: pointer y hover ya que no son clickeables */
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--subtext-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-item.stat-todo .stat-value {
+    color: var(--subtext-color);
+}
+
+.stat-item.stat-progress .stat-value {
+    color: var(--primary-color);
+}
+
+.stat-item.stat-completed .stat-value {
+    color: var(--success-color);
+}
+
+.stat-item.stat-needs .stat-value {
+    color: var(--accent-color);
+}
+
+/* Catastrophe Info Card */
+.catastrophe-info-card {
+    border-left: 4px solid var(--accent-color);
+}
+
+.catastrophe-name {
+    color: var(--text-color);
+    font-weight: 600;
+    margin: 0;
+}
+
+.catastrophe-description {
+    color: var(--subtext-color);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    color: var(--subtext-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.meta-value {
+    font-size: 1rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.emergency-level {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: calc(var(--card-border-radius) / 3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.emergency-level.emergency-low {
+    background-color: var(--success-color);
+    color: var(--surface-color);
+    opacity: 0.8;
+}
+
+.emergency-level.emergency-medium {
+    background-color: var(--warning-color);
+    color: var(--surface-color);
+}
+
+.emergency-level.emergency-high {
+    background-color: var(--accent-color);
+    color: var(--surface-color);
+}
+
+.emergency-level.emergency-very-high {
+    background-color: var(--accent-color);
+    color: var(--surface-color);
+    animation: blink 1.5s infinite;
+    box-shadow: 0 0 10px var(--accent-color);
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.7; }
+}
+
+/* Catastrophe Actions Card */
+.catastrophe-actions-card {
+    border-left: 4px solid var(--warning-color);
+}
+
+/* Needs Overview Card */
+.needs-overview-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.needs-summary {
+    background: rgba(255, 59, 63, 0.1); /* Usando el color accent con transparencia */
+    border-radius: calc(var(--card-border-radius) / 2);
+    padding: 1rem;
+    border: 1px solid rgba(255, 59, 63, 0.3);
+}
+
+.needs-warning-icon {
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+.needs-warning-text {
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
+/* Common Styles */
+.card-title {
+    color: var(--text-color);
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    font-size: 1.125rem;
+}
+
+.empty-state-text {
+    color: var(--subtext-color);
+    font-style: italic;
+    text-align: center;
+    padding: 1.5rem;
+    opacity: 0.7;
+}
+
+.error-text {
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
+.success-text {
+    color: var(--success-color);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.success-text::before {
+    content: "✓";
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .home-view > vaadin-horizontal-layout {
+        flex-direction: column;
+    }
+
+    .home-view > vaadin-horizontal-layout > vaadin-vertical-layout {
+        width: 100% !important;
+    }
+
+    .stat-item {
+        min-width: 80px;
+    }
+
+    .admin-icon-large {
+        width: 50px !important;
+        height: 50px !important;
+        max-width: 50px !important;
+        max-height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+    }
+
+    .admin-name-large {
+        font-size: 1.125rem;
+    }
+}
+
+/* Estilos específicos para imagen - força absoluto */
+img.admin-icon-large {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+}
+
+/* Control adicional para el contenedor de la imagen */
+.welcome-card vaadin-vertical-layout {
+    flex-grow: 1;
+    max-width: calc(100% - 80px);
+}
+
+/* Asegurar que los layouts no rompan */
+.home-view vaadin-horizontal-layout {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.home-view vaadin-vertical-layout {
+    width: 50%;
+    box-sizing: border-box;
+}
+
+/* Tema oscuro - ajustes específicos */
+[data-theme="dark"] .task-summary:hover {
+    background: var(--primary-dark-color);
+}
+
+[data-theme="dark"] .needs-summary {
+    background: rgba(255, 94, 94, 0.15); /* Color accent del tema oscuro con transparencia */
+    border-color: rgba(255, 94, 94, 0.3);
+}
