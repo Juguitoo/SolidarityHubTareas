@@ -10,15 +10,24 @@ import solidarityhub.backend.repository.TaskRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
     private final VolunteerService volunteerService;
 
+    private final Map<UrgencyLevel, Supplier<TaskBuilder>> builderRegistry;
+
     public TaskService(TaskRepository taskRepository, VolunteerService volunteerService) {
         this.taskRepository = taskRepository;
         this.volunteerService = volunteerService;
+        builderRegistry = Map.of(
+                UrgencyLevel.URGENT, () -> new UrgentTaskBuilder(volunteerService),
+                UrgencyLevel.MODERATE, () -> new ModerateTaskBuilder(volunteerService),
+                UrgencyLevel.LOW, () -> new LowPriorityTaskBuilder(volunteerService)
+        );
     }
 
     public Task save(Task task) {return this.taskRepository.save(task);}
@@ -34,21 +43,15 @@ public class TaskService {
         TaskDirector taskDirector = new TaskDirector();
         TaskBuilder taskBuilder;
         for (Need need : needs) {
-            if (need.getUrgency() == UrgencyLevel.URGENT){
-                taskBuilder = new UrgentTaskBuilder(need, volunteerService);
-                taskDirector.construct(taskBuilder);
-                suggestedTasks.add(taskBuilder.getResult());
+            Supplier<TaskBuilder> builderSupplier = builderRegistry.get(need.getUrgency());
 
-            }else if(need.getUrgency() == UrgencyLevel.MODERATE) {
-                taskBuilder = new ModerateTaskBuilder(need, volunteerService);
-                taskDirector.construct(taskBuilder);
-                suggestedTasks.add(taskBuilder.getResult());
+            if (builderSupplier == null)
+                throw new IllegalArgumentException("No builder found for urgency level: " + need.getUrgency());
 
-            }else if(need.getUrgency() == UrgencyLevel.LOW) {
-                taskBuilder = new LowPriorityTaskBuilder(need, volunteerService);
-                taskDirector.construct(taskBuilder);
-                suggestedTasks.add(taskBuilder.getResult());
-            }
+            taskBuilder = builderSupplier.get();
+            taskBuilder.setNeed(need);
+            taskDirector.construct(taskBuilder);
+            suggestedTasks.add(taskBuilder.getResult());
         }
         return suggestedTasks;
     }

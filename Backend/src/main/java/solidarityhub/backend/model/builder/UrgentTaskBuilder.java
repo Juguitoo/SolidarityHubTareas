@@ -19,13 +19,24 @@ import java.util.List;
 public class UrgentTaskBuilder implements TaskBuilder {
 
     private final Task task;
-    private final Need need;
+    private Need need;
     private final VolunteerService volunteerService;
 
     public UrgentTaskBuilder(Need need, VolunteerService volunteerService) {
         this.task = new Task();
         this.need = need;
         this.volunteerService = volunteerService;
+    }
+
+    public UrgentTaskBuilder(VolunteerService volunteerService) {
+        this.task = new Task();
+        this.need = null;
+        this.volunteerService = volunteerService;
+    }
+
+    @Override
+    public void setNeed(Need need) {
+        this.need = need;
     }
 
     @Override

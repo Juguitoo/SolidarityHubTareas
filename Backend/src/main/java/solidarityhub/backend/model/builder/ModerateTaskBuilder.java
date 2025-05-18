@@ -18,13 +18,24 @@ import java.util.List;
 public class ModerateTaskBuilder implements TaskBuilder {
 
     private final Task task;
-    private final Need need;
+    private Need need;
     private final VolunteerService volunteerService;
 
     public ModerateTaskBuilder(Need need, VolunteerService volunteerService) {
         this.task = new Task();
         this.need = need;
         this.volunteerService = volunteerService;
+    }
+
+    public ModerateTaskBuilder(VolunteerService volunteerService) {
+        this.task = new Task();
+        this.need = null;
+        this.volunteerService = volunteerService;
+    }
+
+    @Override
+    public void setNeed(Need need) {
+        this.need = need;
     }
 
     @Override

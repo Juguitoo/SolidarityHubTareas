@@ -278,12 +278,16 @@ public class TaskController {
             return ResponseEntity.badRequest().body("Se debe seleccionar al menos una necesidad");
         }
 
-        List<Task> suggestedTasks = taskService.getSuggestedTasks(needs);
-        List<TaskDTO> suggestedTaskDTOs = new ArrayList<>();
-        for (Task task : suggestedTasks) {
-            suggestedTaskDTOs.add(new TaskDTO(task));
+        try{
+            List<Task> suggestedTasks = taskService.getSuggestedTasks(needs);
+            List<TaskDTO> suggestedTaskDTOs = new ArrayList<>();
+            for (Task task : suggestedTasks) {
+                suggestedTaskDTOs.add(new TaskDTO(task));
+            }
+            return ResponseEntity.ok(suggestedTaskDTOs);
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body("No se ha podido crear la tarea: " + e.getMessage());
         }
-        return ResponseEntity.ok(suggestedTaskDTOs);
     }
 
 }
