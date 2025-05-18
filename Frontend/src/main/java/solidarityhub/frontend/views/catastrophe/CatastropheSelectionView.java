@@ -2,6 +2,7 @@ package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -35,9 +36,12 @@ public class CatastropheSelectionView extends VerticalLayout {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final Logger LOGGER = Logger.getLogger(CatastropheSelectionView.class.getName());
     private static Translator translator;
+    private final CatastropheService catastropheService;
 
     @Autowired
     public CatastropheSelectionView(CatastropheService catastropheService, TaskService taskService) {
+        this.catastropheService = catastropheService;
+
         VaadinSession.getCurrent().setAttribute("cache", true);
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
         if (sessionLocale != null) {
@@ -120,7 +124,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         };
     }
 
-    private static VerticalLayout createCatastropheCard(CatastropheDTO catastrophe, TaskService taskService) {
+    private VerticalLayout createCatastropheCard(CatastropheDTO catastrophe, TaskService taskService) {
         VerticalLayout card = new VerticalLayout();
         card.addClassName("catastrophe-selection-card");
 
@@ -128,26 +132,23 @@ public class CatastropheSelectionView extends VerticalLayout {
         String emergencyClass = getEmergencyLevelClass(catastrophe.getEmergencyLevel());
         card.addClassName(emergencyClass);
 
-        H3 name = new H3(catastrophe.getName());
-        name.addClassName("catastrophe-card-title");
+        // Crear la tarjeta con el componente personalizado
+        CatastropheComponent catastropheComp = new CatastropheComponent(
+                catastrophe.getName(),
+                catastrophe.getDescription(),
+                translator.get("start_date_catastrophe") +
+                        (catastrophe.getStartDate() != null ? catastrophe.getStartDate().format(DATE_FORMATTER) : "Fecha no disponible"),
+                translator.get("emergency_level") + formatEmergencyLevel(catastrophe.getEmergencyLevel())
+        );
 
-        Paragraph description = new Paragraph(catastrophe.getDescription());
-        description.addClassName("catastrophe-card-description");
+        // Configurar acciones del menú contextual
+        catastropheComp.setOnEditAction(v -> openEditDialog(catastrophe));
 
-        Paragraph date = new Paragraph(translator.get("start_date_catastrophe") +
-                (catastrophe.getStartDate() != null ? catastrophe.getStartDate().format(DATE_FORMATTER) : "Fecha no disponible"));
-        date.addClassName("catastrophe-card-date");
-
-        // Nivel de emergencia
-        Paragraph level = new Paragraph(translator.get("emergency_level") + formatEmergencyLevel(catastrophe.getEmergencyLevel()));
-        level.addClassName("catastrophe-card-level");
-        level.addClassName(emergencyClass + "-text");
-
-        card.add(name, description, date, level);
-        card.setPadding(true);
+        card.add(catastropheComp);
+        card.setPadding(false);
         card.setSpacing(false);
 
-        // Al hacer clic, se selecciona esta catástrofe
+        // Al hacer clic izquierdo, se selecciona esta catástrofe
         card.addClickListener(e -> {
             taskService.taskCache.clear();
             selectCatastrophe(catastrophe);
@@ -156,6 +157,20 @@ public class CatastropheSelectionView extends VerticalLayout {
 
         return card;
     }
+
+    // Método para abrir el diálogo de edición
+    private void openEditDialog(CatastropheDTO catastrophe) {
+        try {
+            EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe, catastropheService);
+            dialog.open();
+        } catch (Exception e) {
+            Notification.show("Error al abrir el diálogo de edición: " + e.getMessage(),
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+
 
     private static void selectCatastrophe(CatastropheDTO catastrophe) {
         // Guardar la catástrofe seleccionada en la sesión

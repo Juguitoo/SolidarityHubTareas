@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -15,7 +16,7 @@ import lombok.Setter;
 import solidarityhub.frontend.i18n.Translator;
 
 import java.util.Locale;
-
+import java.util.function.Consumer;
 
 @Getter
 public class CatastropheComponent extends Div {
@@ -27,11 +28,13 @@ public class CatastropheComponent extends Div {
     private String emergencyLevel;
     private static Translator translator;
 
+    // Callbacks para las acciones
+    private Consumer<Void> onEditAction;
+    private Consumer<Void> onDeleteAction;
 
     public CatastropheComponent() {
         this("Sin nombre", "Sin descripción", "Sin fecha", "");
     }
-
 
     public CatastropheComponent(String name, String description, String date, String emergencyLevel) {
         this.name = name;
@@ -42,7 +45,6 @@ public class CatastropheComponent extends Div {
         initializeTranslator();
         setupComponent();
     }
-
 
     private void initializeTranslator() {
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
@@ -55,6 +57,19 @@ public class CatastropheComponent extends Div {
         translator = new Translator(UI.getCurrent().getLocale());
     }
 
+    /**
+     * Establecer callback para la acción de editar
+     */
+    public void setOnEditAction(Consumer<Void> callback) {
+        this.onEditAction = callback;
+    }
+
+    /**
+     * Establecer callback para la acción de eliminar
+     */
+    public void setOnDeleteAction(Consumer<Void> callback) {
+        this.onDeleteAction = callback;
+    }
 
     private void setupComponent() {
         // Estilo del contenedor principal
@@ -88,7 +103,6 @@ public class CatastropheComponent extends Div {
             fallbackIcon.setSize("24px");
             imageComponent = fallbackIcon;
         }
-
 
         VerticalLayout textContent = new VerticalLayout();
         textContent.setPadding(false);
@@ -127,14 +141,24 @@ public class CatastropheComponent extends Div {
         HorizontalLayout contentLayout = new HorizontalLayout(imageComponent, textContent);
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         contentLayout.setSpacing(true);
-
+        contentLayout.setWidthFull();
 
         add(contentLayout, dateSpan);
 
+        // Menú contextual (click derecho)
+        ContextMenu contextMenu = new ContextMenu(this);
+        contextMenu.setOpenOnClick(false); // Solo se abrirá con click derecho
 
-        addClickListener(event -> getElement().getStyle().set("cursor", "pointer"));
+        contextMenu.addItem("Editar", event -> {
+            if (onEditAction != null) {
+                onEditAction.accept(null);
+            }
+        });
 
 
+
+        // Estilo al pasar el cursor
+        getStyle().set("cursor", "pointer");
         getElement().addEventListener("mouseover", e ->
                 getStyle().set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)"));
         getElement().addEventListener("mouseout", e ->
@@ -142,7 +166,6 @@ public class CatastropheComponent extends Div {
     }
 
     // Getters y setters
-
     public void setName(String name) {
         this.name = name;
         getElement().getChildren()
@@ -172,5 +195,4 @@ public class CatastropheComponent extends Div {
                 .findFirst()
                 .ifPresent(element -> element.setText(date));
     }
-
 }
