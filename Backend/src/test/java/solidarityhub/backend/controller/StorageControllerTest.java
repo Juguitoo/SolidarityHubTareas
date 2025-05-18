@@ -39,9 +39,9 @@ class StorageControllerTest {
     @Test
     void testGetStorages() {
         // Arrange
-        List<Storage> storages = new ArrayList<>();
-        storages.add(createTestStorage(1));
-        storages.add(createTestStorage(2));
+        List<StorageDTO> storages = new ArrayList<>();
+        storages.add(new StorageDTO(createTestStorage(1)));
+        storages.add(new StorageDTO(createTestStorage(2)));
         when(storageService.getStorages()).thenReturn(storages);
 
         // Act

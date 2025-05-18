@@ -1,17 +1,15 @@
 package solidarityhub.backend.service;
 
 import org.springframework.stereotype.Service;
+import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Donation;
 import solidarityhub.backend.model.Donor;
-import solidarityhub.backend.model.Person;
-import solidarityhub.backend.model.Catastrophe;
+import solidarityhub.backend.repository.CatastropheRepository;
 import solidarityhub.backend.repository.DonationRepository;
 import solidarityhub.backend.repository.DonorRepository;
 import solidarityhub.backend.repository.PersonRepository;
-import solidarityhub.backend.repository.CatastropheRepository;
 
 import java.time.LocalDate;
-import java.time.Year;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,13 +17,11 @@ import java.util.Optional;
 public class DonationService {
     private final DonationRepository donationRepository;
     private final CatastropheRepository catastropheRepository;
-    private final PersonRepository personRepository;
     private final DonorRepository donorRepository;
 
     public DonationService(DonationRepository donationRepository, CatastropheRepository catastropheRepository, PersonRepository personRepository, DonorRepository donorRepository) {
         this.donationRepository = donationRepository;
         this.catastropheRepository = catastropheRepository;
-        this.personRepository = personRepository;
         this.donorRepository = donorRepository;
     }
 

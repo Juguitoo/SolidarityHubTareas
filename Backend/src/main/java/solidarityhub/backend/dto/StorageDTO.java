@@ -26,4 +26,10 @@ public class StorageDTO {
         this.name = storage.getName();
         this.isFull = storage.isFull();
     }
+
+    public StorageDTO(int id, String name, boolean isFull) {
+        this.id = id;
+        this.name = name;
+        this.isFull = isFull;
+    }
 }

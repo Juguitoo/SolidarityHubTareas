@@ -29,8 +29,7 @@ public class StorageController {
 
     @GetMapping
     public ResponseEntity<?> getStorages() {
-        List<StorageDTO> storageDTOList = new ArrayList<>();
-        storageService.getStorages().forEach(s -> {storageDTOList.add(new StorageDTO(s));});
+        List<StorageDTO> storageDTOList = storageService.getStorages();
         return ResponseEntity.ok(storageDTOList);
     }
 

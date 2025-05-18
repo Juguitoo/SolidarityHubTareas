@@ -38,7 +38,6 @@ import java.util.Optional;
 @Slf4j
 @PageTitle("Tareas")
 @Route("tasks")
-@Menu(order = 1, icon = LineAwesomeIconUrl.TASKS_SOLID)
 public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     protected static Translator translator;
 

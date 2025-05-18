@@ -12,19 +12,6 @@
     color: #333;
 }
 
-/* Estilo de botones */
-.back-button {
-    background-color: #f0f0f0;
-    color: #333;
-    font-weight: 500;
-    border-radius: 6px;
-    margin-right: 16px;
-}
-
-.back-button:hover {
-    background-color: #e0e0e0;
-}
-
 .search-button {
     background-color: #1676f3;
     color: white;

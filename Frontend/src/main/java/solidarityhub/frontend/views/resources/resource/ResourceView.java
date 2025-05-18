@@ -81,7 +81,7 @@ public class ResourceView extends VerticalLayout{
     //=============================== Grid Methods =========================================
     private List<ResourceDTO> getResourceList() {
         if (selectedCatastrophe != null) {
-            return resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
+            return resourceService.getResources(null, null, null, selectedCatastrophe.getId());
         } else {
             return Collections.emptyList();
         }

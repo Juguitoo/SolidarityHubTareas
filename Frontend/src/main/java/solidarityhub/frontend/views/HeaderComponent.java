@@ -44,14 +44,14 @@ public class HeaderComponent extends Div {
         title.addClassName("title");
 
         Icon bellIcon = new Icon("vaadin", "bell-o");
-        bellIcon.addClassNames("notification-task__icon");
+        bellIcon.addClassName("notification__icon");
 
-        Button suggestedTasksButton = new Button(bellIcon);
-        suggestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("notifications"));
-        suggestedTasksButton.addClassName("notification-task__button");
-        suggestedTasksButton.getElement().setAttribute("title", translator.get("notifications_button_tooltip")); // Tooltip traducido
+        Button notificationButton = new Button(bellIcon);
+        notificationButton.addClassName("notification__button");
+        notificationButton.addClickListener(e -> UI.getCurrent().navigate("notifications"));
+        notificationButton.getElement().setAttribute("title", translator.get("notifications_button_tooltip"));
 
-        add(title, suggestedTasksButton);
+        add(title, notificationButton);
     }
 
     private void initializeTranslator() {

@@ -19,7 +19,7 @@
     width: 100%;
     max-width: 500px;
     height: auto;
-    background-color: white;
+    background-color: var(--background-color);
     border-radius: var(--card-border-radius);
     box-shadow: var(--card-shadow);
 }
@@ -28,37 +28,13 @@
     margin-top: 0;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #e0e0e0;
-    color: #424242;
+    color: var(--text-color);
     text-align: center;
 }
 
 .action-buttons__layout{
     width: 100%;
     margin-left: 15px;
-}
-
-.tasks-button{
-    background-color: blue;
-    color: #fff;
-}
-.tasks-button:hover {
-    background-color: #0056b3;
-}
-
-.notification-task__icon{
-    width: 40px;
-    height: 40px;
-    color: blue;
-}
-
-.notification-task__button{
-    align-self: end;
-    margin-left: auto;
-    background: transparent;
-}
-
-.notification-task__button:hover .notification-task__icon{
-    color: #0056b3;
 }
 
 .need-type{

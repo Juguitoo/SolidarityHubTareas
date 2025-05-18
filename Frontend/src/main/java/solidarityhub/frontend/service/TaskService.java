@@ -69,7 +69,21 @@ public class TaskService {
     }
 
     public List<TaskDTO> getTasksByCatastrophe(int catastropheId) {
-        return BackendDTOObservableService.GetInstancia().getTaskList().getValues().stream().filter(task -> task.getCatastropheId() == catastropheId).collect(Collectors.toList());
+        if(taskCache == null || taskCache.isEmpty()) {
+            try {
+                String url = baseUrl + "/catastrophe/" + catastropheId;
+                ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, TaskDTO[].class);
+                TaskDTO[] tasks = response.getBody();
+                if (tasks != null) {
+                    taskCache = new ArrayList<>(List.of(tasks));
+                } else {
+                    taskCache = new ArrayList<>();
+                }
+            } catch (RestClientException e) {
+                return new ArrayList<>();
+            }
+        }
+        return taskCache;
     }
 
     public List<TaskDTO> getToDoTasksByCatastrophe(int catastropheId, int limit) {
@@ -88,18 +102,16 @@ public class TaskService {
         if(limit <= 0) {
             return getTasksByStatusAndCatastrophe(status, catastropheId);
         }
-        return getTasks().stream()
+        return getTasksByCatastrophe(catastropheId).stream()
                 .filter(task -> status.equals(task.getStatus()))
-                .filter(task -> task.getCatastropheId() == catastropheId)
                 .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
                 .limit(limit)
                 .toList();
     }
 
     private List<TaskDTO> getTasksByStatusAndCatastrophe(Status status, int catastropheId) {
-        return getTasks().stream()
+        return getTasksByCatastrophe(catastropheId).stream()
                 .filter(task -> status.equals(task.getStatus()))
-                .filter(task -> task.getCatastropheId() == catastropheId)
                 .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
                 .toList();
     }
@@ -151,7 +163,7 @@ public class TaskService {
             return new ArrayList<>();
         }
     }
-    // Añadir este método a TaskService.java
+
     public void updateTaskStatus(int id, Status newStatus) {
         try {
             // Obtener la tarea actual

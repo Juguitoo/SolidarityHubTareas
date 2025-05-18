@@ -109,7 +109,7 @@ public class PDFCertificateService {
 
                 // Dibujar tabla para datos de la tarea
                 float tableYTask = tableY - rowHeight * numRows - 50;
-                numRows = 6;
+                numRows = 5;
                 // Dibujar filas horizontales
                 for (int i = 0; i <= numRows; i++) {
                     //if(i == 1 && task.getTaskDescription().length() > )

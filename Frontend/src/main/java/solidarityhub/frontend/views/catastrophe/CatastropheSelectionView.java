@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 
 @PageTitle("Catastrofes")
 @Route("")
-@Menu(order = 0, icon = LineAwesomeIconUrl.CLOUD_RAIN_SOLID)
 public class CatastropheSelectionView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -112,7 +111,6 @@ public class CatastropheSelectionView extends VerticalLayout {
         }
     }
 
-
     private static int getEmergencyLevelWeight(EmergencyLevel level) {
         if (level == null) return 0;
 
@@ -152,7 +150,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         card.addClickListener(e -> {
             taskService.taskCache.clear();
             selectCatastrophe(catastrophe);
-            UI.getCurrent().navigate("tasks");
+            UI.getCurrent().navigate("home");
         });
 
         return card;

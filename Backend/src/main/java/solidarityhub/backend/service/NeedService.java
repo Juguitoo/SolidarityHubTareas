@@ -1,5 +1,6 @@
 package solidarityhub.backend.service;
 
+import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.repository.NeedRepository;
 import org.springframework.stereotype.Service;
