@@ -2,29 +2,24 @@ package solidarityhub.frontend.views.resources.donation;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
-import org.apache.commons.lang3.StringUtils;
-import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.dto.DonationDTO;
 import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.dto.DonationDTO;
 import solidarityhub.frontend.service.DonationService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @PageTitle("Donaciones")
 public class DonationView extends VerticalLayout {
@@ -39,9 +34,10 @@ public class DonationView extends VerticalLayout {
     private Grid.Column<DonationDTO> statusColumn;
     private Grid.Column<DonationDTO> donorColumn;
 
-    private Set<DonationType> typeFilterValues = new HashSet<>();
-    private Set<DonationStatus> statusFilterValues = new HashSet<>();
-    private String donorFilterValue = "";
+    public static String typeFilterValue = "";
+    public static String statusFilterValue = "";
+    public static String yearFilterValue = "";
+    public static String quantityFilterValue = "";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -68,7 +64,7 @@ public class DonationView extends VerticalLayout {
     //===============================Grid Methods=========================================
     private List<DonationDTO> getDonationList() {
         if (selectedCatastrophe != null) {
-            return donationService.getDonationsByCatastrophe(selectedCatastrophe.getId());
+            return donationService.getDonations(typeFilterValue, statusFilterValue, quantityFilterValue, yearFilterValue, selectedCatastrophe.getId());
         } else {
             return Collections.emptyList();
         }
@@ -85,7 +81,6 @@ public class DonationView extends VerticalLayout {
             donationGrid.setDataProvider(donationDataProvider);
 
             getGridColumns();
-            getGridFilters();
         }
 
         donationGrid.addItemDoubleClickListener(event -> {
@@ -114,6 +109,12 @@ public class DonationView extends VerticalLayout {
         Button addDonationButton = new Button("Registrar nueva donación", new Icon("vaadin", "plus"));
         addDonationButton.addClassName("add-resource-button");
 
+        Button filterButton = new Button("Filtrar donaciones", new Icon("vaadin", "filter"));
+        filterButton.addClassName("filter-button");
+
+        Button clearFiltersButton = new Button("Limpiar filtros", new Icon("vaadin", "trash"));
+        clearFiltersButton.addClassName("clear-filters-button");
+
         addDonationButton.addClickListener(e -> {
             AddDonationDialog dialog = new AddDonationDialog(selectedCatastrophe);
             dialog.open();
@@ -124,7 +125,29 @@ public class DonationView extends VerticalLayout {
             });
         });
 
-        HorizontalLayout buttonLayout = new HorizontalLayout(addDonationButton);
+        filterButton.addClickListener(e -> {
+            CompletableFuture<List<String>> filters = openFilterDialog();
+            filters.thenAccept(filterValues -> {
+                if (!filterValues.isEmpty()) {
+                    typeFilterValue = filterValues.get(0);
+                    statusFilterValue = filterValues.get(1);
+                    quantityFilterValue = filterValues.get(2);
+                    yearFilterValue = filterValues.get(3);
+                    refreshDonations();
+                }
+            });
+
+        });
+
+        clearFiltersButton.addClickListener(e -> {
+            typeFilterValue = "";
+            statusFilterValue = "";
+            quantityFilterValue = "";
+            yearFilterValue = "";
+            refreshDonations();
+        });
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(clearFiltersButton, filterButton, addDonationButton);
         buttonLayout.setAlignItems(Alignment.CENTER);
         buttonLayout.setWidthFull();
         buttonLayout.setJustifyContentMode(JustifyContentMode.START);
@@ -133,89 +156,23 @@ public class DonationView extends VerticalLayout {
     }
 
     private void getGridColumns() {
-        donationGrid.addColumn(DonationDTO::getDescription).setHeader("Descripción").setAutoWidth(true);
+        donationGrid.addColumn(DonationDTO::getDescription).setHeader("Descripción").setAutoWidth(true).setSortable(true);
 
-        typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true);
+        typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true).setHeader("Tipo").setSortable(true);
 
         donationGrid.addColumn(donation ->
                         donation.getDate() != null ? donation.getDate().format(DATE_FORMATTER) : "").setHeader("Fecha")
                 .setSortable(true).setAutoWidth(true);
 
         statusColumn = donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus()))
-                .setAutoWidth(true);
+                .setAutoWidth(true).setHeader("Estado").setSortable(true);
 
         donorColumn = donationGrid.addColumn(donation -> donation.getDonorName() != null ? donation.getDonorName() : "Anonimo")
-                .setAutoWidth(true);
+                .setAutoWidth(true).setHeader("Donante").setSortable(true);
 
         donationGrid.addColumn(DonationDTO::getCantidad).setHeader("Cantidad")
-                .setAutoWidth(true);
+                .setAutoWidth(true).setHeader("Cantidad").setSortable(true);
     }
-
-    private void getGridFilters() {
-        MultiSelectComboBox<DonationType> typeFilter = new MultiSelectComboBox<>();
-        typeFilter.setPlaceholder("Filtrar por tipo");
-        typeFilter.setItems(DonationType.values());
-        typeFilter.setItemLabelGenerator(this::formatDonationType);
-        typeFilter.addValueChangeListener(event -> {
-            typeFilterValues = event.getValue();
-            applyAllFilters();
-        });
-        typeColumn.setHeader(getGridFilterHeader("Tipo", typeFilter, typeColumn));
-
-        MultiSelectComboBox<DonationStatus> statusFilter = new MultiSelectComboBox<>();
-        statusFilter.setPlaceholder("Filtrar por estado");
-        statusFilter.setItems(DonationStatus.values());
-        statusFilter.setItemLabelGenerator(this::formatDonationStatus);
-        statusFilter.addValueChangeListener(event -> {
-            statusFilterValues = event.getValue();
-            applyAllFilters();
-        });
-        statusColumn.setHeader(getGridFilterHeader("Estado", statusFilter, statusColumn));
-
-        TextField donorFilter = new TextField();
-        donorFilter.setPlaceholder("Buscar donante");
-        donorFilter.setValueChangeMode(ValueChangeMode.LAZY);
-        donorFilter.setClearButtonVisible(true);
-        donorFilter.addValueChangeListener(event -> {
-            donorFilterValue = event.getValue();
-            applyAllFilters();
-        });
-        donorColumn.setHeader(getGridFilterHeader("Donante", donorFilter, donorColumn));
-    }
-
-    private Component getGridFilterHeader(String headerText, Component filterComponent, Grid.Column<DonationDTO> column) {
-        HorizontalLayout filterHeader = new HorizontalLayout();
-        Span filterTitle = new Span(headerText);
-        filterHeader.setAlignItems(Alignment.CENTER);
-        filterHeader.add(filterTitle, filterComponent);
-
-        column.setHeader(filterHeader);
-
-        return filterHeader;
-    }
-
-    private void applyAllFilters() {
-        donationDataProvider.clearFilters();
-
-        if (!typeFilterValues.isEmpty()) {
-            donationDataProvider.addFilter(donation ->
-                    typeFilterValues.contains(donation.getType()));
-        }
-
-        if (!statusFilterValues.isEmpty()) {
-            donationDataProvider.addFilter(donation ->
-                    statusFilterValues.contains(donation.getStatus()));
-        }
-
-        if (!donorFilterValue.isEmpty()) {
-            donationDataProvider.addFilter(donation ->
-                    (donation.getDonorName() != null &&
-                            StringUtils.containsIgnoreCase(donation.getDonorName(), donorFilterValue)) ||
-                            (donation.getDonorDni() != null &&
-                                    StringUtils.containsIgnoreCase(donation.getDonorDni(), donorFilterValue)));
-        }
-    }
-
     //===============================Format Methods=========================================
     private String formatDonationType(DonationType type) {
         if (type == null) {
@@ -242,4 +199,19 @@ public class DonationView extends VerticalLayout {
         };
     }
 
+    private CompletableFuture<List<String>> openFilterDialog() {
+        FilterDonationsDialog filterDonationsDialog = new FilterDonationsDialog();
+        filterDonationsDialog.setWidth("550px");
+        filterDonationsDialog.setHeight("480px");
+        CompletableFuture<List<String>> future = new CompletableFuture<>();
+        filterDonationsDialog.addOpenedChangeListener(event -> {
+            if (!event.isOpened()) {
+                List<String> filters = filterDonationsDialog.getSelectedFilters();
+                future.complete(filters);
+            }
+        });
+        filterDonationsDialog.open();
+
+        return future;
     }
+}

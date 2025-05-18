@@ -2,14 +2,13 @@ package solidarityhub.backend.criteria.donations;
 
 import solidarityhub.backend.model.Donation;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class DateFilter implements DonationFilter {
-    private Integer year;
+    private int year;
 
-    public DateFilter(Integer year) {
+    public DateFilter(int year) {
         this.year = year;
     }
 

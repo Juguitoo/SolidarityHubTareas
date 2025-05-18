@@ -1,10 +1,6 @@
 package solidarityhub.frontend.service;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -66,17 +62,35 @@ public class DonationService {
         donationCache.clear();
     }
 
-    public List<DonationDTO> getDonations() {
+    public List<DonationDTO> getDonations(String type, String status, String minQuantity, String year, Integer catastropheId) {
         if (donationCache == null || donationCache.isEmpty()) {
             try {
-                ResponseEntity<DonationDTO[]> response = restTemplate.exchange(
-                        baseUrl, HttpMethod.GET, null, DonationDTO[].class);
+                String url = baseUrl;
+                if (type != null && !type.isEmpty()) {
+                    url += "?type=" + type;
+                }
+                if (status != null && !status.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "status=" + status;
+                }
+                if (minQuantity != null && !minQuantity.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "minQuantity=" + minQuantity;
+                }
+                if (year != null && !year.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "year=" + year;
+                }
+                if (catastropheId != null) {
+                    url += (url.contains("?") ? "&" : "?") + "catastropheId=" + catastropheId;
+                }
+
+                ResponseEntity<DonationDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, DonationDTO[].class);
                 DonationDTO[] donations = response.getBody();
+
                 if (donations != null) {
                     donationCache = new ArrayList<>(Arrays.asList(donations));
                 } else {
                     donationCache = new ArrayList<>();
                 }
+
             } catch (RestClientException e) {
                 return new ArrayList<>();
             }

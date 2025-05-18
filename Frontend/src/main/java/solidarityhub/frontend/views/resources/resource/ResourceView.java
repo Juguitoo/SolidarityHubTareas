@@ -81,7 +81,7 @@ public class ResourceView extends VerticalLayout{
     private List<ResourceDTO> getResourceList() {
         if (selectedCatastrophe != null) {
 
-            return resourceService.getResources(String.valueOf(typeFilterValue), String.valueOf(quantityFilterValue), storageFilterValue, selectedCatastrophe.getId());
+            return resourceService.getResources(typeFilterValue, quantityFilterValue, storageFilterValue, selectedCatastrophe.getId());
         } else {
             return Collections.emptyList();
         }

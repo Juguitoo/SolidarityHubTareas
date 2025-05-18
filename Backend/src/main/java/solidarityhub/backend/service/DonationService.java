@@ -66,7 +66,7 @@ public class DonationService {
         return null;
     }
 
-    public List<Donation> filter(String type, String minQuantity, String year, String status, Integer catastropheId) {
+    public List<Donation> filter(String type, String status, String minQuantity, String year, Integer catastropheId) {
         List<Donation> donations = donationRepository.findByCatastropheId(catastropheId);
         DonationFilter filter = null;
 
