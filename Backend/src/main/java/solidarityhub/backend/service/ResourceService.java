@@ -1,10 +1,7 @@
 package solidarityhub.backend.service;
 
 import org.springframework.stereotype.Service;
-import solidarityhub.backend.criteria.*;
-import solidarityhub.backend.criteria.resources.MinQuantityFilter;
-import solidarityhub.backend.criteria.resources.StorageFilter;
-import solidarityhub.backend.criteria.resources.TypeFilter;
+import solidarityhub.backend.criteria.resources.*;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.enums.ResourceType;
 import solidarityhub.backend.repository.ResourceRepository;

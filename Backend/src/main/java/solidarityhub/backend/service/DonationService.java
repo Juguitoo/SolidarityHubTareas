@@ -1,9 +1,12 @@
 package solidarityhub.backend.service;
 
 import org.springframework.stereotype.Service;
+import solidarityhub.backend.criteria.donations.*;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Donation;
 import solidarityhub.backend.model.Donor;
+import solidarityhub.backend.model.enums.DonationStatus;
+import solidarityhub.backend.model.enums.DonationType;
 import solidarityhub.backend.repository.CatastropheRepository;
 import solidarityhub.backend.repository.DonationRepository;
 import solidarityhub.backend.repository.DonorRepository;
@@ -61,5 +64,28 @@ public class DonationService {
         }
 
         return null;
+    }
+
+    public List<Donation> filter(String type, String minQuantity, String year, String status, Integer catastropheId) {
+        List<Donation> donations = donationRepository.findByCatastropheId(catastropheId);
+        DonationFilter filter = null;
+
+        if (type != null)
+            filter = new TypeFilter(DonationType.valueOf(type));
+        if (minQuantity != null)
+            if (filter != null) filter = new AndFilter(filter, new MinQuantityFilter(Double.parseDouble(minQuantity)));
+            else filter = new MinQuantityFilter(Double.parseDouble(minQuantity));
+        if (year != null)
+            if (filter != null) filter = new AndFilter(filter, new DateFilter(Integer.parseInt(year)));
+            else filter = new DateFilter(Integer.parseInt(year));
+        if (status != null)
+            if (filter != null) filter = new AndFilter(filter, new StatusFilter(DonationStatus.valueOf(status)));
+            else filter = new StatusFilter(DonationStatus.valueOf(status));
+
+        if (filter != null) {
+            donations = filter.filter(donations);
+        }
+
+        return donations;
     }
 }

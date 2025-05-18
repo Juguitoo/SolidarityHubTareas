@@ -20,9 +20,18 @@ public class DonationController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getDonations() {
+    public ResponseEntity<?> getDonations(@RequestParam(required = false) String type,
+                                          @RequestParam(required = false) String minQuantity,
+                                          @RequestParam(required = false) String year,
+                                          @RequestParam(required = false) String status,
+                                          @RequestParam Integer catastropheId) {
         List<DonationDTO> donationDTOs = new ArrayList<>();
-        donationService.getAllDonations().forEach(d -> donationDTOs.add(new DonationDTO(d)));
+        if (catastropheId == null) {
+            donationService.getAllDonations().forEach(d -> donationDTOs.add(new DonationDTO(d)));
+            return ResponseEntity.ok(donationDTOs);
+        }
+        donationService.filter(type, minQuantity, year, status, catastropheId)
+                .forEach(d -> donationDTOs.add(new DonationDTO(d)));
         return ResponseEntity.ok(donationDTOs);
     }
 

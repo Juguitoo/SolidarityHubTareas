@@ -49,7 +49,7 @@ class DonationControllerTest {
         when(donationService.getAllDonations()).thenReturn(donations);
 
         // Act
-        ResponseEntity<?> response = donationController.getDonations();
+        ResponseEntity<?> response = donationController.getDonations(null, null, null, null, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
