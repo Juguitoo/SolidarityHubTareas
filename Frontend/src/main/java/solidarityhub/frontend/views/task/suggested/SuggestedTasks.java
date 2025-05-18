@@ -38,7 +38,12 @@ public class SuggestedTasks extends VerticalLayout {
         this.needService = needService;
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
 
-        // Header
+        buildView();
+    }
+
+    private void buildView() {
+        addClassName("suggested-tasks-view");
+
         HeaderComponent header = new HeaderComponent(translator.get("suggested_tasks_button"), "tasks");
 
         setAlignItems(Alignment.CENTER);

@@ -27,8 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @PageTitle("Catastrofes")
-@Route(value = "select-catastrophe")
-@RouteAlias(value = "")
+@Route("")
 public class CatastropheView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -101,22 +100,12 @@ public class CatastropheView extends VerticalLayout {
         }
     }
 
+    //===============================Get Components=========================================
     private Component getAddCatastropheButton() {
         Button addCatastropheButton = new Button(translator.get("add_catastrophe"));
         addCatastropheButton.addClassName("add-catastrophe-button");
         addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
         return addCatastropheButton;
-    }
-
-    private static int getEmergencyLevelWeight(EmergencyLevel level) {
-        if (level == null) return 0;
-
-        return switch (level) {
-            case VERYHIGH -> 4;
-            case HIGH -> 3;
-            case MEDIUM -> 2;
-            case LOW -> 1;
-        };
     }
 
     private CatastropheComponent createCatastropheComponent(CatastropheDTO catastrophe) {
@@ -136,6 +125,17 @@ public class CatastropheView extends VerticalLayout {
         return catastropheComp;
     }
 
+    private static int getEmergencyLevelWeight(EmergencyLevel level) {
+        if (level == null) return 0;
+
+        return switch (level) {
+            case VERYHIGH -> 4;
+            case HIGH -> 3;
+            case MEDIUM -> 2;
+            case LOW -> 1;
+        };
+    }
+
     private void openEditDialog(CatastropheDTO catastrophe) {
         try {
             EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe, catastropheService);
@@ -152,9 +152,6 @@ public class CatastropheView extends VerticalLayout {
         VaadinSession.getCurrent().setAttribute("selectedCatastrophe", catastrophe);
         Notification.show(translator.get("selected_catastrophe") + catastrophe.getName(),
                 3000, Notification.Position.BOTTOM_START);
-
-        // Navegar a home con MainLayout que muestra la barra lateral
-        UI.getCurrent().navigate("home");
     }
 
     private static String formatEmergencyLevel(EmergencyLevel level) {

@@ -1,10 +1,9 @@
-.resources-dialog{
-    width: 50%;
+.main-resource-view{
+    background-color: var(--background-color);
 }
 
-.add-resource-button{
-    background-color: blue;
-    color: #fff;
+.resources-dialog{
+    width: 50%;
 }
 
 .resource__status{
@@ -13,15 +12,15 @@
 }
 
 .status--low{
-    background-color: #ff523c;
+    background-color: var(--accent-color);
 }
 
 .status--medium{
-    background-color: #ffb400;
+    background-color: var(--warning-color);
 }
 
 .status--high{
-    background-color: #00b300;
+    background-color: var(--success-color);
 }
 
 .grid__filter-header{
@@ -36,14 +35,4 @@
 
 .donate__dni-field > input{
     text-transform: uppercase;
-}
-
-.filter-button{
-    background-color: blue;
-    color: #fff;
-}
-
-.clear-filters-button{
-    background-color: blue;
-    color: #fff;
 }

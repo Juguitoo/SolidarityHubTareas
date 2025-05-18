@@ -4,13 +4,12 @@
 @import url('task/addTaskView.css');
 @import url('task/taskComponent.css');
 @import url('catastrophe/catastropheComponent.css');
-@import url('catastrophe/addCatastrophe.css');
 @import url('catastrophe/catastropheView.css');
 @import url('resources/resources.css');
 @import url('home/homeview.css');
+@import url('./notification.css');
 
 :root {
-    --warning-color: #FFC107;
     --warning-color-10pct: rgba(255, 193, 7, 0.1);
     --warning-text-color: #BF8500;
 
@@ -30,18 +29,20 @@
     /* Modo claro */
     --background-color: #f8fbff;
     --surface-color: #ffffff;
-    --text-color: #1f1f1f;
     --need-type-color: #DADFE4;
-    --btn-text-color: #f5f5f5;
     --field-bg-color: #D5D8DE;
+
+    --text-color: #1f1f1f;
+    --placeholder-color: #8a8a8a;
+    --btn-text-color: #f5f5f5;
 
     --primary-color: #2b5dff;
     --primary-light-color: #A9D1FF;
     --primary-dark-color: #1e40c4;
 
     --accent-color: #ff3b3f;
-    --success-color: #4caf50;
-    --warning-color: #ff9800;
+    --success-color: #11d111;
+    --warning-color: #ffb400;
     --info-color: #1976d2;
 
     --sidebar-color: #e7f0ff;
@@ -57,10 +58,12 @@
     /* Modo oscuro */
     --background-color: #121721;
     --surface-color: #1f2530;
-    --text-color: #F0F6FC;
     --need-type-color: #5f5f5f;
-    --btn-text-color: #f5f5f5;
     --field-bg-color: #1e2843;
+
+    --text-color: #F0F6FC;
+    --placeholder-color: #7f8b9d;
+    --btn-text-color: #f5f5f5;
 
     --primary-color: #1e40c4;
     --primary-light-color: #2f5bcf;
@@ -77,13 +80,35 @@
     --card-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
 }
 
-div, h1, h2, h3, p, span, a, label, input, button, select, textarea, ul, li, img, section, header, footer, nav, main, span {
+div, h1, h2, h3, p, span, a, label, button, select, ul, li, img, section, header, footer, nav, main, span {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     color: var(--text-color);
 }
 
+/* Grids */
+vaadin-grid{
+    background-color: var(--background-color);
+    --vaadin-grid-cell-background: var(--background-color);
+    --vaadin-grid-header-background: var(--background-color);
+    --vaadin-grid-footer-background: var(--background-color);
+    --vaadin-grid-row-stripes-background: var(--primary-color);
+    color: var(--text-color);
+    border-color: var(--primary-color);
+    border-radius: 8px;
+}
+
+vaadin-grid::part(row):hover {
+    --vaadin-grid-cell-background: var(--primary-light-color);
+}
+
+vaadin-grid::part(header-cell) {
+    background-color: var(--background-color);
+    border-radius: 8px 8px 0 0;
+}
+
+/* Buttons */
 vaadin-button{
     cursor: pointer;
     background-color: var(--primary-color);
@@ -93,18 +118,55 @@ vaadin-button:hover{
     background-color: var(--primary-dark-color);
 }
 
-vaadin-combo-box-overlay::part(overlay) {
+/* Tabs */
+vaadin-tab{
+    cursor: pointer;
+}
+
+[data-theme="dark"] vaadin-tab{
+    color: var(--placeholder-color);
+}
+
+vaadin-tab[selected]{
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] vaadin-tab:not([selected]):hover{
+    color: var(--lumo-primary-color-60pct);
+}
+
+/* Fields */
+vaadin-text-field, vaadin-number-field, vaadin-integer-field, vaadin-text-area, vaadin-date-picker, vaadin-date-time-picker, vaadin-select, vaadin-combo-box, vaadin-multi-select-combo-box, vaadin-checkbox-group{
+    --vaadin-input-field-background: var(--field-bg-color);
+    --vaadin-input-field-value-color: var(--text-color);
+    --vaadin-input-field-placeholder-color: var(--placeholder-color);
+}
+
+vaadin-text-area:hover::part(input-field),
+vaadin-text-area:hover::part(error-message) {
+    background-color: var(--field-bg-color);
+    border: none;
+    box-shadow: none;
+}
+
+vaadin-combo-box-overlay::part(overlay),
+vaadin-select-overlay::part(overlay),
+vaadin-multi-select-combo-box-overlay::part(overlay) {
     background-color: var(--background-color);
     background-image: none;
     color: var(--text-color);
 }
 
-
-vaadin-combo-box::part(toggle-button){
+vaadin-combo-box::part(toggle-button),
+vaadin-multi-select-combo-box::part(toggle-button) {
     color: var(--text-color);
 }
 
 vaadin-multi-select-combo-box-chip {
+    color: var(--text-color);
+}
+
+vaadin-number-field::part(decrease-button), vaadin-number-field::part(increase-button) {
     color: var(--text-color);
 }
 
@@ -116,6 +178,14 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     background-color: var(--background-color);
 }
 
+[data-theme="dark"] .notification__button {
+    color: var(--btn-text-color);
+}
+
+[data-theme="dark"] .notification__button:hover {
+    background-color: var(--primary-color);
+}
+
 /* Header */
 .header{
     display: flex;
@@ -123,6 +193,7 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     justify-content: space-between;
     position: relative;
     width: 100%;
+    margin-bottom: 0.8rem;
 }
 
 .back-button{
@@ -149,14 +220,6 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     color: var(--btn-text-color);
 }
 
-[data-theme="dark"] .notification__button {
-    color: var(--btn-text-color);
-}
-
-[data-theme="dark"] .notification__button:hover {
-    background-color: var(--primary-color);
-}
-
 .title{
     position: absolute;
     left: 50%;
@@ -165,20 +228,6 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     font-size: 2rem;
     text-align: center;
 }
-
-/* Fields */
-vaadin-text-field, vaadin-number-field, vaadin-text-area, vaadin-date-picker, vaadin-date-time-picker, vaadin-select, vaadin-combo-box, vaadin-checkbox-group{
-    --vaadin-input-field-background: var(--field-bg-color)
-}
-
-/* Desactiva cualquier estilo hover del área completa */
-vaadin-text-area:hover::part(input-field),
-vaadin-text-area:hover::part(error-message) {
-    background-color: var(--field-bg-color);
-    border: none;
-    box-shadow: none;
-}
-
 
 .centered-checkbox-group {
     margin: auto;

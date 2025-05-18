@@ -1,0 +1,21 @@
+.notifications-view{
+    background-color: var(--background-color);
+    height: 100%;
+}
+
+.info-icon{
+    width: 48px;
+    height: 48px;
+    color: var(--placeholder-color);
+}
+
+.no-notifications-title{
+    margin-top: 1rem;
+    color: var(--placeholder-color);
+}
+
+.help-text{
+    text-align: center;
+    max-width: 500px;
+    color: var(--placeholder-color);
+}

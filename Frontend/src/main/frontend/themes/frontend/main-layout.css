@@ -6,8 +6,7 @@ vaadin-app-layout::part(content) {
 
 /* Estilos para la barra superior con el selector de idioma */
 .top-bar {
-  background-color: var(--lumo-base-color);
-  border-bottom: 1px solid var(--lumo-contrast-10pct);
+  background-color: var(--background-color);
   padding: 0 1rem;
   height: 40px;
 }

@@ -50,40 +50,21 @@
     transition: background-color 0.3s ease;
 }
 
-/* Animación de pulso para emergencias muy altas */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
-}
-
-/* ===== BARRA LATERAL: CATÁSTROFE SELECCIONADA ===== */
-
-/* Asegurar que los contenedores padres no limiten el ancho */
-.drawer-content {
-    padding: 0 !important;
-    overflow: hidden;
-}
-
-.drawer-content vaadin-scroller {
-    padding: 0;
-}
-
 /* Estilo para mostrar catástrofe seleccionada en la barra lateral */
 .selected-catastrophe-info {
     padding: 0;
     background-color: rgba(0, 0, 0, 0.1);
     border-bottom: 1px solid var(--lumo-contrast-10pct);
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
     box-sizing: border-box;
 }
 
 /* Contenedor de información de catástrofe */
 .compact-catastrophe-container {
-    padding: 0 !important;
-    margin: 0 !important;
+    padding: 0;
+    margin: 0;
     width: 100%;
     box-sizing: border-box;
 }
@@ -187,6 +168,12 @@
 }
 
 /* Animaciones */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -194,6 +181,13 @@
 
 .selected-catastrophe-info {
     animation: fadeIn 0.3s ease;
+}
+
+/* AddCatastropheView */
+.add-catastrophe-view {
+    background-color: var(--background-color);
+    min-height: 100%;
+    overflow-y: hidden;
 }
 
 /* Ajustes responsive para pantallas pequeñas */

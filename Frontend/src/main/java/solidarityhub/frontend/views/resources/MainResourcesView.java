@@ -44,6 +44,7 @@ public class MainResourcesView extends VerticalLayout implements BeforeEnterObse
     private void buildView() {
         removeAll();
 
+        addClassName("main-resource-view");
         setSizeFull();
 
         HeaderComponent title = new HeaderComponent("Recursos: " + selectedCatastrophe.getName());

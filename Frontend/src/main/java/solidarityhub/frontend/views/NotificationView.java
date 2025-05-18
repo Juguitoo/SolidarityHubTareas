@@ -1,8 +1,8 @@
 package solidarityhub.frontend.views;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
@@ -23,38 +23,14 @@ public class NotificationView extends VerticalLayout {
     public NotificationView() {
         initializeTranslator();
 
-        // Usar el título traducido para el componente de cabecera
+        buildView();
+    }
+
+    private void buildView() {
+        addClassName("notifications-view");
         HeaderComponent header = new HeaderComponent(translator.get("notifications_title"), "window.history.back()");
 
-        // Contenido para mostrar cuando no hay notificaciones
-        VerticalLayout emptyState = new VerticalLayout();
-        emptyState.setAlignItems(Alignment.CENTER);
-        emptyState.setJustifyContentMode(JustifyContentMode.CENTER);
-        emptyState.setSizeFull();
-
-        Icon infoIcon = VaadinIcon.INFO_CIRCLE_O.create();
-        infoIcon.setSize("48px");
-        infoIcon.setColor("var(--lumo-contrast-50pct)");
-
-        H2 noNotificationsTitle = new H2(translator.get("no_notifications"));
-        noNotificationsTitle.getStyle().set("margin-top", "1rem");
-        noNotificationsTitle.getStyle().set("color", "var(--lumo-contrast-70pct)");
-
-        Paragraph helpText = new Paragraph(translator.get("notifications_help_text"));
-        helpText.getStyle().set("text-align", "center");
-        helpText.getStyle().set("max-width", "500px");
-        helpText.getStyle().set("color", "var(--lumo-contrast-50pct)");
-
-        Button suggestedTasksButton = new Button(
-                translator.get("go_to_suggested_tasks"),
-                new Icon(VaadinIcon.ARROW_RIGHT)
-        );
-        suggestedTasksButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        suggestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
-
-        emptyState.add(infoIcon, noNotificationsTitle, helpText, suggestedTasksButton);
-
-        add(header, emptyState);
+        add(header, getEmptyState());
     }
 
     private void initializeTranslator() {
@@ -66,5 +42,27 @@ public class NotificationView extends VerticalLayout {
             UI.getCurrent().setLocale(new Locale("es"));
         }
         translator = new Translator(UI.getCurrent().getLocale());
+    }
+
+    private Component getEmptyState() {
+        VerticalLayout emptyState = new VerticalLayout();
+        emptyState.setAlignItems(Alignment.CENTER);
+        emptyState.setJustifyContentMode(JustifyContentMode.START);
+        emptyState.setSizeFull();
+
+        Icon infoIcon = VaadinIcon.INFO_CIRCLE_O.create();
+        infoIcon.addClassName("info-icon");
+
+        H2 noNotificationsTitle = new H2(translator.get("no_notifications"));
+        noNotificationsTitle.addClassName("no-notifications-title");
+
+        Paragraph helpText = new Paragraph(translator.get("notifications_help_text"));
+        helpText.addClassName("help-text");
+
+        Button suggestedTasksButton = new Button(translator.get("go_to_suggested_tasks"), new Icon(VaadinIcon.ARROW_RIGHT));
+        suggestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
+
+        emptyState.add(infoIcon, noNotificationsTitle, helpText, suggestedTasksButton);
+        return emptyState;
     }
 }

@@ -55,6 +55,10 @@
     background-color: var(--lumo-contrast-10pct);
 }
 
+.suggested-tasks-view{
+    background-color: var(--background-color);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .tasks-lists {

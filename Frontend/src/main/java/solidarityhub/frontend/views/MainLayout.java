@@ -64,6 +64,16 @@ public class MainLayout extends AppLayout {
         UI.getCurrent().addAfterNavigationListener(event -> updateSelectedCatastropheInfo());
     }
 
+    private String getIdiomaActual() {
+        Locale current = UI.getCurrent().getLocale();
+        return switch (current.getLanguage()) {
+            case "en" -> "English";
+            case "va" -> "Valencià";
+            default -> "Español";
+        };
+    }
+
+    //===============================Top bar=========================================
     private Component createTopBar() {
         HorizontalLayout topBar = new HorizontalLayout();
         topBar.addClassName("top-bar");
@@ -120,6 +130,7 @@ public class MainLayout extends AppLayout {
         return toggleTheme;
     }
 
+    //===============================Menu=========================================
     private void addDrawerContent() {
         drawerContent = new VerticalLayout();
         drawerContent.setPadding(false);
@@ -164,51 +175,6 @@ public class MainLayout extends AppLayout {
 
         drawerContent.add(header, selectedCatastropheInfo, scroller, footer);
         addToDrawer(drawerContent);
-    }
-
-    private void updateSelectedCatastropheInfo() {
-        CatastropheDTO selectedCatastrophe =
-                (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-
-        selectedCatastropheInfo.removeAll();
-
-        if (minimized) {
-            selectedCatastropheInfo.setVisible(false);
-            return;
-        }
-
-        if (selectedCatastrophe != null) {
-            VerticalLayout infoLayout = new VerticalLayout();
-            infoLayout.setSpacing(false);
-            infoLayout.setPadding(false);
-
-            // Título "Catástrofe seleccionada:"
-            H4 title = new H4(translator.get("selected_catastrophe"));
-            title.addClassName("selected-catastrophe-title");
-
-            // Nombre de la catástrofe
-            Paragraph catastropheName = new Paragraph(selectedCatastrophe.getName());
-            catastropheName.addClassName("selected-catastrophe-name");
-
-            // Botón para cambiar de catástrofe
-            Button changeButton = new Button(translator.get("change_catastrophe"), VaadinIcon.EXCHANGE.create());
-            changeButton.addClassName("change-catastrophe-button");
-            changeButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheView.class));
-
-            infoLayout.add(title, catastropheName, changeButton);
-            selectedCatastropheInfo.add(infoLayout);
-            selectedCatastropheInfo.setVisible(true);
-        } else {
-            // Si no hay catástrofe seleccionada, mostrar un mensaje o redirigir
-            Button selectButton = new Button(translator.get("select_catastrophe_title"), VaadinIcon.PLUS.create());
-            selectButton.addClassName("select-catastrophe-button");
-            selectButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheView.class));
-            H4 no_catastrophe = new H4(translator.get("no_selected_catastrophe"));
-            no_catastrophe.addClassName("no-catastrophe-title");
-
-            selectedCatastropheInfo.add(no_catastrophe, selectButton);
-            selectedCatastropheInfo.setVisible(true);
-        }
     }
 
     private void toggleDrawerMinimized() {
@@ -307,12 +273,49 @@ public class MainLayout extends AppLayout {
         return item;
     }
 
-    private String getIdiomaActual() {
-        Locale current = UI.getCurrent().getLocale();
-        return switch (current.getLanguage()) {
-            case "en" -> "English";
-            case "va" -> "Valencià";
-            default -> "Español";
-        };
+    private void updateSelectedCatastropheInfo() {
+        CatastropheDTO selectedCatastrophe =
+                (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+
+        selectedCatastropheInfo.removeAll();
+
+        if (minimized) {
+            selectedCatastropheInfo.setVisible(false);
+            return;
+        }
+
+        if (selectedCatastrophe != null) {
+            VerticalLayout infoLayout = new VerticalLayout();
+            infoLayout.setSpacing(false);
+            infoLayout.setPadding(false);
+
+            // Título "Catástrofe seleccionada:"
+            H4 title = new H4(translator.get("selected_catastrophe"));
+            title.addClassName("selected-catastrophe-title");
+
+            // Nombre de la catástrofe
+            Paragraph catastropheName = new Paragraph(selectedCatastrophe.getName());
+            catastropheName.addClassName("selected-catastrophe-name");
+
+            // Botón para cambiar de catástrofe
+            Button changeButton = new Button(translator.get("change_catastrophe"), VaadinIcon.EXCHANGE.create());
+            changeButton.addClassName("change-catastrophe-button");
+            changeButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheView.class));
+
+            infoLayout.add(title, catastropheName, changeButton);
+            selectedCatastropheInfo.add(infoLayout);
+            selectedCatastropheInfo.setVisible(true);
+        } else {
+            // Si no hay catástrofe seleccionada, mostrar un mensaje o redirigir
+            Button selectButton = new Button(translator.get("select_catastrophe_title"), VaadinIcon.PLUS.create());
+            selectButton.addClassName("select-catastrophe-button");
+            selectButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheView.class));
+            H4 no_catastrophe = new H4(translator.get("no_selected_catastrophe"));
+            no_catastrophe.addClassName("no-catastrophe-title");
+
+            selectedCatastropheInfo.add(no_catastrophe, selectButton);
+            selectedCatastropheInfo.setVisible(true);
+        }
     }
+
 }

@@ -189,7 +189,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     //===============================Get Components=========================================
     protected Component getHeader(){
-        return new HeaderComponent(translator.get("add_task_title"), "tasks");
+        return new HeaderComponent(translator.get("add_task_title"), "window.history.back()");
     }
 
     protected Component getPreview(){
@@ -257,7 +257,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
         addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation);
 
-        //Update endDateTimePicker min value when startDateTimePicker changes
         starDateTimePicker.addValueChangeListener(event -> {
             LocalDate startValue;
             try {

@@ -56,21 +56,11 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     private Set<EmergencyLevel> emergencyFilterValues = new HashSet<>();
 
     public MoreTasks() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        initializeTranslator();
 
         this.taskService = new TaskService();
 
         this.taskGrid = new Grid<>(TaskDTO.class, false);
-        taskGrid.addClassName("moreTasks_grid");
-        taskGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        taskGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
     }
 
     @Override
@@ -97,8 +87,22 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
                 translator.get("task_view_title") + selectedCatastrophe.getName(), "tasks"
         );
 
+        taskGrid.addClassName("moreTasks_grid");
+        taskGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+
         add(header, taskGrid);
         populateTaskGrid();
+    }
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     // ===============================Get Grid Items=========================================
@@ -120,7 +124,6 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
             taskGrid.setVisible(true);
             taskGrid.setDataProvider(tasksDataProvider);
 
-            // Definimos las columnas con sus filtros
             setupColumns();
             setupFilters();
         }
