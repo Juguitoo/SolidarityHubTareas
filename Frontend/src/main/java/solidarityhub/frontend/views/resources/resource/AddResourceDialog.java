@@ -13,11 +13,11 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.VaadinSession;
+import org.pingu.domain.enums.ResourceType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.i18n.Translator;
-import org.pingu.domain.enums.ResourceType;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
 

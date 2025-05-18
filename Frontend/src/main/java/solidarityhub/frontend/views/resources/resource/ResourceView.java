@@ -2,28 +2,28 @@ package solidarityhub.frontend.views.resources.resource;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
-import org.apache.commons.lang3.StringUtils;
-import solidarityhub.frontend.dto.StorageDTO;
-import solidarityhub.frontend.service.CatastropheService;
+import org.pingu.domain.enums.ResourceType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
-import org.pingu.domain.enums.ResourceType;
+import solidarityhub.frontend.dto.StorageDTO;
+import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 @PageTitle("Recursos")
@@ -43,10 +43,9 @@ public class ResourceView extends VerticalLayout{
     private Grid.Column<ResourceDTO> storageColumn;
     private Grid.Column<ResourceDTO> statusColumn;
 
-    private String nameFilterValue = "";
-    private Set<ResourceType> typeFilterValues = new HashSet<>();
-    private Set<String> storageFilterValues = new HashSet<>();
-    private Set<String> statusFilterValues = new HashSet<>();
+    public static String quantityFilterValue = "";
+    public static String typeFilterValue = "";
+    public static String storageFilterValue = "";
 
     private final HashMap<Integer, StorageDTO> storageDTOMap = new HashMap<>();
     private final List<String> storageNames = new ArrayList<>();
@@ -81,7 +80,8 @@ public class ResourceView extends VerticalLayout{
     //=============================== Grid Methods =========================================
     private List<ResourceDTO> getResourceList() {
         if (selectedCatastrophe != null) {
-            return resourceService.getResources(null, null, null, selectedCatastrophe.getId());
+
+            return resourceService.getResources(String.valueOf(typeFilterValue), String.valueOf(quantityFilterValue), storageFilterValue, selectedCatastrophe.getId());
         } else {
             return Collections.emptyList();
         }
@@ -98,7 +98,6 @@ public class ResourceView extends VerticalLayout{
             resourceGrid.setDataProvider(resourceDataProvider);
 
             getGridColumns();
-            getGridFilter();
         }
 
         resourceGrid.addItemDoubleClickListener(event -> {
@@ -127,6 +126,12 @@ public class ResourceView extends VerticalLayout{
         Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
         addResourceButton.addClassName("add-resource-button");
 
+        Button filterButton = new Button("Filtrar recursos", new Icon("vaadin", "filter"));
+        filterButton.addClassName("filter-button");
+
+        Button clearFiltersButton = new Button("Limpiar filtros", new Icon("vaadin", "trash"));
+        clearFiltersButton.addClassName("clear-filters-button");
+
         AddResourceDialog addResourceDialog = new AddResourceDialog(selectedCatastrophe);
         addResourceButton.addClickListener(e -> {
             addResourceDialog.open();
@@ -137,7 +142,27 @@ public class ResourceView extends VerticalLayout{
             });
         });
 
-        HorizontalLayout filterLayout = new HorizontalLayout(addResourceButton);
+        filterButton.addClickListener(e -> {
+            CompletableFuture<List<String>> filters = openFilterDialog();
+            filters.thenAccept(filterValues -> {
+                if (!filterValues.isEmpty()) {
+                    typeFilterValue = filterValues.get(0);
+                    storageFilterValue = filterValues.get(1);
+                    quantityFilterValue = filterValues.get(2);
+                    refreshResources();
+                }
+            });
+
+        });
+
+        clearFiltersButton.addClickListener(e -> {
+            typeFilterValue = "";
+            storageFilterValue = "";
+            quantityFilterValue = "";
+            refreshResources();
+        });
+
+        HorizontalLayout filterLayout = new HorizontalLayout(clearFiltersButton, filterButton, addResourceButton);
         filterLayout.setAlignItems(Alignment.CENTER);
         filterLayout.setWidthFull();
         filterLayout.setJustifyContentMode(JustifyContentMode.START);
@@ -146,9 +171,9 @@ public class ResourceView extends VerticalLayout{
     }
 
     private void getGridColumns(){
-        nameColumn = resourceGrid.addColumn(ResourceDTO::getName).setAutoWidth(true);
+        nameColumn = resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre").setAutoWidth(true).setSortable(true);
 
-        typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType())).setAutoWidth(true);
+        typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType())).setHeader("Tipo").setAutoWidth(true).setSortable(true);
 
         resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad").setAutoWidth(true);
 
@@ -158,49 +183,9 @@ public class ResourceView extends VerticalLayout{
                     } else {
                         return "No asignado";
                     }
-                }).setAutoWidth(true);
+                }).setHeader("Almacen").setAutoWidth(true).setSortable(true);
 
-        statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(this::getResourceStatus)).setAutoWidth(true);
-    }
-
-    private void getGridFilter() {
-        TextField nameFilter = new TextField();
-        nameFilter.setPlaceholder("Buscar recurso");
-        nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
-        nameFilter.setClearButtonVisible(true);
-        nameFilter.addValueChangeListener(event -> {
-            nameFilterValue = event.getValue();
-            applyAllFilters();
-        });
-        nameColumn.setHeader(getGridFilterHeader("Nombre", nameFilter));
-
-        MultiSelectComboBox<ResourceType> typeFilter = new MultiSelectComboBox<>();
-        typeFilter.setPlaceholder("Filtrar por tipo");
-        typeFilter.setItems(ResourceType.values());
-        typeFilter.setItemLabelGenerator(this::translateResourceType);
-        typeFilter.addValueChangeListener(event -> {
-            typeFilterValues = event.getValue();
-            applyAllFilters();
-        });
-        typeColumn.setHeader(getGridFilterHeader("Tipo", typeFilter));
-
-        MultiSelectComboBox<String> storageFilter = new MultiSelectComboBox<>();
-        storageFilter.setPlaceholder("Filtrar por almacén");
-        storageFilter.setItems(storageNames);
-        storageFilter.addValueChangeListener(event -> {
-            storageFilterValues = event.getValue();
-            applyAllFilters();
-        });
-        storageColumn.setHeader(getGridFilterHeader("Almacén", storageFilter));
-
-        MultiSelectComboBox<String> statusFilter = new MultiSelectComboBox<>();
-        statusFilter.setPlaceholder("Filtrar por estado");
-        statusFilter.setItems("Stock bajo", "Stock medio", "Stock alto", "Stock no disponible");
-        statusFilter.addValueChangeListener(event -> {
-            statusFilterValues = event.getValue();
-            applyAllFilters();
-        });
-        statusColumn.setHeader(getGridFilterHeader("Estado", statusFilter));
+        statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(this::getResourceStatus)).setHeader("Estado").setAutoWidth(true);
     }
 
     private Span getResourceStatus(ResourceDTO resource) {
@@ -229,46 +214,21 @@ public class ResourceView extends VerticalLayout{
         return badge;
     }
 
-    private Component getGridFilterHeader(String headerText, Component filterComponent) {
-        HorizontalLayout filterHeader = new HorizontalLayout();
-        Span filterTitle = new Span(headerText);
-        filterHeader.setAlignItems(Alignment.CENTER);
-        filterTitle.addClassName("grid__filter-title");
-        filterHeader.add(filterTitle, filterComponent);
-
-        filterHeader.addClassName("grid__filter-header");
-
-        return filterHeader;
-    }
-
     //=============================== Other Methods =========================================
-    private void applyAllFilters() {
-        resourceDataProvider.clearFilters();
+    private CompletableFuture<List<String>> openFilterDialog() {
+        FilterResourcesDialog filterResourcesDialog = new FilterResourcesDialog();
+        filterResourcesDialog.setWidth("550px");
+        filterResourcesDialog.setHeight("480px");
+        CompletableFuture<List<String>> future = new CompletableFuture<>();
+        filterResourcesDialog.addOpenedChangeListener(event -> {
+            if (!event.isOpened()) {
+                List<String> filters = filterResourcesDialog.getSelectedFilters();
+                future.complete(filters);
+            }
+        });
+        filterResourcesDialog.open();
 
-        if (!nameFilterValue.isEmpty()) {
-            resourceDataProvider.addFilter(resource ->
-                    StringUtils.containsIgnoreCase(resource.getName(), nameFilterValue));
-        }
-
-        if (!typeFilterValues.isEmpty()) {
-            resourceDataProvider.addFilter(resource ->
-                    typeFilterValues.contains(resource.getType()));
-        }
-
-        if (!storageFilterValues.isEmpty()) {
-            resourceDataProvider.addFilter(resource -> {
-                String storageName = resource.getStorageId() != null ?
-                        storageDTOMap.get(resource.getStorageId()).getName() :
-                        "No asignado";
-                return storageFilterValues.contains(storageName);
-            });
-        }
-
-        if (!statusFilterValues.isEmpty()) {
-            resourceDataProvider.addFilter(resource -> {
-                return statusFilterValues.contains(getResourceStatus(resource).getText());
-            });
-        }
+        return future;
     }
 
     private String translateResourceType(ResourceType type) {

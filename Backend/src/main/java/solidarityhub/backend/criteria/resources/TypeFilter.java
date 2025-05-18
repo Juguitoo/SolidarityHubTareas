@@ -1,5 +1,6 @@
-package solidarityhub.backend.criteria;
+package solidarityhub.backend.criteria.resources;
 
+import solidarityhub.backend.criteria.ResourceFilter;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.enums.ResourceType;
 

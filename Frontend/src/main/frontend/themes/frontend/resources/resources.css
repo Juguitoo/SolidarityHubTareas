@@ -37,3 +37,13 @@
 .donate__dni-field > input{
     text-transform: uppercase;
 }
+
+.filter-button{
+    background-color: blue;
+    color: #fff;
+}
+
+.clear-filters-button{
+    background-color: blue;
+    color: #fff;
+}

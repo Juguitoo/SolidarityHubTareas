@@ -1,12 +1,12 @@
 package solidarityhub.frontend.service;
 
+import org.pingu.domain.enums.ResourceType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.ResourceDTO;
-import org.pingu.domain.enums.ResourceType;
 
 import java.util.ArrayList;
 import java.util.List;
