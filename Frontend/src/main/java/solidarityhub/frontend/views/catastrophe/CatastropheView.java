@@ -1,24 +1,23 @@
 package solidarityhub.frontend.views.catastrophe;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
 import org.pingu.domain.enums.EmergencyLevel;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -27,19 +26,21 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 @PageTitle("Catastrofes")
-@Route("")
-public class CatastropheSelectionView extends VerticalLayout {
+@Route(value = "select-catastrophe")
+@RouteAlias(value = "")
+public class CatastropheView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final Logger LOGGER = Logger.getLogger(CatastropheSelectionView.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CatastropheView.class.getName());
     private static Translator translator;
-    private final CatastropheService catastropheService;
 
-    @Autowired
-    public CatastropheSelectionView(CatastropheService catastropheService, TaskService taskService) {
-        this.catastropheService = catastropheService;
+    private final CatastropheService catastropheService;
+    private final TaskService taskService;
+
+    public CatastropheView() {
+        this.catastropheService = new CatastropheService();
+        this.taskService = new TaskService();
 
         VaadinSession.getCurrent().setAttribute("cache", true);
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
@@ -51,57 +52,46 @@ public class CatastropheSelectionView extends VerticalLayout {
         }
         translator = new Translator(UI.getCurrent().getLocale());
 
-        // Configuración de la vista
-        addClassName("catastrophe-selection-view");
+        buildView();
+    }
+
+    private void buildView() {
+        addClassName("catastrophe-view");
         setSizeFull();
-        setPadding(true);
-        setSpacing(true);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 
-        // Crear componentes de encabezado
-        H1 title = new H1(translator.get("select_catastrophe_title"));
-        title.addClassName("selection-title");
-        title.getStyle().set("margin-top", "20px");
+        HeaderComponent header = new HeaderComponent(translator.get("select_catastrophe_title"));
 
         Paragraph subtitle = new Paragraph(translator.get("select_catastrophe_subtitle"));
         subtitle.addClassName("selection-subtitle");
 
-        // Contenedor para las tarjetas de catástrofes
-        FlexLayout cardsContainer = new FlexLayout();
-        cardsContainer.addClassName("catastrophes-container");
-        cardsContainer.getStyle().set("margin-top", "10px");
+        HorizontalLayout buttonsLayout = new HorizontalLayout();
+        buttonsLayout.setWidthFull();
+        buttonsLayout.add(getAddCatastropheButton());
+
+        add(header, subtitle, buttonsLayout);
+
+        VerticalLayout catastrophesContainer = new VerticalLayout();
+        catastrophesContainer.addClassName("catastrophes-container");
 
         try {
-            // Obtener las catástrofes
             List<CatastropheDTO> catastrophes = catastropheService.getAllCatastrophes();
 
             if (catastrophes.isEmpty()) {
-                add(title, subtitle, new H3(translator.get("no_catastrophes_found")));
-
-                Button addCatastropheButton = new Button(translator.get("add_catastrophe"));
-                addCatastropheButton.addClassName("add-catastrophe-button");
-                addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
-                add(addCatastropheButton);
+                add(new H3(translator.get("no_catastrophes_found")));
             } else {
-                // Añadir primero los componentes de título y subtítulo
-                add(title, subtitle);
+                catastrophes.sort(Comparator.comparing((CatastropheDTO c) -> getEmergencyLevelWeight(c.getEmergencyLevel())).reversed());
 
-                // Ordenar las catástrofes por nivel de emergencia (MUY ALTO primero)
-                catastrophes.sort(Comparator.comparing((CatastropheDTO c) -> {
-                    // Ordenar de mayor a menor nivel de emergencia
-                    return getEmergencyLevelWeight(c.getEmergencyLevel());
-                }).reversed());
-
-                // Luego agregar las tarjetas de catástrofes ordenadas
                 for (CatastropheDTO catastrophe : catastrophes) {
-                    cardsContainer.add(createCatastropheCard(catastrophe, taskService));
+                    CatastropheComponent catastropheComp = createCatastropheComponent(catastrophe);
+                    catastropheComp.addClickListener(e -> {
+                        taskService.taskCache.clear();
+                        selectCatastrophe(catastrophe);
+                        UI.getCurrent().navigate("home");
+                    });
+                    catastrophesContainer.add(catastropheComp);
                 }
-                add(cardsContainer);
-
-                Button addCatastropheButton = new Button(translator.get("add_new_catastrophe"));
-                addCatastropheButton.addClassName("add-catastrophe-button");
-                addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
-                add(addCatastropheButton);
+                add(catastrophesContainer);
             }
         } catch (Exception e) {
             Notification.show(translator.get("error_loading_catastrophes") + ": " + e.getMessage(),
@@ -109,6 +99,13 @@ public class CatastropheSelectionView extends VerticalLayout {
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             LOGGER.log(Level.SEVERE, translator.get("error_loading_catastrophes"), e);
         }
+    }
+
+    private Component getAddCatastropheButton() {
+        Button addCatastropheButton = new Button(translator.get("add_catastrophe"));
+        addCatastropheButton.addClassName("add-catastrophe-button");
+        addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
+        return addCatastropheButton;
     }
 
     private static int getEmergencyLevelWeight(EmergencyLevel level) {
@@ -122,15 +119,7 @@ public class CatastropheSelectionView extends VerticalLayout {
         };
     }
 
-    private VerticalLayout createCatastropheCard(CatastropheDTO catastrophe, TaskService taskService) {
-        VerticalLayout card = new VerticalLayout();
-        card.addClassName("catastrophe-selection-card");
-
-        // Aplicar estilo según nivel de emergencia
-        String emergencyClass = getEmergencyLevelClass(catastrophe.getEmergencyLevel());
-        card.addClassName(emergencyClass);
-
-        // Crear la tarjeta con el componente personalizado
+    private CatastropheComponent createCatastropheComponent(CatastropheDTO catastrophe) {
         CatastropheComponent catastropheComp = new CatastropheComponent(
                 catastrophe.getName(),
                 catastrophe.getDescription(),
@@ -139,24 +128,14 @@ public class CatastropheSelectionView extends VerticalLayout {
                 translator.get("emergency_level") + formatEmergencyLevel(catastrophe.getEmergencyLevel())
         );
 
-        // Configurar acciones del menú contextual
+        String emergencyClass = getEmergencyLevelClass(catastrophe.getEmergencyLevel());
+        catastropheComp.addClassName(emergencyClass);
+
         catastropheComp.setOnEditAction(v -> openEditDialog(catastrophe));
 
-        card.add(catastropheComp);
-        card.setPadding(false);
-        card.setSpacing(false);
-
-        // Al hacer clic izquierdo, se selecciona esta catástrofe
-        card.addClickListener(e -> {
-            taskService.taskCache.clear();
-            selectCatastrophe(catastrophe);
-            UI.getCurrent().navigate("home");
-        });
-
-        return card;
+        return catastropheComp;
     }
 
-    // Método para abrir el diálogo de edición
     private void openEditDialog(CatastropheDTO catastrophe) {
         try {
             EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe, catastropheService);
@@ -168,13 +147,14 @@ public class CatastropheSelectionView extends VerticalLayout {
         }
     }
 
-
-
     private static void selectCatastrophe(CatastropheDTO catastrophe) {
         // Guardar la catástrofe seleccionada en la sesión
         VaadinSession.getCurrent().setAttribute("selectedCatastrophe", catastrophe);
         Notification.show(translator.get("selected_catastrophe") + catastrophe.getName(),
                 3000, Notification.Position.BOTTOM_START);
+
+        // Navegar a home con MainLayout que muestra la barra lateral
+        UI.getCurrent().navigate("home");
     }
 
     private static String formatEmergencyLevel(EmergencyLevel level) {

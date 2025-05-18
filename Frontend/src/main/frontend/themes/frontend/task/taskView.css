@@ -19,7 +19,7 @@
     width: 100%;
     max-width: 500px;
     height: auto;
-    background-color: var(--background-color);
+    background-color: var(--primary-light-color);
     border-radius: var(--card-border-radius);
     box-shadow: var(--card-shadow);
 }
@@ -38,7 +38,7 @@
 }
 
 .need-type{
-    background-color: #DADFE4;
+    background-color: var(--need-type-color);
     border-radius: 4px;
     padding: 4px;
     text-align: center;

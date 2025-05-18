@@ -19,7 +19,7 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
+import solidarityhub.frontend.views.catastrophe.CatastropheView;
 import solidarityhub.frontend.views.home.HomeView;
 import solidarityhub.frontend.views.resources.MainResourcesView;
 import solidarityhub.frontend.views.task.TaskView;
@@ -193,7 +193,7 @@ public class MainLayout extends AppLayout {
             // Botón para cambiar de catástrofe
             Button changeButton = new Button(translator.get("change_catastrophe"), VaadinIcon.EXCHANGE.create());
             changeButton.addClassName("change-catastrophe-button");
-            changeButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheSelectionView.class));
+            changeButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheView.class));
 
             infoLayout.add(title, catastropheName, changeButton);
             selectedCatastropheInfo.add(infoLayout);
@@ -202,7 +202,7 @@ public class MainLayout extends AppLayout {
             // Si no hay catástrofe seleccionada, mostrar un mensaje o redirigir
             Button selectButton = new Button(translator.get("select_catastrophe_title"), VaadinIcon.PLUS.create());
             selectButton.addClassName("select-catastrophe-button");
-            selectButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheSelectionView.class));
+            selectButton.addClickListener(e -> UI.getCurrent().navigate(CatastropheView.class));
             H4 no_catastrophe = new H4(translator.get("no_selected_catastrophe"));
             no_catastrophe.addClassName("no-catastrophe-title");
 

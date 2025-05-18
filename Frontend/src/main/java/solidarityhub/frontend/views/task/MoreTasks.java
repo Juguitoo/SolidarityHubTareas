@@ -25,7 +25,7 @@ import org.pingu.domain.enums.Status;
 import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.catastrophe.CatastropheSelectionView;
+import solidarityhub.frontend.views.catastrophe.CatastropheView;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -81,7 +81,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
             Notification.show(translator.get("select_catastrophe_warning"),
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            event.forwardTo(CatastropheSelectionView.class);
+            event.forwardTo(CatastropheView.class);
             return;
         }
 
