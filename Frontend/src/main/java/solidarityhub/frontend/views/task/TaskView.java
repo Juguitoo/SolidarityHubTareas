@@ -60,7 +60,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         //BackendDTOObservableService.GetInstancia().getTaskList().getValues().attach(this, ObserverChange.ADD_ALL);
 
         this.taskService = new TaskService();
-        this.formatService = new FormatService();
+        this.formatService = FormatService.getInstance();
         this.catastropheService = new CatastropheService();
     }
 
