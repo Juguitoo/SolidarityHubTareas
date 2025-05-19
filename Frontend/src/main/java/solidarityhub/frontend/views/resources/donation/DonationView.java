@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resources.donation;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -10,15 +11,18 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.DonationService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 @PageTitle("Donaciones")
@@ -40,12 +44,22 @@ public class DonationView extends VerticalLayout {
     public static String quantityFilterValue = "";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final Translator translator;
 
     public DonationView(CatastropheDTO catastrophe) {
         this.donationService = new DonationService();
         this.selectedCatastrophe = catastrophe;
 
         this.donationGrid = new Grid<>(DonationDTO.class, false);
+
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
 
         setSizeFull();
         addClassName("donations-view");
@@ -75,7 +89,7 @@ public class DonationView extends VerticalLayout {
 
         if (donationDataProvider.getItems().isEmpty()) {
             donationGrid.setVisible(false);
-            add(new Span("No hay donaciones disponibles para esta catástrofe."));
+            add(new Span(translator.get("no_donations")));
         } else {
             donationGrid.setVisible(true);
             donationGrid.setDataProvider(donationDataProvider);
@@ -106,13 +120,13 @@ public class DonationView extends VerticalLayout {
 
     //===============================Get Components=========================================
     private Component getButtons() {
-        Button addDonationButton = new Button("Registrar nueva donación", new Icon("vaadin", "plus"));
+        Button addDonationButton = new Button(translator.get("add_donation_button"), new Icon("vaadin", "plus"));
         addDonationButton.addClassName("add-resource-button");
 
-        Button filterButton = new Button("Filtrar donaciones", new Icon("vaadin", "filter"));
+        Button filterButton = new Button(translator.get("filter_donations"), new Icon("vaadin", "filter"));
         filterButton.addClassName("filter-button");
 
-        Button clearFiltersButton = new Button("Limpiar filtros", new Icon("vaadin", "trash"));
+        Button clearFiltersButton = new Button(translator.get("clear_filters"), new Icon("vaadin", "trash"));
         clearFiltersButton.addClassName("clear-filters-button");
 
         addDonationButton.addClickListener(e -> {
@@ -156,22 +170,22 @@ public class DonationView extends VerticalLayout {
     }
 
     private void getGridColumns() {
-        donationGrid.addColumn(DonationDTO::getDescription).setHeader("Descripción").setAutoWidth(true).setSortable(true);
+        donationGrid.addColumn(DonationDTO::getDescription).setHeader(translator.get("donation_description")).setAutoWidth(true).setSortable(true);
 
-        typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true).setHeader("Tipo").setSortable(true);
+        typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true).setHeader(translator.get("donation_type")).setSortable(true);
 
         donationGrid.addColumn(donation ->
-                        donation.getDate() != null ? donation.getDate().format(DATE_FORMATTER) : "").setHeader("Fecha")
+                        donation.getDate() != null ? donation.getDate().format(DATE_FORMATTER) : "").setHeader(translator.get("donation_date"))
                 .setSortable(true).setAutoWidth(true);
 
         statusColumn = donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus()))
-                .setAutoWidth(true).setHeader("Estado").setSortable(true);
+                .setAutoWidth(true).setHeader(translator.get("donation_status")).setSortable(true);
 
         donorColumn = donationGrid.addColumn(donation -> donation.getDonorName() != null ? donation.getDonorName() : "Anonimo")
-                .setAutoWidth(true).setHeader("Donante").setSortable(true);
+                .setAutoWidth(true).setHeader(translator.get("donation_donor")).setSortable(true);
 
-        donationGrid.addColumn(DonationDTO::getCantidad).setHeader("Cantidad")
-                .setAutoWidth(true).setHeader("Cantidad").setSortable(true);
+        donationGrid.addColumn(DonationDTO::getCantidad).setHeader(translator.get("donation_amount"))
+                .setAutoWidth(true).setSortable(true);
     }
     //===============================Format Methods=========================================
     private String formatDonationType(DonationType type) {
@@ -180,9 +194,9 @@ public class DonationView extends VerticalLayout {
         }
 
         return switch (type) {
-            case FINANCIAL -> "Económica";
-            case MATERIAL -> "Material";
-            case SERVICE -> "Servicio";
+            case FINANCIAL -> translator.get("donation_type_financial");
+            case MATERIAL -> translator.get("donation_type_material");
+            case SERVICE -> translator.get("donation_type_service");
         };
     }
 
@@ -192,10 +206,10 @@ public class DonationView extends VerticalLayout {
         }
 
         return switch (status) {
-            case COMPLETED -> "Completada";
-            case IN_PROGRESS -> "En proceso";
-            case SCHEDULED -> "Programada";
-            case CANCELLED -> "Cancelada";
+            case COMPLETED -> translator.get("donation_status_completed");
+            case IN_PROGRESS -> translator.get("donation_status_in_progress");
+            case SCHEDULED -> translator.get("donation_status_scheduled");
+            case CANCELLED -> translator.get("donation_status_cancelled");
         };
     }
 

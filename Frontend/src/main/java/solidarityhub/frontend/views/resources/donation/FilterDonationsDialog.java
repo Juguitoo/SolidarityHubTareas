@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resources.donation;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.Icon;
@@ -10,11 +11,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
+import solidarityhub.frontend.i18n.Translator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class FilterDonationsDialog extends Dialog {
 
@@ -23,13 +27,24 @@ public class FilterDonationsDialog extends Dialog {
     private NumberField quantityFilter = new NumberField();
     private IntegerField yearFilter = new IntegerField();
 
+    private final Translator translator;
+
     public FilterDonationsDialog() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         buildView();
         loadFiltersData();
     }
 
     public void buildView() {
-        setHeaderTitle("Filtrar donaciones");
+        setHeaderTitle(translator.get("filter_donation_title"));
 
         add(getFilters());
         getFooter().add(getButtons());
@@ -54,9 +69,10 @@ public class FilterDonationsDialog extends Dialog {
         VerticalLayout filters = new VerticalLayout();
 
         donationTypeFilter.setItems(DonationType.values());
+        donationTypeFilter.setItemLabelGenerator(this::formatDonationType);
         donationTypeFilter.setWidthFull();
-        donationTypeFilter.setLabel("Tipo de donación:");
-        donationTypeFilter.setHelperText("Tipo de donación a filtrar");
+        donationTypeFilter.setLabel(translator.get("filter_donation_type_title") + ":");
+        donationTypeFilter.setHelperText(translator.get("filter_donation_type_helper"));
 
         HorizontalLayout typeFilterLayout = new HorizontalLayout();
         typeFilterLayout.setWidthFull();
@@ -64,27 +80,28 @@ public class FilterDonationsDialog extends Dialog {
         typeFilterLayout.add(donationTypeFilter, getClearFilter(donationTypeFilter));
 
         statusFilter.setItems(DonationStatus.values());
+        statusFilter.setItemLabelGenerator(this::formatDonationStatus);
         statusFilter.setWidthFull();
-        statusFilter.setLabel("Estado:");
-        statusFilter.setHelperText("Estado de donación a filtrar");
+        statusFilter.setLabel(translator.get("filter_donation_status_title") + ":");
+        statusFilter.setHelperText(translator.get("filter_donation_status_helper"));
 
         HorizontalLayout statusFilterLayout = new HorizontalLayout();
         statusFilterLayout.setWidthFull();
         statusFilterLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         statusFilterLayout.add(statusFilter, getClearFilter(statusFilter));
 
-        quantityFilter.setLabel("Cantidad:");
+        quantityFilter.setLabel(translator.get("filter_donation_quantity_title") + ":");
         quantityFilter.setWidthFull();
-        quantityFilter.setHelperText("Cantidad minima de donación a filtrar");
+        quantityFilter.setHelperText(translator.get("filter_donation_quantity_helper"));
 
         HorizontalLayout quantityFilterLayout = new HorizontalLayout();
         quantityFilterLayout.setWidthFull();
         quantityFilterLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         quantityFilterLayout.add(quantityFilter, getClearFilter(quantityFilter));
 
-        yearFilter.setLabel("Año:");
+        yearFilter.setLabel(translator.get("filter_donation_year_title") + ":");
         yearFilter.setWidthFull();
-        yearFilter.setHelperText("Año de donación a filtrar");
+        yearFilter.setHelperText(translator.get("filter_donation_year_helper"));
 
         HorizontalLayout yearFilterLayout = new HorizontalLayout();
         yearFilterLayout.setWidthFull();
@@ -102,12 +119,12 @@ public class FilterDonationsDialog extends Dialog {
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setWidthFull();
 
-        Button applyButton = new Button("Aplicar");
+        Button applyButton = new Button(translator.get("apply_filters"));
         applyButton.addClickListener(event -> {
             close();
         });
 
-        Button clearButton = new Button("Limpiar filtros");
+        Button clearButton = new Button(translator.get("clear_filters"));
         clearButton.addClickListener(event -> {
             donationTypeFilter.clear();
             statusFilter.clear();
@@ -162,5 +179,30 @@ public class FilterDonationsDialog extends Dialog {
         });
         clearButton.getStyle().set("margin-top", "15px");
         return clearButton;
+    }
+
+    private String formatDonationType(DonationType type) {
+        if (type == null) {
+            return "";
+        }
+
+        return switch (type) {
+            case FINANCIAL -> translator.get("donation_type_financial");
+            case MATERIAL -> translator.get("donation_type_material");
+            case SERVICE -> translator.get("donation_type_service");
+        };
+    }
+
+    private String formatDonationStatus(DonationStatus status) {
+        if (status == null) {
+            return "";
+        }
+
+        return switch (status) {
+            case COMPLETED -> translator.get("donation_status_completed");
+            case IN_PROGRESS -> translator.get("donation_status_in_progress");
+            case SCHEDULED -> translator.get("donation_status_scheduled");
+            case CANCELLED -> translator.get("donation_status_cancelled");
+        };
     }
 }
