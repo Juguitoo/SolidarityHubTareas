@@ -168,8 +168,29 @@ vaadin-multi-select-combo-box-chip {
     color: var(--text-color);
 }
 
+vaadin-integer-field::part(decrease-button), vaadin-integer-field::part(increase-button),
 vaadin-number-field::part(decrease-button), vaadin-number-field::part(increase-button) {
     color: var(--text-color);
+}
+
+vaadin-item[disabled]{
+    opacity: 0.6;
+}
+
+[data-theme="dark"] vaadin-integer-field[disabled]::part(input-field){
+    background-color: var(--lumo-contrast-90pct);
+}
+
+[data-theme="dark"] vaadin-integer-field[disabled] > input{
+    color: var(--lumo-contrast-50pct);
+}
+
+vaadin-integer-field[disabled]::part(decrease-button), vaadin-integer-field[disabled]::part(increase-button){
+    color: var(--lumo-contrast-20pct);
+}
+
+[data-theme="dark"] vaadin-integer-field[disabled]::part(decrease-button), [data-theme="dark"]vaadin-integer-field[disabled]::part(increase-button){
+    color: var(--lumo-contrast-80pct);
 }
 
 [data-theme="dark"] vaadin-multi-select-combo-box-chip {

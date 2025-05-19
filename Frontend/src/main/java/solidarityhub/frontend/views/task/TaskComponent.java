@@ -103,27 +103,39 @@ public class TaskComponent extends VerticalLayout {
 
     //===============================Get Components=========================================
     public Image getImg() {
-        Image taskImg = new Image("images/task_default.png", translator.get("alt_task_icon"));
-        return switch (emergencyLevel) {
+        Image taskImg;
+
+        // Asignar imagen según nivel de emergencia
+        switch (emergencyLevel) {
             case "LOW", "Low", "Bajo", "Baix" -> {
                 taskImg = new Image("images/task_low.png", translator.get("alt_task_low_icon"));
-                yield taskImg;
             }
-            case "Medium", "Medio",  "MEDIUM", "Mitjà" -> {
+            case "MEDIUM", "Medium", "Medio", "Mitjà" -> {
                 taskImg = new Image("images/task_medium.png", translator.get("alt_task_medium_icon"));
-                yield taskImg;
             }
-            case "HIGH", "High", "Alto", "Alt"-> {
+            case "HIGH", "High", "Alto", "Alt" -> {
                 taskImg = new Image("images/task_high.png", translator.get("alt_task_high_icon"));
-                yield taskImg;
             }
             case "VERYHIGH", "MUY ALTO", "MOLT ALT" -> {
                 taskImg = new Image("images/task_veryHigh.png", translator.get("alt_task_very_high_icon"));
-                yield taskImg;
             }
-            default -> taskImg;
-        };
+            default -> {
+                // Imagen por defecto en modo claro, la reemplazaremos si es oscuro
+                taskImg = new Image("images/task_default.png", translator.get("alt_task_icon"));
+
+                // Cambiar a imagen blanca si el tema es oscuro (HTML usa data-theme en <html>)
+                UI.getCurrent().getPage().executeJs("""
+                const theme = document.documentElement.getAttribute('data-theme');
+                if (theme === 'dark') {
+                    $0.src = 'images/task_default-white.png';
+                }
+            """, taskImg.getElement());
+            }
+        }
+
+        return taskImg;
     }
+
 
     public Component getTaskNameComponent() {
         H2 taskNameTitle = new H2(taskName);
@@ -248,4 +260,5 @@ public class TaskComponent extends VerticalLayout {
             case SAFETY -> translator.get("task_type_safety");
         };
     }
+
 }

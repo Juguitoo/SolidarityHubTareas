@@ -419,8 +419,8 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             return volunteerDialog;
         }
 
+        //More volunteers info
         ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
-            // Mostrar información del voluntario con una etiqueta clara de disponibilidad
             HorizontalLayout layout = new HorizontalLayout();
             layout.setWidthFull();
             layout.setAlignItems(Alignment.CENTER);
@@ -434,26 +434,24 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
             Span emailSpan = new Span(volunteer.getEmail());
             emailSpan.getStyle().set("font-size", "0.9em");
-            emailSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+            emailSpan.getStyle().set("color", "var(--placeholder-color)");
 
             infoLayout.add(nameSpan, emailSpan);
 
-            // Badge de disponibilidad
             Span availabilityBadge;
             if(volunteer.getAvailabilityStatus() > 0){
                 availabilityBadge = new Span("Disponible");
                 availabilityBadge.getStyle()
                         .set("background-color", "var(--lumo-success-color)")
-                        .set("color", "white")
                         .set("padding", "4px 8px")
                         .set("border-radius", "4px")
                         .set("font-size", "0.8em")
                         .set("font-weight", "bold")
-                        .set("margin-left", "auto");
+                        .set("margin-left", "auto")
+                        .set("color", "#F0F6FC");
 
                 layout.add(infoLayout, availabilityBadge);
 
-                // Agregar un borde de color verde para mayor claridad
                 layout.getStyle()
                         .set("border-left", "4px solid var(--lumo-success-color)")
                         .set("padding", "8px")
@@ -465,16 +463,15 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 availabilityBadge = new Span("No disponible");
                 availabilityBadge.getStyle()
                         .set("background-color", "var(--lumo-error-color)")
-                        .set("color", "white")
                         .set("padding", "4px 8px")
                         .set("border-radius", "4px")
                         .set("font-size", "0.8em")
                         .set("font-weight", "bold")
-                        .set("margin-left", "auto");
+                        .set("margin-left", "auto")
+                        .set("color", "#F0F6FC");
 
                 layout.add(infoLayout, availabilityBadge);
 
-                // Agregar un borde de color rojo para mayor claridad
                 layout.getStyle()
                         .set("border-left", "4px solid var(--lumo-error-color)")
                         .set("padding", "8px")
