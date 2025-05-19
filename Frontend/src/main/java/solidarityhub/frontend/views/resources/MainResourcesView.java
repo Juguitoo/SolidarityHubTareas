@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resources;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
@@ -10,11 +11,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.views.HeaderComponent;
 import solidarityhub.frontend.views.resources.donation.DonationView;
 import solidarityhub.frontend.views.resources.resource.ResourceView;
 import solidarityhub.frontend.views.resources.storage.StorageView;
+
+import java.util.Locale;
 
 @PageTitle("Recursos")
 @Route("resources")
@@ -23,11 +27,22 @@ public class MainResourcesView extends VerticalLayout implements BeforeEnterObse
     private final CatastropheService catastropheService;
 
     private CatastropheDTO selectedCatastrophe;
+    private final Translator translator;
 
     public MainResourcesView() {
         this.catastropheService = new CatastropheService();
 
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         setSizeFull();
+
     }
 
     @Override
@@ -47,7 +62,7 @@ public class MainResourcesView extends VerticalLayout implements BeforeEnterObse
         addClassName("main-resource-view");
         setSizeFull();
 
-        HeaderComponent title = new HeaderComponent("Recursos: " + selectedCatastrophe.getName());
+        HeaderComponent title = new HeaderComponent(translator.get("resources_title") + ": " + selectedCatastrophe.getName());
 
         add(title, getTabs());
     }
@@ -60,10 +75,10 @@ public class MainResourcesView extends VerticalLayout implements BeforeEnterObse
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        Tab resouseTab = new Tab("Recursos");
-        Tab donationsTab = new Tab("Donaciones");
-        Tab storageTab = new Tab("Almacenes");
-        Tab volunteerTab = new Tab("Voluntarios");
+        Tab resouseTab = new Tab(translator.get("resources_title"));
+        Tab donationsTab = new Tab(translator.get("donations_title"));
+        Tab storageTab = new Tab(translator.get("storage_title"));
+        Tab volunteerTab = new Tab(translator.get("volunteers_title"));
 
         tabSheet.add(resouseTab, resourceView);
         tabSheet.add(donationsTab, donationView);

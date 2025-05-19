@@ -1,6 +1,7 @@
 package solidarityhub.frontend.views.resources.resource;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -11,18 +12,17 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.ResourceType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.dto.StorageDTO;
+import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -49,6 +49,7 @@ public class ResourceView extends VerticalLayout{
 
     private final HashMap<Integer, StorageDTO> storageDTOMap = new HashMap<>();
     private final List<String> storageNames = new ArrayList<>();
+    private final Translator translator;
 
 
     public ResourceView(CatastropheDTO catastrophe) {
@@ -63,6 +64,16 @@ public class ResourceView extends VerticalLayout{
             storageDTOMap.put(s.getId(), s);
             storageNames.add(s.getName());
         }
+
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
+
         buildView();
     }
 
@@ -92,7 +103,7 @@ public class ResourceView extends VerticalLayout{
 
         if (resourceDataProvider.getItems().isEmpty()) {
             resourceGrid.setVisible(false);
-            add(new Span("No hay recursos disponibles para esta catástrofe."));
+            add(new Span(translator.get("no_resources")));
         } else {
             resourceGrid.setVisible(true);
             resourceGrid.setDataProvider(resourceDataProvider);
@@ -123,13 +134,13 @@ public class ResourceView extends VerticalLayout{
 
     //=============================== Get Components =========================================
     private Component getButtons() {
-        Button addResourceButton = new Button("Registrar nuevo recurso", new Icon("vaadin", "plus"));
+        Button addResourceButton = new Button(translator.get("add_resource_button"), new Icon("vaadin", "plus"));
         addResourceButton.addClassName("add-resource-button");
 
-        Button filterButton = new Button("Filtrar recursos", new Icon("vaadin", "filter"));
+        Button filterButton = new Button(translator.get("filter_resources"), new Icon("vaadin", "filter"));
         filterButton.addClassName("filter-button");
 
-        Button clearFiltersButton = new Button("Limpiar filtros", new Icon("vaadin", "trash"));
+        Button clearFiltersButton = new Button(translator.get("clear_filters"), new Icon("vaadin", "trash"));
         clearFiltersButton.addClassName("clear-filters-button");
 
         AddResourceDialog addResourceDialog = new AddResourceDialog(selectedCatastrophe);
@@ -171,26 +182,26 @@ public class ResourceView extends VerticalLayout{
     }
 
     private void getGridColumns(){
-        nameColumn = resourceGrid.addColumn(ResourceDTO::getName).setHeader("Nombre").setAutoWidth(true).setSortable(true);
+        nameColumn = resourceGrid.addColumn(ResourceDTO::getName).setHeader(translator.get("resource_name")).setAutoWidth(true).setSortable(true);
 
-        typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType())).setHeader("Tipo").setAutoWidth(true).setSortable(true);
+        typeColumn = resourceGrid.addColumn(resource -> translateResourceType(resource.getType())).setHeader(translator.get("resource_type")).setAutoWidth(true).setSortable(true);
 
-        resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader("Cantidad").setAutoWidth(true);
+        resourceGrid.addColumn(ResourceDTO::getCantidad).setHeader(translator.get("resource_quantity")).setAutoWidth(true);
 
         storageColumn = resourceGrid.addColumn(resource -> {
                     if (resource.getStorageId() != null) {
                         return storageDTOMap.get(resource.getStorageId()).getName();
                     } else {
-                        return "No asignado";
+                        return translator.get("no_assigned");
                     }
-                }).setHeader("Almacen").setAutoWidth(true).setSortable(true);
+                }).setHeader(translator.get("resource_storage")).setAutoWidth(true).setSortable(true);
 
-        statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(this::getResourceStatus)).setHeader("Estado").setAutoWidth(true);
+        statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(this::getResourceStatus)).setHeader(translator.get("resource_status")).setAutoWidth(true);
     }
 
     private Span getResourceStatus(ResourceDTO resource) {
         Span badge = new Span();
-        badge.setText("Stock no disponible");
+        badge.setText(translator.get("resource_no_stock"));
         badge.addClassName("resource__status");
 
         double quantity = resource.getQuantity();
@@ -198,15 +209,15 @@ public class ResourceView extends VerticalLayout{
         int max = 50;
 
         if (quantity < min) {
-            badge.setText("Stock bajo");
+            badge.setText(translator.get("resource_low_stock"));
             badge.removeClassNames("status--medium", "status--high");
             badge.addClassName("status--low");
         } else if (quantity < max) {
-            badge.setText("Stock medio");
+            badge.setText(translator.get("resource_medium_stock"));
             badge.removeClassNames("status--low", "status--high");
             badge.addClassName("status--medium");
         } else {
-            badge.setText("Stock alto");
+            badge.setText(translator.get("resource_high_stock"));
             badge.removeClassNames("status--medium", "status--low");
             badge.addClassName("status--high");
         }
@@ -234,20 +245,20 @@ public class ResourceView extends VerticalLayout{
     private String translateResourceType(ResourceType type) {
         if (type == null) return "";
         return switch (type) {
-            case FOOD -> "Alimentos";
-            case MEDICINE -> "Medicina";
-            case CLOTHING -> "Ropa";
-            case SHELTER -> "Refugio";
-            case TOOLS -> "Herramientas";
-            case FUEL -> "Combustible";
-            case SANITATION -> "Higiene";
-            case COMMUNICATION -> "Comunicación";
-            case TRANSPORTATION -> "Transporte";
-            case BUILDING -> "Construcción";
-            case MONETARY -> "Donaciones";
-            case STATIONERY -> "Papelería";
-            case LOGISTICS -> "Logística";
-            case OTHER -> "Otros";
+            case FOOD -> translator.get("resource_type_food");
+            case MEDICINE -> translator.get("resource_type_medicine");
+            case CLOTHING -> translator.get("resource_type_clothing");
+            case SHELTER -> translator.get("resource_type_shelter");
+            case TOOLS -> translator.get("resource_type_tools");
+            case FUEL -> translator.get("resource_type_fuel");
+            case SANITATION -> translator.get("resource_type_sanitation");
+            case COMMUNICATION -> translator.get("resource_type_communication");
+            case TRANSPORTATION -> translator.get("resource_type_transportation");
+            case BUILDING -> translator.get("resource_type_building");
+            case MONETARY -> translator.get("resource_type_monetary");
+            case STATIONERY -> translator.get("resource_type_stationery");
+            case LOGISTICS -> translator.get("resource_type_logistics");
+            case OTHER -> translator.get("resource_type_other");
         };
     }
 }
