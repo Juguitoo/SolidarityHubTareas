@@ -26,6 +26,7 @@ import solidarityhub.frontend.i18n.Translator;
 import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.CatastropheService;
+import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
 
@@ -42,6 +43,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     protected static Translator translator;
 
     private final TaskService taskService;
+    private final FormatService formatService;
     private final CatastropheService catastropheService;
     private CatastropheDTO selectedCatastrophe;
 
@@ -58,6 +60,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         //BackendDTOObservableService.GetInstancia().getTaskList().getValues().attach(this, ObserverChange.ADD_ALL);
 
         this.taskService = new TaskService();
+        this.formatService = new FormatService();
         this.catastropheService = new CatastropheService();
     }
 
@@ -250,7 +253,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                 updateTaskUIAfterStatusChange(originalTask, newStatus);
 
                 // Obtener texto traducido para el estado
-                String statusText = getStatusTranslation(newStatus);
+                String statusText = formatService.formatTaskStatus(newStatus);
 
                 // Mostrar notificación
                 Notification.show(translator.get("task") + " '" + originalTask.getName() + "' " +
@@ -263,16 +266,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
-    }
-
-    // Método para obtener la traducción del estado
-    private String getStatusTranslation(Status status) {
-        if (status == null) return "";
-        return switch (status) {
-            case TO_DO -> translator.get("todo_tasks");
-            case IN_PROGRESS -> translator.get("in_progress_tasks");
-            case FINISHED -> translator.get("terminated_tasks");
-        };
     }
 
     private void updateTaskUIAfterStatusChange(TaskDTO task, Status newStatus) {

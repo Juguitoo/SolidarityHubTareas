@@ -53,6 +53,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final TaskService taskService;
     protected final VolunteerService volunteerService;
     protected final NeedService needService;
+    protected final FormatService formatService;
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
     protected static Translator translator;
@@ -91,6 +92,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
+        this.formatService = new FormatService();
 
         initializeTranslator();
 
@@ -202,7 +204,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 0,
                 translator.get("preview_task_name"),
                 translator.get("preview_task_description"),
-                formatDate(LocalDateTime.now()),
+                formatService.formatDate(LocalDateTime.now()),
                 translator.get("preview_task_priority"),
                 translator.get("preview_task_emergency_level"),
                 TaskType.OTHER
@@ -228,16 +230,12 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskDescription.setRequired(true);
 
         taskPriority.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
-        taskPriority.setItemLabelGenerator(priority -> switch (priority) {
-            case LOW -> translator.get("low_priority");
-            case MODERATE -> translator.get("moderate_priority");
-            case URGENT -> translator.get("urgent_priority");
-        });
+        taskPriority.setItemLabelGenerator(formatService::formatPriority);
         taskPriority.setRequiredIndicatorVisible(true);
         taskPriority.setRequired(true);
 
         taskEmergency.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
-        taskEmergency.setItemLabelGenerator(this::getEmergencyLevelString);
+        taskEmergency.setItemLabelGenerator(formatService::formatEmergencyLevel);
         taskEmergency.setRequiredIndicatorVisible(true);
         taskEmergency.setRequired(true);
 
@@ -360,15 +358,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         setAlignSelf(Alignment.END, buttons);
 
         return buttons;
-    }
-
-    protected String getEmergencyLevelString(EmergencyLevel level) {
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
     }
 
     //=============================== Dialogs =========================================
@@ -625,7 +614,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
                     Span needDescription = new Span(need.getDescription());
                     needDescription.addClassName("needContent--description");
-                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    Span needType = new Span(formatService.formatTaskType(need.getTaskType()));
                     needType.addClassName("need-type");
 
                     needContent.add(needDescription, needType);
@@ -801,16 +790,11 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         if (priority != null) {
-            String priorityText = switch (priority) {
-                case LOW -> translator.get("low_priority");
-                case MODERATE -> translator.get("moderate_priority");
-                case URGENT -> translator.get("urgent_priority");
-            };
-            taskPreview.updatePriority(priorityText);
+            taskPreview.updatePriority(formatService.formatPriority(priority));
         }
 
         if (emergencyLevel != null) {
-            taskPreview.updateEmergencyLevel(getEmergencyLevelString(emergencyLevel));
+            taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(emergencyLevel));
         }
 
         if(taskType != null){
@@ -818,47 +802,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         if(date != null){
-            taskPreview.updateDate(formatDate(date));
+            taskPreview.updateDate(formatService.formatDate(date));
         }
-    }
-
-    //===============================Format Methods=========================================
-    protected String formatDate(LocalDateTime taskDate){
-        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
-    }
-
-    protected String formatTaskType(TaskType taskType) {
-        if (taskType == null) {
-            return translator.get("task_type_not_specified");
-        }
-
-        return switch (taskType) {
-            case MEDICAL -> translator.get("task_type_medical");
-            case POLICE -> translator.get("task_type_police");
-            case FIREFIGHTERS -> translator.get("task_type_firefighters");
-            case CLEANING -> translator.get("task_type_cleaning");
-            case FEED -> translator.get("task_type_feed");
-            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
-            case BUILDING -> translator.get("task_type_building");
-            case CLOTHING -> translator.get("task_type_clothing");
-            case REFUGE -> translator.get("task_type_refuge");
-            case OTHER -> translator.get("task_type_other");
-            case SEARCH -> translator.get("task_type_search");
-            case LOGISTICS -> translator.get("task_type_logistics");
-            case COMMUNICATION -> translator.get("task_type_communication");
-            case MOBILITY -> translator.get("task_type_mobility");
-            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
-            case SAFETY -> translator.get("task_type_safety");
-        };
-    }
-
-    protected String formatStatus(Status status) {
-        if (status == null) return "";
-
-        return switch (status) {
-            case TO_DO -> translator.get("status_todo");
-            case IN_PROGRESS -> translator.get("status_in_progress");
-            case FINISHED -> translator.get("status_finished");
-        };
     }
 }
