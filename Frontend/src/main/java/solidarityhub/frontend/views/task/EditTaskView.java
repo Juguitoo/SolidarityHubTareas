@@ -454,10 +454,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             Set<String> names = volunteerMultiSelectComboBox.getSelectedItems();
             names.forEach(name -> {
                         if (name.equals(translator.get("auto_select_volunteers"))) {
-                            // Autoselección de voluntarios
                             selectedVolunteers.addAll(allVolunteers.stream().limit(nAutoSelectVolunteers).toList());
                         } else {
-                            // Búsqueda manual de voluntarios por nombre
                             allVolunteers.stream()
                                     .filter(v -> v.getFirstName().equals(name)).forEach(selectedVolunteers::add);
                         }

@@ -5,6 +5,7 @@ import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.builder.*;
+import solidarityhub.backend.model.enums.Status;
 import solidarityhub.backend.model.enums.UrgencyLevel;
 import solidarityhub.backend.repository.TaskRepository;
 
@@ -56,4 +57,15 @@ public class TaskService {
         return suggestedTasks;
     }
 
+    public Integer getToDoTasksCount(Integer catastropheId) {
+        return taskRepository.getTasksByStatusCount(catastropheId, Status.TO_DO);
+    }
+
+    public Integer getInProgressTasksCount(Integer catastropheId) {
+        return taskRepository.getTasksByStatusCount(catastropheId, Status.IN_PROGRESS);
+    }
+
+    public Integer getFinishedTasksCount(Integer catastropheId) {
+        return taskRepository.getTasksByStatusCount(catastropheId, Status.FINISHED);
+    }
 }

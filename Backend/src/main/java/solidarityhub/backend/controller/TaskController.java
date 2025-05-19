@@ -13,7 +13,6 @@ import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/solidarityhub/tasks")
@@ -288,6 +287,21 @@ public class TaskController {
         }catch (IllegalArgumentException e){
             return ResponseEntity.badRequest().body("No se ha podido crear la tarea: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/todo")
+    public ResponseEntity<?> getToDoTasksCount(@RequestParam Integer catastropheId) {
+        return ResponseEntity.ok(taskService.getToDoTasksCount(catastropheId));
+    }
+
+    @GetMapping("/inProgress")
+    public ResponseEntity<?> getInProgressTasksCount(@RequestParam Integer catastropheId) {
+        return ResponseEntity.ok(taskService.getInProgressTasksCount(catastropheId));
+    }
+
+    @GetMapping("/finished")
+    public ResponseEntity<?> getDoneTasksCount(@RequestParam Integer catastropheId) {
+        return ResponseEntity.ok(taskService.getFinishedTasksCount(catastropheId));
     }
 
 }

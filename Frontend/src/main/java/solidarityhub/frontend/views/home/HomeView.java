@@ -9,26 +9,21 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.i18n.Translator;
-import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.catastrophe.AddCatastropheView;
-import solidarityhub.frontend.views.task.TaskComponent;
-
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -320,10 +315,9 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         try {
             // Estadísticas de tareas
-            List<TaskDTO> allTasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId());
-            long todoTasks = allTasks.stream().filter(t -> t.getStatus() == org.pingu.domain.enums.Status.TO_DO).count();
-            long inProgressTasks = allTasks.stream().filter(t -> t.getStatus() == org.pingu.domain.enums.Status.IN_PROGRESS).count();
-            long finishedTasks = allTasks.stream().filter(t -> t.getStatus() == org.pingu.domain.enums.Status.FINISHED).count();
+            int todoTasks = taskService.getToDoTasksCount(selectedCatastrophe.getId());
+            long inProgressTasks = taskService.getInProgressTasksCount(selectedCatastrophe.getId());
+            long finishedTasks = taskService.getFinishedTasksCount(selectedCatastrophe.getId());
 
             // Estadísticas de necesidades
             int pendingNeeds = needService.getNeedsWithoutTaskCount(selectedCatastrophe.getId());

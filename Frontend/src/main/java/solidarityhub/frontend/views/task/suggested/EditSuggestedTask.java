@@ -236,19 +236,16 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                 }
 
                 List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
-                List<VolunteerDTO> finalSelectedVolunteers = selectedVolunteers;
-                selectedVolunteers = volunteerMultiSelectComboBox.getSelectedItems().stream()
-                        .map(name -> {
-                            if (name.equals(translator.get("auto_select_volunteers"))) {
-                                finalSelectedVolunteers.addAll(volunteerService.getVolunteers("", new TaskDTO()).subList(0, 1));
-                            }
-                            return volunteerService.getVolunteers("", new TaskDTO()).stream()
-                                    .filter(v -> v.getFirstName().equals(name))
-                                    .findFirst()
-                                    .orElse(null);
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
+                allVolunteers = volunteerService.getVolunteers("None", getTaskDTO());
+                Set<String> names = volunteerMultiSelectComboBox.getSelectedItems();
+                names.forEach(name -> {
+                    if (name.equals(translator.get("auto_select_volunteers"))) {
+                        selectedVolunteers.addAll(allVolunteers.stream().limit(nAutoSelectVolunteers).toList());
+                    } else {
+                        allVolunteers.stream()
+                                .filter(v -> v.getFirstName().equals(name)).forEach(selectedVolunteers::add);
+                    }
+                });
 
                 TaskDTO suggestedTaskDTO = new TaskDTO(
                         taskName.getValue(),

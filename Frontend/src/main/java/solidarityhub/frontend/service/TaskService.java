@@ -207,4 +207,31 @@ public class TaskService {
             throw e;
         }
     }
+
+    public int getToDoTasksCount(int catastropheId) {
+        ResponseEntity<Integer> response = restTemplate.exchange(baseUrl + "/todo?catastropheId=" + catastropheId,
+                HttpMethod.GET, null, Integer.class);
+        if(response.getBody() == null) {
+            return 0;
+        }
+        return response.getBody();
+    }
+
+    public int getInProgressTasksCount(int catastropheId) {
+        ResponseEntity<Integer> response = restTemplate.exchange(baseUrl + "/inProgress?catastropheId=" + catastropheId,
+                HttpMethod.GET, null, Integer.class);
+        if(response.getBody() == null) {
+            return 0;
+        }
+        return response.getBody();
+    }
+
+    public int getFinishedTasksCount(int catastropheId) {
+        ResponseEntity<Integer> response = restTemplate.exchange(baseUrl + "/finished?catastropheId=" + catastropheId,
+                HttpMethod.GET, null, Integer.class);
+        if(response.getBody() == null) {
+            return 0;
+        }
+        return response.getBody();
+    }
 }
