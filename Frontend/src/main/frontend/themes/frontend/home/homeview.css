@@ -61,7 +61,7 @@
 
 .admin-role {
     font-size: 0.875rem;
-    color: var(--subtext-color);
+    color: var(--text-color);
     font-style: italic;
 }
 
@@ -90,7 +90,7 @@
 
 .preference-label {
     font-size: 0.875rem;
-    color: var(--subtext-color);
+    color: var(--text-color);
     font-weight: 500;
     min-width: 80px;
 }
@@ -133,7 +133,7 @@
 }
 
 .task-status-indicator.status-todo {
-    background-color: var(--subtext-color);
+    background-color: var(--todo-color);
 }
 
 .task-status-indicator.status-in-progress {
@@ -152,11 +152,11 @@
 
 .task-meta {
     font-size: 0.75rem;
-    color: var(--subtext-color);
+    color: var(--text-color);
 }
 
 .task-arrow {
-    color: var(--subtext-color);
+    color: var(--text-color);
     transition: transform 0.2s ease;
 }
 
@@ -186,13 +186,13 @@
 
 .stat-label {
     font-size: 0.75rem;
-    color: var(--subtext-color);
+    color: var(--text-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .stat-item.stat-todo .stat-value {
-    color: var(--subtext-color);
+    color: var(--text-color);
 }
 
 .stat-item.stat-progress .stat-value {
@@ -219,14 +219,14 @@
 }
 
 .catastrophe-description {
-    color: var(--subtext-color);
+    color: var(--text-color);
     line-height: 1.6;
     font-size: 1rem;
 }
 
 .meta-label {
     font-size: 0.75rem;
-    color: var(--subtext-color);
+    color: var(--text-color);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 500;
@@ -311,7 +311,7 @@
 }
 
 .empty-state-text {
-    color: var(--subtext-color);
+    color: var(--text-color);
     font-style: italic;
     text-align: center;
     padding: 1.5rem;

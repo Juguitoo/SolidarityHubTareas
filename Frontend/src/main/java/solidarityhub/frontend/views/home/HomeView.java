@@ -285,11 +285,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         Span taskName = new Span(task.getName());
         taskName.addClassName("task-name");
 
-        Span taskMeta = new Span(
-                formatTaskStatus(task.getStatus()) + " • " +
-                        task.getStartTimeDate().format(TIME_FORMATTER)
-        );
-        taskMeta.addClassName("task-meta");
+        Span taskMeta = new Span(formatTaskStatus(task.getStatus()));
 
         taskInfo.add(taskName, taskMeta);
 

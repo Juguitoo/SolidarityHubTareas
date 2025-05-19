@@ -9,9 +9,11 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.ParentLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.VaadinSession;
+import solidarityhub.frontend.EmptyLayout;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
 import org.pingu.domain.enums.EmergencyLevel;
@@ -27,7 +29,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @PageTitle("Catastrofes")
-@Route("")
+@Route(value = "select-catastrophe", layout = EmptyLayout.class)
+@RouteAlias(value = "", layout = EmptyLayout.class)
 public class CatastropheView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -100,12 +103,22 @@ public class CatastropheView extends VerticalLayout {
         }
     }
 
-    //===============================Get Components=========================================
     private Component getAddCatastropheButton() {
         Button addCatastropheButton = new Button(translator.get("add_catastrophe"));
         addCatastropheButton.addClassName("add-catastrophe-button");
         addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
         return addCatastropheButton;
+    }
+
+    private static int getEmergencyLevelWeight(EmergencyLevel level) {
+        if (level == null) return 0;
+
+        return switch (level) {
+            case VERYHIGH -> 4;
+            case HIGH -> 3;
+            case MEDIUM -> 2;
+            case LOW -> 1;
+        };
     }
 
     private CatastropheComponent createCatastropheComponent(CatastropheDTO catastrophe) {
@@ -125,17 +138,6 @@ public class CatastropheView extends VerticalLayout {
         return catastropheComp;
     }
 
-    private static int getEmergencyLevelWeight(EmergencyLevel level) {
-        if (level == null) return 0;
-
-        return switch (level) {
-            case VERYHIGH -> 4;
-            case HIGH -> 3;
-            case MEDIUM -> 2;
-            case LOW -> 1;
-        };
-    }
-
     private void openEditDialog(CatastropheDTO catastrophe) {
         try {
             EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe, catastropheService);
@@ -152,6 +154,9 @@ public class CatastropheView extends VerticalLayout {
         VaadinSession.getCurrent().setAttribute("selectedCatastrophe", catastrophe);
         Notification.show(translator.get("selected_catastrophe") + catastrophe.getName(),
                 3000, Notification.Position.BOTTOM_START);
+
+        // Navegar a home con MainLayout que muestra la barra lateral
+        UI.getCurrent().navigate("home");
     }
 
     private static String formatEmergencyLevel(EmergencyLevel level) {

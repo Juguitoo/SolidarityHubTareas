@@ -390,6 +390,11 @@ html[theme~="dark"] .selected-catastrophe-info {
   background-color: var(--lumo-shade-10pct);
 }
 
+
+
+
+
+
 /* Responsividad */
 @media (max-width: 800px) {
   .drawer-content:not(.drawer-minimized) {
