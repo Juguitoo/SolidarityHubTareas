@@ -57,13 +57,21 @@ vaadin-context-menu-overlay::part(overlay){
 
 .emergency-very-high {
     border-left: 4px solid #F44336;
-    box-shadow: 0 0 0 rgba(244, 67, 54, 0.4);
-    animation: pulse 2s infinite;
+    animation: blinking-border 1.5s infinite;
 }
 
 /* Animaciones */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+@keyframes blinking-border {
+    0% {
+        border-left: 4px solid #F44336;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        border-left: 8px solid #F44336;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(244, 67, 54, 0.5);
+    }
+    100% {
+        border-left: 4px solid #F44336;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
 }
