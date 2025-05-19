@@ -15,12 +15,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.Status;
 import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.CatastropheService;
+import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
@@ -36,6 +38,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private final CatastropheService catastropheService;
     private final TaskService taskService;
     private final NeedService needService;
+    private final FormatService formatService;
     private CatastropheDTO selectedCatastrophe;
     protected static Translator translator;
 
@@ -55,6 +58,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         this.catastropheService = new CatastropheService();
         this.taskService = new TaskService();
         this.needService = new NeedService();
+        this.formatService = new FormatService();
     }
 
     @Override
@@ -280,7 +284,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         Span taskName = new Span(task.getName());
         taskName.addClassName("task-name");
 
-        Span taskMeta = new Span(formatTaskStatus(task.getStatus()));
+        Span taskMeta = new Span(formatService.formatTaskStatus(task.getStatus()));
 
         taskInfo.add(taskName, taskMeta);
 
@@ -390,7 +394,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         Span emergencyLabel = new Span(translator.get("emergency_level"));
         emergencyLabel.addClassName("meta-label");
 
-        Span emergencyValue = new Span(formatEmergencyLevel(selectedCatastrophe.getEmergencyLevel()));
+        Span emergencyValue = new Span(formatService.formatEmergencyLevel(selectedCatastrophe.getEmergencyLevel()));
         emergencyValue.addClassName("emergency-level");
         emergencyValue.addClassName(getEmergencyLevelClass(selectedCatastrophe.getEmergencyLevel()));
 
@@ -508,7 +512,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
                     // Indicador de tipo de tarea
                     Span typeIndicator = new Span();
                     typeIndicator.addClassName("need-type-indicator");
-                    typeIndicator.setText(formatTaskType(need.getTaskType()).substring(0, 1).toUpperCase());
+                    typeIndicator.setText(formatService.formatTaskType(need.getTaskType()).substring(0, 1).toUpperCase());
 
                     VerticalLayout needInfo = new VerticalLayout();
                     needInfo.setPadding(false);
@@ -518,11 +522,11 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
                     Span needDescription = new Span(need.getDescription());
                     needDescription.addClassName("need-description");
 
-                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    Span needType = new Span(formatService.formatTaskType(need.getTaskType()));
                     needType.addClassName("need-type-text");
 
                     // Indicador de urgencia
-                    Span urgencyIndicator = new Span(formatUrgencyLevel(need.getUrgency()));
+                    Span urgencyIndicator = new Span(formatService.formatUrgencyLevel(need.getUrgency()));
                     urgencyIndicator.addClassName("need-urgency");
                     switch (need.getUrgency()) {
                         case URGENT -> urgencyIndicator.addClassName("urgency-urgent");
@@ -639,20 +643,6 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         editDialog.open();
     }
 
-
-
-    //===============================Format methods=========================================
-    private static String formatEmergencyLevel(EmergencyLevel level) {
-        if (level == null) return translator.get("unknown_emergency_level");
-
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
-    }
-
     private String getEmergencyLevelClass(EmergencyLevel level) {
         if (level == null) return "emergency-unknown";
 
@@ -661,51 +651,6 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
             case MEDIUM -> "emergency-medium";
             case HIGH -> "emergency-high";
             case VERYHIGH -> "emergency-very-high";
-        };
-    }
-
-    private String formatTaskStatus(org.pingu.domain.enums.Status status) {
-        if (status == null) return "";
-
-        return switch (status) {
-            case TO_DO -> translator.get("status_todo");
-            case IN_PROGRESS -> translator.get("status_in_progress");
-            case FINISHED -> translator.get("status_finished");
-        };
-    }
-
-    private String formatTaskType(TaskType taskType) {
-        if (taskType == null) {
-            return translator.get("task_type_not_specified");
-        }
-
-        return switch (taskType) {
-            case MEDICAL -> translator.get("task_type_medical");
-            case POLICE -> translator.get("task_type_police");
-            case FIREFIGHTERS -> translator.get("task_type_firefighters");
-            case CLEANING -> translator.get("task_type_cleaning");
-            case FEED -> translator.get("task_type_feed");
-            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
-            case BUILDING -> translator.get("task_type_building");
-            case CLOTHING -> translator.get("task_type_clothing");
-            case REFUGE -> translator.get("task_type_refuge");
-            case OTHER -> translator.get("task_type_other");
-            case SEARCH -> translator.get("task_type_search");
-            case LOGISTICS -> translator.get("task_type_logistics");
-            case COMMUNICATION -> translator.get("task_type_communication");
-            case MOBILITY -> translator.get("task_type_mobility");
-            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
-            case SAFETY -> translator.get("task_type_safety");
-        };
-    }
-
-    private String formatUrgencyLevel(org.pingu.domain.enums.UrgencyLevel urgency) {
-        if (urgency == null) return "";
-
-        return switch (urgency) {
-            case URGENT -> translator.get("urgent_priority");
-            case MODERATE -> translator.get("moderate_priority");
-            case LOW -> translator.get("low_priority");
         };
     }
 }

@@ -78,7 +78,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
 
         taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
-        taskStatusComboBox.setItemLabelGenerator(this::formatStatus);
+        taskStatusComboBox.setItemLabelGenerator(formatService::formatTaskStatus);
         taskStatusComboBox.setRequiredIndicatorVisible(true);
         taskStatusComboBox.setRequired(true);
 
@@ -90,9 +90,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         if (taskPreview != null) {
             taskPreview.updateName(task.getName());
             taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatDate(task.getStartTimeDate()));
+            taskPreview.updateDate(formatService.formatDate(task.getStartTimeDate()));
             taskPreview.updatePriority(task.getPriority().toString());
-            taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
+            taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
             taskPreview.updateTaskType(task.getType());
             taskPreview.enabledEditButton(false);
         }
@@ -295,7 +295,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
                     Span needDescription = new Span(need.getDescription());
                     needDescription.addClassName("needContent--description");
-                    Span needType = new Span(formatTaskType(need.getTaskType()));
+                    Span needType = new Span(formatService.formatTaskType(need.getTaskType()));
                     needType.addClassName("need-type");
 
                     needContent.add(needDescription, needType);
