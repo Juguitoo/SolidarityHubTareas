@@ -3,21 +3,24 @@ package solidarityhub.frontend.views.task.suggested;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
+import org.pingu.domain.enums.EmergencyLevel;
+import org.pingu.domain.enums.Priority;
+import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
+import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.views.task.AddTaskView;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Route("editSuggestedTask")
@@ -25,20 +28,63 @@ import java.util.stream.Collectors;
 public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<String> {
 
     private TaskDTO selectedTask;
-    protected final CatastropheDTO selectedCatastrophe;
+    protected CatastropheDTO selectedCatastrophe;
+    private final ComboBox<Status> taskStatusComboBox;
+    MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
+    private List<NeedDTO> allNeeds;
+    private List<VolunteerDTO> allVolunteers;
 
 
-    public EditSuggestedTask() {
+    public EditSuggestedTask(NeedService needService) {
         super();
+        this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
+        this.allNeeds = new ArrayList<>();
+        this.allVolunteers = new ArrayList<>();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
+            return;
+        }
+        allNeeds = needService.getAllNeeds(selectedCatastrophe.getId());
+
+        buildView();
     }
 
     @Override
     protected void buildView() {
         super.buildView();
+        loadTaskData();
 
         // Aseguramos que taskPreview no sea null antes de usar enabledEditButton
         if (taskPreview != null) {
+            taskPreview.enabledEditButton(false);
+        }
+    }
+
+    @Override
+    protected Component getForms() {
+        var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
+
+        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+        taskStatusComboBox.setItemLabelGenerator(this::formatStatus);
+        taskStatusComboBox.setRequiredIndicatorVisible(true);
+        taskStatusComboBox.setRequired(true);
+
+        formLayout.add(taskStatusComboBox);
+        return formLayout;
+    }
+
+    private void updateTaskPreview(TaskDTO task) {
+        if (taskPreview != null) {
+            taskPreview.updateName(task.getName());
+            taskPreview.updateDescription(task.getDescription());
+            taskPreview.updateDate(formatDate(task.getStartTimeDate()));
+            taskPreview.updatePriority(task.getPriority().toString());
+            taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
+            taskPreview.updateTaskType(task.getType());
             taskPreview.enabledEditButton(false);
         }
     }
@@ -47,11 +93,10 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String parameter) {
         selectedTask = (TaskDTO) VaadinSession.getCurrent().getAttribute("selectedSuggestedTask");
-        if (selectedTask != null) {
-            loadTaskData();
-        } else {
-            Notification.show(translator.get("no_suggested_task_selected"));
-            UI.getCurrent().navigate("suggested-tasks");
+        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+
+        if (allNeedsWithoutTask == null) {
+            allNeedsWithoutTask = needService.getNeedsWithoutTask(selectedCatastrophe.getId());
         }
     }
 
@@ -74,10 +119,15 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
             return;
         }
 
+        taskPriority.setItems(Priority.LOW, Priority.MODERATE, Priority.URGENT);
+        taskEmergency.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
+        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+
         taskName.setValue(task.getName());
         taskDescription.setValue(task.getDescription());
         taskPriority.setValue(task.getPriority());
         taskEmergency.setValue(task.getEmergencyLevel());
+        taskStatusComboBox.setValue(task.getStatus());
 
         //startDateTimePicker configuration
         starDateTimePicker.setMin(null);
@@ -85,22 +135,6 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
 
         if (task.getStartTimeDate().isAfter(LocalDateTime.now())) {
             starDateTimePicker.setMin(LocalDateTime.now());
-        }
-
-        // Cargar necesidades
-        try {
-            List<String> needs = new ArrayList<>(needService.getNeedsWithoutTask(task.getCatastropheId()).stream()
-                    .map(NeedDTO::getDescription)
-                    .toList());
-            List<String> taskNeeds = task.getNeeds().stream()
-                    .map(NeedDTO::getDescription)
-                    .toList();
-            needs.addAll(taskNeeds);
-
-            needsMultiSelectComboBox.setItems(needs);
-            needsMultiSelectComboBox.select(taskNeeds);
-        } catch (Exception e) {
-            Notification.show(translator.get("error_loading_needs") + e.getMessage());
         }
 
         // Configurar fecha estimada de finalización
@@ -113,38 +147,59 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
             taskLocation.setValue(task.getMeetingDirection());
         }
 
-        // Configurar voluntarios
-        try {
-            Set<String> volunteerNames = task.getVolunteers().stream()
-                    .map(VolunteerDTO::getFirstName)
-                    .collect(Collectors.toSet());
+        configureNeeds(task);
+        configureVolunteers(task);
 
-            if (volunteerNames.isEmpty()) {
-                volunteerMultiSelectComboBox.setItems(translator.get("auto_select_volunteers"));
-                volunteerMultiSelectComboBox.select(translator.get("auto_select_volunteers"));
-            } else {
+        updateTaskPreview(task);
+    }
+
+    private void configureNeeds(TaskDTO task) {
+        try {
+            List<String> allNeedDescriptions = new ArrayList<>(allNeedsWithoutTask.stream()
+                    .map(NeedDTO::getDescription)
+                    .toList());
+
+            List<String> taskNeedDescriptions = task.getNeeds().stream()
+                    .map(NeedDTO::getDescription)
+                    .toList();
+
+            Set<String> uniqueNeeds = new HashSet<>(allNeedDescriptions);
+            uniqueNeeds.addAll(taskNeedDescriptions);
+
+            needsMultiSelectComboBox.setItems(uniqueNeeds);
+            needsMultiSelectComboBox.select(taskNeedDescriptions);
+
+            List<NeedDTO> combinedNeeds = new ArrayList<>(allNeedsWithoutTask);
+            combinedNeeds.addAll(task.getNeeds());
+
+            List<NeedDTO> uniqueCombinedNeeds = new ArrayList<>(combinedNeeds.stream()
+                    .collect(Collectors.toMap(
+                            NeedDTO::getDescription,  // Clave para identificar duplicados
+                            need -> need,             // Valor
+                            (existing, replacement) -> existing)) // En caso de duplicado, mantener el existente
+                    .values());
+
+            needsListBox.setItems(uniqueCombinedNeeds);
+
+            needsListBox.select(task.getNeeds());
+        } catch (Exception e) {
+            Notification.show("Error al cargar la tarea" + e.getMessage());
+        }
+    }
+
+    private void configureVolunteers(TaskDTO task) {
+        try {
+            List<String> volunteerNames = task.getVolunteers().stream()
+                    .map(VolunteerDTO::getFirstName)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            if (!volunteerNames.isEmpty()) {
                 volunteerMultiSelectComboBox.setItems(volunteerNames);
                 volunteerMultiSelectComboBox.select(volunteerNames);
             }
         } catch (Exception e) {
-            Notification.show(translator.get("error_loading_volunteers") + e.getMessage());
-        }
-
-        taskPreview.updateName(task.getName());
-        taskPreview.updateDescription(task.getDescription());
-        taskPreview.updateDate(formatDate(task.getStartTimeDate()));
-        taskPreview.updatePriority(task.getPriority().toString());
-        taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
-        taskPreview.updateTaskType(task.getType());
-        taskPreview.enabledEditButton(false);
-        // Actualizar vista previa si existe
-        if (taskPreview != null) {
-            taskPreview.updateName(task.getName());
-            taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatDate(task.getStartTimeDate()));
-            taskPreview.updatePriority(task.getPriority().toString());
-            taskPreview.updateEmergencyLevel(getEmergencyLevelString(task.getEmergencyLevel()));
-            taskPreview.enabledEditButton(false);
+            Notification.show(translator.get("error_configuring_volunteers") + e.getMessage());
         }
     }
 
