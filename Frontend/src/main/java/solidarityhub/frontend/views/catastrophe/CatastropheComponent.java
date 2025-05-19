@@ -14,8 +14,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import lombok.Setter;
+import org.pingu.domain.enums.EmergencyLevel;
+import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -25,17 +28,19 @@ public class CatastropheComponent extends VerticalLayout {
     private String name;
     private String description;
     private String date;
-    private final String emergencyLevel;
+    private final EmergencyLevel emergencyLevel;
     private static Translator translator;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Setter
     private Consumer<Void> onEditAction;
 
-    public CatastropheComponent(String name, String description, String date, String emergencyLevel) {
-        this.name = name;
-        this.description = description;
-        this.date = date;
-        this.emergencyLevel = emergencyLevel;
+    public CatastropheComponent(CatastropheDTO catastropheDTO) {
+        this.name = catastropheDTO.getName();
+        this.description = catastropheDTO.getDescription();
+        this.date = catastropheDTO.getStartDate() != null ? catastropheDTO.getStartDate().format(DATE_FORMATTER) : "Fecha no disponible";
+        this.emergencyLevel = catastropheDTO.getEmergencyLevel();
 
         initializeTranslator();
         creatComponent();
@@ -54,11 +59,11 @@ public class CatastropheComponent extends VerticalLayout {
 
     private void creatComponent() {
         addClassName("catastrophe-card");
+        addClassName(getEmergencyLevelClass(emergencyLevel));
 
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.add(getCatastropheNameComponent(), getStartDateComponent());
-        header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
 
         HorizontalLayout contentLayout = new HorizontalLayout(getCatastropheDescriptionComponent());
@@ -80,7 +85,7 @@ public class CatastropheComponent extends VerticalLayout {
     }
 
     public Component getStartDateComponent() {
-        Span startDateTimeSpan = new Span(date.replace('T', ' '));
+        Span startDateTimeSpan = new Span(translator.get("start_date_catastrophe") + date);
         startDateTimeSpan.addClassName("catastrophe-date");
         return startDateTimeSpan;
     }
@@ -92,99 +97,80 @@ public class CatastropheComponent extends VerticalLayout {
     }
 
     private Component getCatastropheIcon() {
-        Component imageComponent;
-        if (emergencyLevel.toLowerCase().contains(translator.get("low_emergency_level").toLowerCase())) {
-            Icon icon = VaadinIcon.WARNING.create();
-            icon.setColor("#4CAF50");
-            icon.setSize("24px");
-            imageComponent = icon;
-        } else if (emergencyLevel.toLowerCase().contains(translator.get("medium_emergency_level").toLowerCase())) {
-            Icon icon = VaadinIcon.WARNING.create();
-            icon.setColor("#FFC107");
-            icon.setSize("24px");
-            imageComponent = icon;
-        } else if (emergencyLevel.toLowerCase().contains(translator.get("high_emergency_level").toLowerCase()) &&
-                !emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
-            Icon icon = VaadinIcon.WARNING.create();
-            icon.setColor("#FF5722");
-            icon.setSize("24px");
-            imageComponent = icon;
-        } else if (emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
-            Icon icon = VaadinIcon.WARNING.create();
-            icon.setColor("#F44336");
-            icon.setSize("24px");
-            imageComponent = icon;
-        } else {
+        if (emergencyLevel == null) {
             Icon fallbackIcon = VaadinIcon.EXCLAMATION_CIRCLE.create();
             fallbackIcon.setSize("24px");
-            imageComponent = fallbackIcon;
+            return fallbackIcon;
         }
-        return imageComponent;
+
+        Icon icon;
+        switch (emergencyLevel) {
+            case LOW:
+                icon = VaadinIcon.WARNING.create();
+                icon.setColor("#4CAF50");
+                break;
+            case MEDIUM:
+                icon = VaadinIcon.WARNING.create();
+                icon.setColor("#FFC107");
+                break;
+            case HIGH:
+                icon = VaadinIcon.WARNING.create();
+                icon.setColor("#FF5722");
+                break;
+            case VERYHIGH:
+                icon = VaadinIcon.WARNING.create();
+                icon.setColor("#F44336");
+                break;
+            default:
+                icon = VaadinIcon.EXCLAMATION_CIRCLE.create();
+                break;
+        }
+
+        icon.setSize("24px");
+        return icon;
     }
 
     private Component getCatastropheEmergencyLevelComponent() {
         Span levelSpan = new Span("Sin definir");
-        if (!emergencyLevel.isEmpty()) {
-            levelSpan = new Span(emergencyLevel);
-            levelSpan.addClassName("catastrophe-level");
-            if (emergencyLevel.toLowerCase().contains(translator.get("high_emergency_level").toLowerCase()) &&
-                    !emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
-                levelSpan.getElement().getStyle().set("color", "#FF5722");
-                levelSpan.getElement().getStyle().set("font-weight", "bold");
-            } else if (emergencyLevel.toLowerCase().contains(translator.get("very_high_emergency_level").toLowerCase())) {
-                levelSpan.getElement().getStyle().set("color", "#F44336");
-                levelSpan.getElement().getStyle().set("font-weight", "bold");
-                levelSpan.getElement().getStyle().set("text-transform", "uppercase");
-            }
+        if (emergencyLevel != null) {
+            levelSpan = new Span(translator.get("emergency_level") + formatEmergencyLevel(emergencyLevel));
+            levelSpan.addClassName(getEmergencyLevelClass(emergencyLevel) + "-text");
         }
         return levelSpan;
     }
 
     private void getContextMenu() {
         ContextMenu contextMenu = new ContextMenu(this);
-        contextMenu.setOpenOnClick(false); // Solo se abrirá con click derecho
+        contextMenu.setOpenOnClick(false);
+        contextMenu.addClassName("catastrophe-context-menu");
 
         contextMenu.addItem("Editar", event -> {
             if (onEditAction != null) {
                 onEditAction.accept(null);
             }
         });
-
-        getStyle().set("cursor", "pointer");
-        getElement().addEventListener("mouseover", e ->
-                getStyle().set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)"));
-        getElement().addEventListener("mouseout", e ->
-                getStyle().set("box-shadow", "none"));
     }
 
     //===============================Set Methods=========================================
-    public void setName(String name) {
-        this.name = name;
-        getElement().getChildren()
-                .filter(child -> child.getTag().equals("span"))
-                .filter(child -> child.hasAttribute("class"))
-                .filter(child -> child.getAttribute("class").contains("catastrophe-title"))
-                .findFirst()
-                .ifPresent(element -> element.setText(name));
+    private static String formatEmergencyLevel(EmergencyLevel level) {
+        if (level == null) return translator.get("unknown_emergency_level");
+
+        return switch (level) {
+            case LOW -> translator.get("low_emergency_level");
+            case MEDIUM -> translator.get("medium_emergency_level");
+            case HIGH -> translator.get("high_emergency_level");
+            case VERYHIGH -> translator.get("very_high_emergency_level");
+        };
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-        getElement().getChildren()
-                .filter(child -> child.getTag().equals("span"))
-                .filter(child -> child.hasAttribute("class"))
-                .filter(child -> child.getAttribute("class").contains("catastrophe-description"))
-                .findFirst()
-                .ifPresent(element -> element.setText(description));
-    }
+    private static String getEmergencyLevelClass(EmergencyLevel level) {
+        if (level == null) return "emergency-unknown";
 
-    public void setDate(String date) {
-        this.date = date;
-        getElement().getChildren()
-                .filter(child -> child.getTag().equals("span"))
-                .filter(child -> child.hasAttribute("class"))
-                .filter(child -> child.getAttribute("class").contains("catastrophe-date"))
-                .findFirst()
-                .ifPresent(element -> element.setText(date));
+        return switch (level) {
+            case LOW -> "emergency-low";
+            case MEDIUM -> "emergency-medium";
+            case HIGH -> "emergency-high";
+            case VERYHIGH -> "emergency-very-high";
+        };
     }
 }

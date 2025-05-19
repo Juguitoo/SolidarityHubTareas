@@ -103,11 +103,27 @@ public class CatastropheView extends VerticalLayout {
         }
     }
 
+    private static void selectCatastrophe(CatastropheDTO catastrophe) {
+        // Guardar la catástrofe seleccionada en la sesión
+        VaadinSession.getCurrent().setAttribute("selectedCatastrophe", catastrophe);
+        Notification.show(translator.get("selected_catastrophe") + catastrophe.getName(),
+                3000, Notification.Position.BOTTOM_START);
+    }
+
+    //===============================Get Components=========================================
     private Component getAddCatastropheButton() {
         Button addCatastropheButton = new Button(translator.get("add_catastrophe"));
         addCatastropheButton.addClassName("add-catastrophe-button");
         addCatastropheButton.addClickListener(e -> UI.getCurrent().navigate("add-catastrophe"));
         return addCatastropheButton;
+    }
+
+    private CatastropheComponent createCatastropheComponent(CatastropheDTO catastrophe) {
+        CatastropheComponent catastropheComp = new CatastropheComponent(catastrophe);
+
+        catastropheComp.setOnEditAction(v -> openEditDialog(catastrophe));
+
+        return catastropheComp;
     }
 
     private static int getEmergencyLevelWeight(EmergencyLevel level) {
@@ -121,23 +137,6 @@ public class CatastropheView extends VerticalLayout {
         };
     }
 
-    private CatastropheComponent createCatastropheComponent(CatastropheDTO catastrophe) {
-        CatastropheComponent catastropheComp = new CatastropheComponent(
-                catastrophe.getName(),
-                catastrophe.getDescription(),
-                translator.get("start_date_catastrophe") +
-                        (catastrophe.getStartDate() != null ? catastrophe.getStartDate().format(DATE_FORMATTER) : "Fecha no disponible"),
-                translator.get("emergency_level") + formatEmergencyLevel(catastrophe.getEmergencyLevel())
-        );
-
-        String emergencyClass = getEmergencyLevelClass(catastrophe.getEmergencyLevel());
-        catastropheComp.addClassName(emergencyClass);
-
-        catastropheComp.setOnEditAction(v -> openEditDialog(catastrophe));
-
-        return catastropheComp;
-    }
-
     private void openEditDialog(CatastropheDTO catastrophe) {
         try {
             EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe, catastropheService);
@@ -149,35 +148,5 @@ public class CatastropheView extends VerticalLayout {
         }
     }
 
-    private static void selectCatastrophe(CatastropheDTO catastrophe) {
-        // Guardar la catástrofe seleccionada en la sesión
-        VaadinSession.getCurrent().setAttribute("selectedCatastrophe", catastrophe);
-        Notification.show(translator.get("selected_catastrophe") + catastrophe.getName(),
-                3000, Notification.Position.BOTTOM_START);
 
-        // Navegar a home con MainLayout que muestra la barra lateral
-        UI.getCurrent().navigate("home");
-    }
-
-    private static String formatEmergencyLevel(EmergencyLevel level) {
-        if (level == null) return translator.get("unknown_emergency_level");
-
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
-    }
-
-    private static String getEmergencyLevelClass(EmergencyLevel level) {
-        if (level == null) return "emergency-unknown";
-
-        return switch (level) {
-            case LOW -> "emergency-low";
-            case MEDIUM -> "emergency-medium";
-            case HIGH -> "emergency-high";
-            case VERYHIGH -> "emergency-very-high";
-        };
-    }
 }

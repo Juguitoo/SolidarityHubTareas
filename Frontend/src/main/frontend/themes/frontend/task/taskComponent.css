@@ -44,7 +44,7 @@
 
 .task-date {
     font-size: 0.8rem;
-    color: #757575;
+    color: var(--placeholder-color);
     margin-left: auto;
 }
 
