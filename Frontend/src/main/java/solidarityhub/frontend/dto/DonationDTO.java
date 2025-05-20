@@ -25,6 +25,7 @@ public class DonationDTO {
     private double quantity;
     private String unit;
     private String cantidad;
+    private boolean updateResources = true;
 
     public DonationDTO(Donation donation) {
         this.id = donation.getId();

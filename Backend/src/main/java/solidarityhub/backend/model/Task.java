@@ -79,6 +79,10 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
     private List<PDFCertificate> certificates;
 
+    @Setter
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    private List<ResourceAssignment> resourceAssignments;
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status,
                 List<Volunteer> volunteers, String meetingDirection) {
@@ -112,5 +116,9 @@ public class Task {
 
     public void addNotification(Notification notification) {
         this.notifications.add(notification);
+    }
+
+    public void addResourceAssignment(ResourceAssignment assignment) {
+        this.resourceAssignments.add(assignment);
     }
 }

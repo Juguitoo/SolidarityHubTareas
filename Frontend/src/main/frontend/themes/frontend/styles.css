@@ -60,7 +60,7 @@
     --background-color: #121721;
     --surface-color: #1f2530;
     --need-type-color: #5f5f5f;
-    --field-bg-color: #1e2843;
+    --field-bg-color: #222d4a;
 
     --text-color: #F0F6FC;
     --todo-color: #ffffff;
@@ -137,6 +137,28 @@ vaadin-tab[selected]{
     color: var(--lumo-primary-color-60pct);
 }
 
+/* Scroll */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    border: 2px solid var(--surface-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-dark-color);
+}
+
+
 /* Fields */
 vaadin-text-field, vaadin-number-field, vaadin-integer-field, vaadin-text-area, vaadin-date-picker, vaadin-date-time-picker, vaadin-select, vaadin-combo-box, vaadin-multi-select-combo-box, vaadin-checkbox-group{
     --vaadin-input-field-background: var(--field-bg-color);
@@ -190,7 +212,7 @@ vaadin-integer-field[disabled]::part(decrease-button), vaadin-integer-field[disa
 }
 
 [data-theme="dark"] vaadin-integer-field[disabled]::part(decrease-button), [data-theme="dark"]vaadin-integer-field[disabled]::part(increase-button){
-    color: var(--lumo-contrast-80pct);
+    color: var(--placeholder-color);
 }
 
 [data-theme="dark"] vaadin-multi-select-combo-box-chip {
@@ -199,6 +221,14 @@ vaadin-integer-field[disabled]::part(decrease-button), vaadin-integer-field[disa
 
 vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadin-dialog-overlay::part(footer) {
     background-color: var(--background-color);
+}
+
+[data-theme="dark"] vaadin-checkbox{
+    --vaadin-checkbox-background: var(--field-bg-color)
+}
+
+[data-theme="dark"] vaadin-checkbox:hover{
+    --vaadin-checkbox-background: var(--lumo-contrast-90pct)
 }
 
 [data-theme="dark"] .notification__button {

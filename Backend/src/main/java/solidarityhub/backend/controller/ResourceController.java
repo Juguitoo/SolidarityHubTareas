@@ -7,12 +7,17 @@ import solidarityhub.backend.dto.ResourceDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
+import solidarityhub.backend.model.enums.ResourceType;
 import solidarityhub.backend.service.CatastropheService;
+import solidarityhub.backend.service.ResourceAssignmentService;
 import solidarityhub.backend.service.ResourceService;
 import solidarityhub.backend.service.StorageService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/solidarityhub/resources")
@@ -21,11 +26,13 @@ public class ResourceController {
     private final ResourceService resourceService;
     private final CatastropheService catastropheService;
     private final StorageService storageService;
+    private final ResourceAssignmentService resourceAssignmentService;
 
-    public ResourceController(ResourceService resourceService, CatastropheService catastropheService, StorageService storageService) {
+    public ResourceController(ResourceService resourceService, CatastropheService catastropheService, StorageService storageService, ResourceAssignmentService resourceAssignmentService) {
         this.resourceService = resourceService;
         this.catastropheService = catastropheService;
         this.storageService = storageService;
+        this.resourceAssignmentService = resourceAssignmentService;
     }
 
     @GetMapping
@@ -103,4 +110,39 @@ public class ResourceController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("/summary")
+    public ResponseEntity<?> getResourceSummary(@RequestParam Integer catastropheId) {
+        List<Resource> resources = resourceService.getResourcesByCatastrophe(catastropheId);
+
+        // Group by type
+        Map<ResourceType, List<Resource>> resourcesByType = resources.stream()
+                .collect(Collectors.groupingBy(Resource::getType));
+
+        List<Map<String, Object>> summaries = new ArrayList<>();
+
+        resourcesByType.forEach((type, typeResources) -> {
+            int count = typeResources.size();
+            double totalQuantity = typeResources.stream().mapToDouble(Resource::getQuantity).sum();
+
+            // Calculate assigned quantity
+            double assignedQuantity = 0.0;
+            for (Resource resource : typeResources) {
+                Double assigned = resourceAssignmentService.getTotalAssignedQuantity(resource.getId());
+                if (assigned != null) {
+                    assignedQuantity += assigned;
+                }
+            }
+
+            Map<String, Object> summary = new HashMap<>();
+            summary.put("type", type);
+            summary.put("count", count);
+            summary.put("totalQuantity", totalQuantity);
+            summary.put("assignedQuantity", assignedQuantity);
+            summary.put("availableQuantity", totalQuantity - assignedQuantity);
+
+            summaries.add(summary);
+        });
+
+        return ResponseEntity.ok(summaries);
+    }
 }

@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
@@ -24,7 +25,6 @@ import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.service.DonationService;
 import solidarityhub.frontend.service.DonorService;
-
 import java.time.LocalDate;
 import java.util.Locale;
 
@@ -45,6 +45,7 @@ public class AddDonationDialog extends Dialog {
     protected ComboBox<DonationStatus> statusField;
     protected TextField donorDniField;
     protected TextField donorNameField;
+    protected Checkbox updateResourcesCheckbox;
 
     public AddDonationDialog(CatastropheDTO selectedCatastrophe) {
         this(selectedCatastrophe, null);
@@ -158,7 +159,27 @@ public class AddDonationDialog extends Dialog {
         statusField.setRequiredIndicatorVisible(true);
         statusField.setRequired(true);
 
-        formLayout.add(dateField, typeField, quantityField, unitField, descriptionField, statusField);
+        updateResourcesCheckbox = new Checkbox(translator.get("update_resources"));
+        updateResourcesCheckbox.setValue(true);
+        updateResourcesCheckbox.setLabel(translator.get("update_resources_help"));
+
+        formLayout.add(dateField, typeField, quantityField, unitField, descriptionField, statusField, updateResourcesCheckbox);
+
+        typeField.addValueChangeListener(event -> {
+            DonationType selectedType = event.getValue();
+            if (selectedType == DonationType.FINANCIAL) {
+                unitField.setValue("€");
+                updateResourcesCheckbox.setLabel(translator.get("update_monetary_resources"));
+                updateResourcesCheckbox.setLabel(translator.get("update_monetary_resources_help"));
+            } else if (selectedType == DonationType.MATERIAL) {
+                updateResourcesCheckbox.setLabel(translator.get("update_material_resources"));
+                updateResourcesCheckbox.setLabel(translator.get("update_material_resources_help"));
+            } else if (selectedType == DonationType.SERVICE) {
+                unitField.setValue(translator.get("hours"));
+                updateResourcesCheckbox.setValue(false);
+                updateResourcesCheckbox.setEnabled(false);
+            }
+        });
 
         formLayout.setColspan(descriptionField, 2);
 
@@ -234,6 +255,7 @@ public class AddDonationDialog extends Dialog {
         Double quantity = quantityField.getValue();
         String unit = unitField.getValue();
         DonationStatus status = statusField.getValue();
+        boolean updateResources = updateResourcesCheckbox.getValue();
 
         DonorDTO donor = saveDonor();
 
@@ -254,6 +276,7 @@ public class AddDonationDialog extends Dialog {
             donationToSave.setStatus(status);
             donationToSave.setCatastropheId(selectedCatastrophe.getId());
             donationToSave.setDonorDni(donor.getDni());
+            donationToSave.setUpdateResources(updateResources);
 
             if (donation == null) {
                 donationService.addDonation(donationToSave);

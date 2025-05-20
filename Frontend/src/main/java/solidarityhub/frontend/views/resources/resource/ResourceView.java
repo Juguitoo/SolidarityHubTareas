@@ -19,6 +19,7 @@ import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.dto.StorageDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.CatastropheService;
+import solidarityhub.frontend.service.ResourceAssignmentService;
 import solidarityhub.frontend.service.ResourceService;
 import solidarityhub.frontend.service.StorageService;
 
@@ -32,6 +33,7 @@ public class ResourceView extends VerticalLayout{
     private final ResourceService resourceService;
     private final StorageService storageService;
     protected final CatastropheService catastropheService;
+    protected final ResourceAssignmentService resourceAssignmentService;
 
     protected CatastropheDTO selectedCatastrophe;
 
@@ -56,6 +58,7 @@ public class ResourceView extends VerticalLayout{
         this.resourceService = new ResourceService();
         this.storageService = new StorageService();
         this.catastropheService = new CatastropheService();
+        this.resourceAssignmentService = new ResourceAssignmentService();
 
         this.selectedCatastrophe = catastrophe;
 
@@ -195,6 +198,32 @@ public class ResourceView extends VerticalLayout{
                         return translator.get("no_assigned");
                     }
                 }).setHeader(translator.get("resource_storage")).setAutoWidth(true).setSortable(true);
+
+        resourceGrid.addColumn(resource -> {
+            Double assigned = resourceAssignmentService.getTotalAssignedQuantity(resource.getId());
+            if (assigned == null || assigned == 0) {
+                return "0";
+            }
+            return assigned + " " + resource.getUnit();
+        }).setHeader(translator.get("assigned_quantity")).setAutoWidth(true);
+
+        // Add available quantity column
+        resourceGrid.addColumn(resource -> {
+            Double assigned = resourceAssignmentService.getTotalAssignedQuantity(resource.getId());
+            if (assigned == null) {
+                assigned = 0.0;
+            }
+            double available = resource.getQuantity() - assigned;
+            return available + " " + resource.getUnit();
+        }).setHeader(translator.get("available_quantity")).setAutoWidth(true);
+
+        storageColumn = resourceGrid.addColumn(resource -> {
+            if (resource.getStorageId() != null) {
+                return storageDTOMap.get(resource.getStorageId()).getName();
+            } else {
+                return translator.get("no_assigned");
+            }
+        }).setHeader(translator.get("resource_storage")).setAutoWidth(true).setSortable(true);
 
         statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(this::getResourceStatus)).setHeader(translator.get("resource_status")).setAutoWidth(true);
     }

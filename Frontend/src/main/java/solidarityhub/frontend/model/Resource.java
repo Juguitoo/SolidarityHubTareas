@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.pingu.domain.enums.ResourceType;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class Resource {
@@ -30,6 +32,9 @@ public class Resource {
 
     @Setter
     private Storage storage;
+
+    @Setter
+    private List<ResourceAssignment> resourceAssignments;
 
     public Resource(String name, ResourceType type, double quantity, String unit, Storage storage) {
         this.name = name;

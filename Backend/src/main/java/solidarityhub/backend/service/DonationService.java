@@ -22,14 +22,25 @@ public class DonationService {
     private final CatastropheRepository catastropheRepository;
     private final DonorRepository donorRepository;
 
-    public DonationService(DonationRepository donationRepository, CatastropheRepository catastropheRepository, PersonRepository personRepository, DonorRepository donorRepository) {
+    private final ResourceService resourceService;
+
+    public DonationService(DonationRepository donationRepository, CatastropheRepository catastropheRepository, DonorRepository donorRepository, ResourceService resourceService) {
         this.donationRepository = donationRepository;
         this.catastropheRepository = catastropheRepository;
         this.donorRepository = donorRepository;
+        this.resourceService = resourceService;
     }
 
     public Donation saveDonation(Donation donation) {
         return donationRepository.save(donation);
+    }
+
+    public Donation saveAndProcessDonation(Donation donation) {
+        Donation savedDonation = donationRepository.save(donation);
+
+        resourceService.updateResourceFromDonation(savedDonation);
+
+        return savedDonation;
     }
 
     public List<Donation> getAllDonations() {

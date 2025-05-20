@@ -62,6 +62,7 @@ public class DonationService {
         donationCache.clear();
     }
 
+    // Get Methods
     public List<DonationDTO> getDonations(String type, String status, String minQuantity, String year, Integer catastropheId) {
         if (donationCache == null || donationCache.isEmpty()) {
             try {
@@ -120,6 +121,21 @@ public class DonationService {
             return response.getBody();
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public double getTotalMonetaryDonations(int catastropheId) {
+        try {
+            ResponseEntity<Double> response = restTemplate.exchange(
+                    baseUrl + "/monetary-total?catastropheId=" + catastropheId,
+                    HttpMethod.GET, null, Double.class);
+
+            if (response.getBody() != null) {
+                return response.getBody();
+            }
+            return 0.0;
+        } catch (Exception e) {
+            return 0.0;
         }
     }
 }

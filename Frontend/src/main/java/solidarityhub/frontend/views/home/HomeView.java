@@ -107,6 +107,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         rightColumn.add(
                 getCatastropheCard(),
                 getCatastropheActionsCard(),
+                new ResourceSummaryView(selectedCatastrophe),
                 getNeedsOverviewCard()
         );
 

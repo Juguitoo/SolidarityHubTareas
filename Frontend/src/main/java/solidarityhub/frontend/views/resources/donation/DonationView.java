@@ -5,8 +5,10 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -16,8 +18,10 @@ import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.DonationDTO;
+import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.DonationService;
+import solidarityhub.frontend.service.ResourceService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -30,6 +34,7 @@ public class DonationView extends VerticalLayout {
 
     private final DonationService donationService;
     private final CatastropheDTO selectedCatastrophe;
+    private final ResourceService resourceService;
 
     private final Grid<DonationDTO> donationGrid;
     private ListDataProvider<DonationDTO> donationDataProvider;
@@ -49,6 +54,7 @@ public class DonationView extends VerticalLayout {
     public DonationView(CatastropheDTO catastrophe) {
         this.donationService = new DonationService();
         this.selectedCatastrophe = catastrophe;
+        this.resourceService = new ResourceService();
 
         this.donationGrid = new Grid<>(DonationDTO.class, false);
 
@@ -61,17 +67,17 @@ public class DonationView extends VerticalLayout {
         }
         translator = new Translator(UI.getCurrent().getLocale());
 
-        setSizeFull();
-        addClassName("donations-view");
-        setPadding(false);
-
         buildView();
     }
 
     private void buildView() {
         removeAll();
 
-        add(getButtons(), donationGrid);
+        setSizeFull();
+        addClassName("donations-view");
+        setPadding(false);
+
+        add(getButtons(), getMonetarySummaryCard(), donationGrid);
         populateDonationGrid();
     }
 
@@ -187,6 +193,70 @@ public class DonationView extends VerticalLayout {
         donationGrid.addColumn(DonationDTO::getCantidad).setHeader(translator.get("donation_amount"))
                 .setAutoWidth(true).setSortable(true);
     }
+
+    private Component getMonetarySummaryCard() {
+        VerticalLayout card = new VerticalLayout();
+        card.addClassName("monetary-summary-card");
+        card.setPadding(true);
+        card.setSpacing(true);
+
+        H3 title = new H3(translator.get("monetary_donations_summary"));
+        title.addClassName("card-title");
+
+        // Get the monetary resource for this catastrophe
+        List<ResourceDTO> monetaryResources = resourceService.getResourcesByType(
+                selectedCatastrophe.getId(), "MONETARY");
+
+        double totalDonated = donationService.getTotalMonetaryDonations(selectedCatastrophe.getId());
+
+        // Get total monetary resources available
+        double totalAvailable = 0.0;
+        if (!monetaryResources.isEmpty()) {
+            totalAvailable = monetaryResources.stream()
+                    .mapToDouble(ResourceDTO::getQuantity)
+                    .sum();
+        }
+
+        // Create summary elements
+        HorizontalLayout summaryLayout = new HorizontalLayout();
+        summaryLayout.setWidthFull();
+        summaryLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
+
+        // Total donated
+        VerticalLayout donatedLayout = new VerticalLayout();
+        donatedLayout.setPadding(false);
+        donatedLayout.setSpacing(false);
+        donatedLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Span donatedValue = new Span(String.format("%.2f €", totalDonated));
+        donatedValue.addClassName("summary-value");
+
+        Span donatedLabel = new Span(translator.get("total_donated"));
+        donatedLabel.addClassName("summary-label");
+
+        donatedLayout.add(donatedValue, donatedLabel);
+
+        // Total available
+        VerticalLayout availableLayout = new VerticalLayout();
+        availableLayout.setPadding(false);
+        availableLayout.setSpacing(false);
+        availableLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Span availableValue = new Span(String.format("%.2f €", totalAvailable));
+        availableValue.addClassName("summary-value");
+
+        Span availableLabel = new Span(translator.get("total_available"));
+        availableLabel.addClassName("summary-label");
+
+        availableLayout.add(availableValue, availableLabel);
+
+        summaryLayout.add(donatedLayout, availableLayout);
+
+        card.add(title, summaryLayout);
+
+        return card;
+    }
+
     //===============================Format Methods=========================================
     private String formatDonationType(DonationType type) {
         if (type == null) {

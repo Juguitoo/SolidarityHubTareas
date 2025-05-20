@@ -6,6 +6,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -25,7 +27,9 @@ import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.PDFCertificateService;
 import solidarityhub.frontend.views.HeaderComponent;
-
+import solidarityhub.frontend.views.task.AssignResourceDialog;
+import solidarityhub.frontend.service.ResourceAssignmentService;
+import solidarityhub.frontend.dto.ResourceAssignmentDTO;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -43,8 +47,11 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     private List<NeedDTO> allNeeds;
     private List<VolunteerDTO> allVolunteers;
 
+    private final ResourceAssignmentService resourceAssignmentService;
+
     public EditTaskView(NeedService needService, PDFCertificateService pdfCertificateService) {
         super();
+        this.resourceAssignmentService = new ResourceAssignmentService();
         this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
         this.needService = needService;
         this.pdfCertificateService = pdfCertificateService;
@@ -66,6 +73,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     @Override
     protected void buildView() {
         super.buildView();
+
+        add(getResourceAssignmentsComponent());
+
         loadTaskData();
 
         if (taskPreview != null) {
@@ -500,5 +510,51 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                     .filter(n -> n.getDescription().equals(need)).forEach(needs::add);
         }
         return needs;
+    }
+
+    //===============================Asignmet resourcer=========================================
+    private Component getResourceAssignmentsComponent() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSpacing(true);
+        layout.setPadding(false);
+
+        H3 title = new H3(translator.get("assigned_resources"));
+
+        List<ResourceAssignmentDTO> assignments = resourceAssignmentService.getAssignmentsByTask(taskId);
+
+        if (assignments.isEmpty()) {
+            layout.add(title, new Span(translator.get("no_resources_assigned")));
+        } else {
+            Grid<ResourceAssignmentDTO> grid = new Grid<>(ResourceAssignmentDTO.class, false);
+            grid.addColumn(ResourceAssignmentDTO::getResourceName).setHeader(translator.get("resource_name"));
+            grid.addColumn(ResourceAssignmentDTO::getQuantity).setHeader(translator.get("quantity"));
+            grid.addColumn(ResourceAssignmentDTO::getUnits).setHeader(translator.get("unit"));
+
+            grid.setItems(assignments);
+
+            layout.add(title, grid);
+        }
+
+        Button assignResourceButton = new Button(translator.get("assign_resource"),
+                e -> {
+                    AssignResourceDialog dialog = new AssignResourceDialog(taskService.getTaskById(taskId));
+                    dialog.open();
+                    dialog.addOpenedChangeListener(event -> {
+                        if (!event.isOpened()) {
+                            // Refresh resource assignments when dialog closes
+                            updateContent();
+                        }
+                    });
+                }
+        );
+
+        layout.add(assignResourceButton);
+
+        return layout;
+    }
+
+    private void updateContent() {
+        remove(getComponentAt(getComponentCount() - 1)); // Remove the current resource assignments component
+        add(getResourceAssignmentsComponent()); // Add a fresh one
     }
 }

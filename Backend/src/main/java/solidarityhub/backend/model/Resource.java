@@ -7,6 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 import solidarityhub.backend.model.enums.ResourceType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @ToString
 @NoArgsConstructor
@@ -49,6 +52,9 @@ public class Resource {
     @JoinColumn(name = "catastrophe_id")
     private Catastrophe catastrophe;
 
+    @Setter
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
+    private List<ResourceAssignment> resourceAssignments;
 
     public Resource(String name, ResourceType type, double quantity, String unit, Storage storage, Catastrophe catastrophe) {
         this.name = name;
@@ -69,5 +75,8 @@ public class Resource {
         this.catastrophe = null;
     }
 
+    public void addAssignment(ResourceAssignment assignment) {
+        this.resourceAssignments.add(assignment);
+    }
 
 }

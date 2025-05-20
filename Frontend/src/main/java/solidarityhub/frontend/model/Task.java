@@ -49,6 +49,9 @@ public class Task {
     @Setter
     private String meetingDirection;
 
+    @Setter
+    private List<ResourceAssignment> resourceAssignments;
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status, List<Volunteer> volunteers, String meetingDirection) {
         this.needs = needs;
