@@ -92,7 +92,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
-        this.formatService = new FormatService();
+        this.formatService = FormatService.getInstance();
 
         initializeTranslator();
 

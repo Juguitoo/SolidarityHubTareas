@@ -58,7 +58,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         this.catastropheService = new CatastropheService();
         this.taskService = new TaskService();
         this.needService = new NeedService();
-        this.formatService = new FormatService();
+        this.formatService = FormatService.getInstance();
     }
 
     @Override

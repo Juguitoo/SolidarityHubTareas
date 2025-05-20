@@ -12,8 +12,9 @@ import java.util.Locale;
 public class FormatService {
 
     private Translator translator;
+    private static FormatService instance;
 
-    public FormatService() {
+    private FormatService() {
         Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
         if (sessionLocale != null) {
             UI.getCurrent().setLocale(sessionLocale);
@@ -22,6 +23,13 @@ public class FormatService {
             UI.getCurrent().setLocale(new Locale("es"));
         }
         translator = new Translator(UI.getCurrent().getLocale());
+    }
+
+    public static FormatService getInstance() {
+        if (instance == null) {
+            instance = new FormatService();
+        }
+        return instance;
     }
 
     public String formatEmergencyLevel(EmergencyLevel level) {
