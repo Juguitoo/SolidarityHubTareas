@@ -1,148 +1,98 @@
 package solidarityhub.frontend.service;
 
+import org.pingu.domain.enums.Status;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import solidarityhub.frontend.dto.BackendDTOObservableService;
 import solidarityhub.frontend.dto.TaskDTO;
-import org.pingu.domain.enums.Status;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class TaskService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
-    private final VolunteerService volunteerService;
-    private final NeedService needService;
-    public List<TaskDTO> taskCache;
     public List<TaskDTO> suggestedTasksCache;
+    private final List<TaskDTO> tasksByCatastropheCache = new ArrayList<>();
 
     public TaskService() {
         this.restTemplate = new RestTemplate();
         this.baseUrl = "http://localhost:8082/solidarityhub/tasks";
-        this.volunteerService = new VolunteerService();
-        this.needService = new NeedService();
-        this.taskCache = new ArrayList<>();
         this.suggestedTasksCache = new ArrayList<>();
     }
 
     //CRUD METHODS
     public void addTask(TaskDTO taskDTO) {
         restTemplate.postForEntity(baseUrl, taskDTO, TaskDTO.class);
-        taskCache.clear();
     }
 
     public void updateTask(int id, TaskDTO taskDTO) {
         restTemplate.put(baseUrl + "/" + id, taskDTO);
-        taskCache.clear();
     }
 
     public void deleteTask(int id) {
         restTemplate.delete(baseUrl + "/" + id);
-        taskCache.clear();
-    }
-
-    public void clearCache() {
-        taskCache.clear();
     }
 
     //GET METHODS
-    public List<TaskDTO> getTasks() {
-        if(taskCache == null || taskCache.isEmpty()) {
+    public List<TaskDTO> getTasks(String status, String priority, String type, String emergencyLevel, Integer catastropheId) {
             try {
-                ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, TaskDTO[].class);
-                TaskDTO[] tasks = response.getBody();
-                if (tasks != null) {
-                    taskCache = new ArrayList<>(List.of(tasks));
-                } else {
-                    taskCache = new ArrayList<>();
+                String url = baseUrl;
+                if(status != null && !status.isEmpty()) {
+                    url += "?status=" + status;
                 }
+                if(priority != null && !priority.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "priority=" + priority;
+                }
+                if(type != null && !type.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "type=" + type;
+                }
+                if(emergencyLevel != null && !emergencyLevel.isEmpty()) {
+                    url += (url.contains("?") ? "&" : "?") + "emergencyLevel=" + emergencyLevel;
+                }
+                if(catastropheId != null) {
+                    url += (url.contains("?") ? "&" : "?") + "catastropheId=" + catastropheId;
+                }
+
+                ResponseEntity<TaskDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, TaskDTO[].class);
+                TaskDTO[] tasks = response.getBody();
+                return tasks != null ? Arrays.asList(tasks) : new ArrayList<>();
             } catch (RestClientException e) {
                 return new ArrayList<>();
             }
-        }
-        return taskCache;
     }
 
     public List<TaskDTO> getTasksByCatastrophe(int catastropheId) {
-        if(taskCache == null || taskCache.isEmpty()) {
+        if(tasksByCatastropheCache.isEmpty()) {
             try {
                 String url = baseUrl + "/catastrophe/" + catastropheId;
-                ResponseEntity<TaskDTO[]> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null, TaskDTO[].class);
+                ResponseEntity<TaskDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, TaskDTO[].class);
                 TaskDTO[] tasks = response.getBody();
                 if (tasks != null) {
-                    taskCache = new ArrayList<>(List.of(tasks));
-                } else {
-                    taskCache = new ArrayList<>();
+                    tasksByCatastropheCache.clear();
+                    tasksByCatastropheCache.addAll(Arrays.asList(tasks));
                 }
+                return tasks != null ? Arrays.asList(tasks) : new ArrayList<>();
             } catch (RestClientException e) {
                 return new ArrayList<>();
             }
-        }
-        return taskCache;
+        }else return tasksByCatastropheCache;
     }
 
     public List<TaskDTO> getToDoTasksByCatastrophe(int catastropheId, int limit) {
-        return getTasksByStatusAndCatastrophe(Status.TO_DO, catastropheId, limit);
+        return getTasksByCatastrophe(catastropheId).stream().filter(t->t.getStatus().equals(Status.TO_DO)).limit(limit).toList();
     }
 
     public List<TaskDTO> getDoingTasksByCatastrophe(int catastropheId, int limit) {
-        return getTasksByStatusAndCatastrophe(Status.IN_PROGRESS, catastropheId, limit);
+        return getTasksByCatastrophe(catastropheId).stream().filter(t->t.getStatus().equals(Status.IN_PROGRESS)).limit(limit).toList();
     }
 
     public List<TaskDTO> getDoneTasksByCatastrophe(int catastropheId, int limit) {
-        return getTasksByStatusAndCatastrophe(Status.FINISHED, catastropheId, limit);
-    }
-
-    private List<TaskDTO> getTasksByStatusAndCatastrophe(Status status, int catastropheId, int limit) {
-        if(limit <= 0) {
-            return getTasksByStatusAndCatastrophe(status, catastropheId);
-        }
-        return getTasksByCatastrophe(catastropheId).stream()
-                .filter(task -> status.equals(task.getStatus()))
-                .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
-                .limit(limit)
-                .toList();
-    }
-
-    private List<TaskDTO> getTasksByStatusAndCatastrophe(Status status, int catastropheId) {
-        return getTasksByCatastrophe(catastropheId).stream()
-                .filter(task -> status.equals(task.getStatus()))
-                .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
-                .toList();
-    }
-
-    public List<TaskDTO> getToDoTasks(int limit) {
-        return getTasksByStatus(Status.TO_DO, limit);
-    }
-
-    public List<TaskDTO> getDoingTasks(int limit) {
-        return getTasksByStatus(Status.IN_PROGRESS, limit);
-    }
-
-    public List<TaskDTO> getDoneTasks(int limit) {
-        return getTasksByStatus(Status.FINISHED, limit);
-    }
-
-    private List<TaskDTO> getTasksByStatus(Status status) {
-        return getTasks().stream()
-                .filter(task -> status.equals(task.getStatus()))
-                .toList();
-    }
-
-    private List<TaskDTO> getTasksByStatus(Status status, int limit) {
-        if(limit <= 0) {
-            return getTasksByStatus(status);
-        }
-        return getTasks().stream()
-                .filter(task -> status.equals(task.getStatus()))
-                .sorted(Comparator.comparing(TaskDTO::getStartTimeDate).reversed())
-                .limit(limit)
-                .toList();
+        return getTasksByCatastrophe(catastropheId).stream().filter(t->t.getStatus().equals(Status.FINISHED)).limit(limit).toList();
     }
 
     public TaskDTO getTaskById(int id) {
@@ -190,17 +140,6 @@ public class TaskService {
 
             // Actualizar en el backend
             restTemplate.put(baseUrl + "/" + id, updatedTask);
-
-            // Actualizar la caché localmente
-            if (!taskCache.isEmpty()) {
-                for (int i = 0; i < taskCache.size(); i++) {
-                    TaskDTO cachedTask = taskCache.get(i);
-                    if (cachedTask.getId() == id) {
-                        cachedTask.setStatus(newStatus);
-                        break;
-                    }
-                }
-            }
         } catch (Exception e) {
             // Manejar la excepción
             System.err.println("Error al actualizar el estado de la tarea: " + e.getMessage());

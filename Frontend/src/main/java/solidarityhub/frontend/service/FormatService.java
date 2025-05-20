@@ -28,8 +28,21 @@ public class FormatService {
     public static FormatService getInstance() {
         if (instance == null) {
             instance = new FormatService();
+        }else{
+            instance.updateLocale();
         }
         return instance;
+    }
+
+    public void updateLocale(){
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }else{
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     public String formatEmergencyLevel(EmergencyLevel level) {

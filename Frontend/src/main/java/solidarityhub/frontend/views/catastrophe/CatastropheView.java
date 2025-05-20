@@ -87,7 +87,6 @@ public class CatastropheView extends VerticalLayout {
                 for (CatastropheDTO catastrophe : catastrophes) {
                     CatastropheComponent catastropheComp = createCatastropheComponent(catastrophe);
                     catastropheComp.addClickListener(e -> {
-                        taskService.taskCache.clear();
                         selectCatastrophe(catastrophe);
                         UI.getCurrent().navigate("home");
                     });

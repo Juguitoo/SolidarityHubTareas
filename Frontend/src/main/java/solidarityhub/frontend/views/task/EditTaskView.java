@@ -383,7 +383,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         Button confirmButton = new Button(translator.get("delete_button"), event -> {
             try {
                 taskService.deleteTask(taskId);
-                taskService.clearCache();
                 confirmDialog.close();
                 Notification.show(translator.get("task_deleted_success"));
 
@@ -489,7 +488,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
             // Actualizar en backend
             taskService.updateTask(taskId, updatedTaskDTO);
-            taskService.clearCache();
             Notification.show(translator.get("task_updated_success"));
 
             // Navegar de vuelta a la lista

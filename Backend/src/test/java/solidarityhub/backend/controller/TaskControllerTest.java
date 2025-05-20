@@ -58,7 +58,7 @@ class TaskControllerTest {
         when(taskService.getAllTasks()).thenReturn(tasks);
 
         // Act
-        ResponseEntity<?> response = taskController.getTasks();
+        ResponseEntity<?> response = taskController.getTasks("", "", "", "", null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

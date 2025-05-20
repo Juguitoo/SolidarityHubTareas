@@ -36,9 +36,19 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getTasks() {
+    public ResponseEntity<?> getTasks(@RequestParam(required = false) String status,
+                                      @RequestParam(required = false) String priority,
+                                      @RequestParam(required = false) String type,
+                                      @RequestParam(required = false) String emergencyLevel,
+                                      @RequestParam Integer catastropheId) {
+
         List<TaskDTO> taskDTOList = new ArrayList<>();
-        taskService.getAllTasks().forEach(t -> {taskDTOList.add(new TaskDTO(t));});
+        if (catastropheId == null) {
+            taskService.getAllTasks().forEach(t -> {taskDTOList.add(new TaskDTO(t));});
+            return ResponseEntity.ok(taskDTOList);
+        }
+        taskService.filter(status, priority, type, emergencyLevel, catastropheId)
+                .forEach(t -> {taskDTOList.add(new TaskDTO(t));});
         return ResponseEntity.ok(taskDTOList);
     }
 

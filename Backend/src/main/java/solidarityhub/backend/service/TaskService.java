@@ -1,12 +1,12 @@
 package solidarityhub.backend.service;
 
 import org.springframework.stereotype.Service;
+import solidarityhub.backend.criteria.tasks.*;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.builder.*;
-import solidarityhub.backend.model.enums.Status;
-import solidarityhub.backend.model.enums.UrgencyLevel;
+import solidarityhub.backend.model.enums.*;
 import solidarityhub.backend.repository.TaskRepository;
 
 import java.util.ArrayList;
@@ -67,5 +67,32 @@ public class TaskService {
 
     public Integer getFinishedTasksCount(Integer catastropheId) {
         return taskRepository.getTasksByStatusCount(catastropheId, Status.FINISHED);
+    }
+
+    public List<Task> filter(String status, String priority, String type, String emergencyLevel, Integer catastropheId) {
+        List<Task> tasks = taskRepository.getTasksByCatastrophe(catastropheId);
+        TaskFilter filter = null;
+
+        if (status != null && !status.isEmpty()) {
+            filter = new StatusFilter(Status.valueOf(status));
+        }
+        if (priority != null && !priority.isEmpty()) {
+            if (filter != null) filter = new AndFilter(filter, new PriorityFilter(Priority.valueOf(priority)));
+            else filter = new PriorityFilter(Priority.valueOf(priority));
+        }
+        if (type != null && !type.isEmpty()) {
+            if (filter != null) filter = new AndFilter(filter, new TypeFilter(TaskType.valueOf(type)));
+            else filter = new TypeFilter(TaskType.valueOf(type));
+        }
+        if (emergencyLevel != null && !emergencyLevel.isEmpty()) {
+            if (filter != null) filter = new AndFilter(filter, new EmergencyLevelFilter(EmergencyLevel.valueOf(emergencyLevel)));
+            else filter = new EmergencyLevelFilter(EmergencyLevel.valueOf(emergencyLevel));
+        }
+
+        if (filter != null) {
+            tasks = filter.filter(tasks);
+        }
+
+        return tasks;
     }
 }

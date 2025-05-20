@@ -263,7 +263,6 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                 );
 
                 taskService.addTask(suggestedTaskDTO);
-                taskService.taskCache.clear();
                 taskService.suggestedTasksCache.remove(selectedTask);
                 Notification.show(translator.get("task_updated_success"));
                 VaadinSession.getCurrent().setAttribute("cache", true);
