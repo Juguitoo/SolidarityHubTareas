@@ -20,9 +20,8 @@ public class SurveyDTO {
     private int numberOfAnswers;
     private Double averageQualification;
 
-    public SurveyDTO(int id, String name, LocalDateTime createdDate, LocalDateTime updatedAt, Map<Integer, String> questions,
+    public SurveyDTO(String name, LocalDateTime createdDate, LocalDateTime updatedAt, Map<Integer, String> questions,
                      Map<Integer, Double> qualifications, int numberOfAnswers, Double averageQualification) {
-        this.id = id;
         this.name = name;
         this.createdDate = createdDate;
         this.updatedAt = updatedAt;

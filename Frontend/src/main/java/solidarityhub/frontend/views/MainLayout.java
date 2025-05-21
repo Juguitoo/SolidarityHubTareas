@@ -22,6 +22,7 @@ import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.views.catastrophe.CatastropheView;
 import solidarityhub.frontend.views.home.HomeView;
 import solidarityhub.frontend.views.resources.MainResourcesView;
+import solidarityhub.frontend.views.survey.SurveyView;
 import solidarityhub.frontend.views.task.TaskView;
 
 import java.util.Locale;
@@ -225,7 +226,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void updateNavigationTexts() {
-        String[] labels = {translator.get("label_tasks"), translator.get("label_map"), translator.get("label_resources"), translator.get("label_dashboard"), translator.get("label_contact")};
+        String[] labels = {translator.get("label_tasks"), translator.get("label_map"), translator.get("label_resources"), translator.get("label_dashboard"), translator.get("label_surveys"),translator.get("label_contact")};
         int index = 0;
         for (SideNavItem item : sideNav.getItems()) {
             item.setLabel(labels[index++]);
@@ -242,6 +243,7 @@ public class MainLayout extends AppLayout {
                 createNavItem(translator.get("label_map"), VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
                 createNavItem(translator.get("label_resources"), VaadinIcon.TOOLBOX, MainResourcesView.class),
                 createNavItem(translator.get("label_dashboard"), VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
+                createNavItem(translator.get("label_surveys"), VaadinIcon.CLIPBOARD_TEXT, SurveyView.class),
                 createNavItem(translator.get("label_contact"), VaadinIcon.PHONE, "http://localhost:8080/contact")
         );
 
