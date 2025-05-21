@@ -1,5 +1,6 @@
 package solidarityhub.backend.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import solidarityhub.backend.criteria.tasks.*;
 import solidarityhub.backend.dto.TaskDTO;
@@ -7,6 +8,7 @@ import solidarityhub.backend.model.Need;
 import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.builder.*;
 import solidarityhub.backend.model.enums.*;
+import solidarityhub.backend.observer.impl.TaskObservable;
 import solidarityhub.backend.repository.TaskRepository;
 
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ import java.util.function.Supplier;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final VolunteerService volunteerService;
+    @Autowired
+    private TaskObservable taskObservable;
 
     private final Map<UrgencyLevel, Supplier<TaskBuilder>> builderRegistry;
 
@@ -31,7 +35,11 @@ public class TaskService {
         );
     }
 
-    public Task save(Task task) {return this.taskRepository.save(task);}
+    public Task save(Task task) {
+        Task savedTask = taskRepository.save(task);
+        taskObservable.setTask(savedTask);
+        return savedTask;
+    }
     public List<Task> getAllTasks() {return this.taskRepository.findAll();}
     public Task getTaskById(Integer id) {return this.taskRepository.findById(id).get();}
     public void deleteTask(Task task) {this.taskRepository.delete(task);}
@@ -94,5 +102,11 @@ public class TaskService {
         }
 
         return tasks;
+    }
+    public void checkAllTaskDeadlines() {
+        List<Task> tasks = taskRepository.findAll();
+        for (Task task : tasks) {
+            taskObservable.setTask(task);
+        }
     }
 }

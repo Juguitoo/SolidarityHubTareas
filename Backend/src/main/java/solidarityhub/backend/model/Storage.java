@@ -28,6 +28,18 @@ public class Storage {
     @Setter
     private boolean isFull;
 
+
+    // Add capacity attribute to represent maximum capacity
+    @Setter
+    @Column(nullable = false)
+    private int capacity = 100; // Default capacity is 100 units
+
+    // Add current usage field to track how much is being used
+    @Setter
+    @Column(nullable = false)
+    private int currentUsage = 0;
+
+
     @Setter
     @OneToMany(mappedBy = "storage")
     private List<Resource> resources;
@@ -43,9 +55,36 @@ public class Storage {
         this.gpsCoordinates = gpsCoordinates;
         this.isFull = isFull;
         this.zone = zone;
+        this.capacity = 100; // Default capacity
+        this.currentUsage = 0;
+    }
+
+    public Storage(String name, GPSCoordinates gpsCoordinates, boolean isFull, Zone zone, int capacity) {
+        this(name, gpsCoordinates, isFull, zone);
+        this.capacity = capacity;
     }
 
     public void addResource(Resource resource) {
         this.resources.add(resource);
+        // Increase the current usage
+        this.currentUsage++;
+        // Check if we're reaching capacity
+        if (this.currentUsage >= (this.capacity * 0.9)) { // 90% full
+            this.isFull = true;
+        }
+    }
+
+    public void removeResource(Resource resource) {
+        if (this.resources.remove(resource)) {
+            // Decrease the current usage
+            this.currentUsage = Math.max(0, this.currentUsage - 1);
+            // Update isFull flag
+            this.isFull = this.currentUsage >= (this.capacity * 0.9);
+        }
+    }
+
+    // Calculate percentage of capacity used
+    public double getCapacityUsagePercentage() {
+        return (double) this.currentUsage / this.capacity * 100.0;
     }
 }

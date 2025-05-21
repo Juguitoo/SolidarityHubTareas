@@ -1,5 +1,6 @@
 package solidarityhub.backend.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -8,6 +9,7 @@ import solidarityhub.backend.dto.StorageDTO;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.service.ResourceService;
+import solidarityhub.backend.service.StorageMonitorService;
 import solidarityhub.backend.service.StorageService;
 import solidarityhub.backend.dto.ResourceDTO;
 
@@ -21,6 +23,8 @@ public class StorageController {
 
     private final StorageService storageService;
     private final ResourceService resourceService;
+    @Autowired
+    private StorageMonitorService storageMonitorService;
 
     public StorageController(StorageService storageService, ResourceService resourceService) {
         this.storageService = storageService;
@@ -54,6 +58,10 @@ public class StorageController {
 
         storageService.saveStorage(storage);
 
+        Storage updatedStorage = storageService.saveStorage(storage);
+
+        // Notify observers about the updated storage
+        storageMonitorService.checkStorage(updatedStorage);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

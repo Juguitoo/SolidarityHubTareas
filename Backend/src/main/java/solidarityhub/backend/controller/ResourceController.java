@@ -1,5 +1,6 @@
 package solidarityhub.backend.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,10 +9,7 @@ import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.model.enums.ResourceType;
-import solidarityhub.backend.service.CatastropheService;
-import solidarityhub.backend.service.ResourceAssignmentService;
-import solidarityhub.backend.service.ResourceService;
-import solidarityhub.backend.service.StorageService;
+import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +25,9 @@ public class ResourceController {
     private final CatastropheService catastropheService;
     private final StorageService storageService;
     private final ResourceAssignmentService resourceAssignmentService;
+    @Autowired
+    private ResourceMonitorService resourceMonitorService;
+
 
     public ResourceController(ResourceService resourceService, CatastropheService catastropheService, StorageService storageService, ResourceAssignmentService resourceAssignmentService) {
         this.resourceService = resourceService;
@@ -77,6 +78,9 @@ public class ResourceController {
                 catastrophe);
         resourceService.save(resource);
 
+        Resource savedResource = resourceService.save(resource);
+        resourceMonitorService.resourceUpdated(savedResource);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -96,6 +100,12 @@ public class ResourceController {
         resource.setStorage(storage);
 
         resourceService.save(resource);
+
+        Resource updatedResource = resourceService.save(resource);
+
+        // Notify observers about the updated resource
+        resourceMonitorService.resourceUpdated(updatedResource);
+
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
@@ -145,4 +155,6 @@ public class ResourceController {
 
         return ResponseEntity.ok(summaries);
     }
+
+
 }

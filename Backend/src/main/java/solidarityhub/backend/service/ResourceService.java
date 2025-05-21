@@ -1,5 +1,6 @@
 package solidarityhub.backend.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import solidarityhub.backend.criteria.resources.*;
 import solidarityhub.backend.model.Catastrophe;
@@ -7,6 +8,7 @@ import solidarityhub.backend.model.Donation;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.enums.DonationType;
 import solidarityhub.backend.model.enums.ResourceType;
+import solidarityhub.backend.observer.impl.ResourceObservable;
 import solidarityhub.backend.repository.ResourceRepository;
 
 import java.util.List;
@@ -18,9 +20,16 @@ public class ResourceService {
         this.resourceRepository = resourceRepository;
     }
     public List<Resource> getResources() {return resourceRepository.findAll();}
-    public Resource save(Resource resource) {return resourceRepository.save(resource);}
+    public Resource save(Resource resource) {
+        Resource savedResource = resourceRepository.save(resource);
+        resourceObservable.resourceUpdated(savedResource);
+        return savedResource;
+    }
     public Resource getResourceById(Integer id) {return resourceRepository.findById(id).orElse(null);}
     public void deleteResource(Resource resource) {resourceRepository.delete(resource);}
+
+    private ResourceObservable resourceObservable;
+
 
     public List<Resource> getResourcesByCatastrophe(int catastropheId) {return resourceRepository.getResourcesByCatastrophe(catastropheId);}
 
@@ -138,5 +147,11 @@ public class ResourceService {
         } else {
             return ResourceType.OTHER;
         }
+    }
+
+    // Add this method to check resources
+    public void checkResourceLevels() {
+        List<Resource> resources = resourceRepository.findAll();
+        resourceObservable.setResources(resources);
     }
 }

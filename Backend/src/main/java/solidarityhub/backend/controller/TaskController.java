@@ -23,6 +23,8 @@ public class TaskController {
     private final NotificationService notificationService;
     private final CatastropheService catastropheService;
     private final PDFCertificateService pdfService;
+    @Autowired
+    private TaskMonitorService taskMonitorService;
 
     @Autowired
     public TaskController(TaskService taskService, VolunteerService volunteerService, NeedService needService,
@@ -137,6 +139,12 @@ public class TaskController {
         }
         taskService.save(task);
 
+
+        Task savedTask = taskService.save(task);
+
+        // Notify observers about the new task
+        taskMonitorService.checkTask(savedTask);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -217,6 +225,13 @@ public class TaskController {
                 pdfService.createPDFCertificate(volunteer, task);
             }
         }
+
+
+        Task updatedTask = taskService.save(task);
+
+        // Notify observers about the updated task
+        taskMonitorService.updateTaskStatus(updatedTask);
+
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
