@@ -3,6 +3,8 @@ package solidarityhub.frontend.service;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.SurveyDTO;
 
+import java.util.List;
+
 public class SurveyService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
@@ -27,8 +29,9 @@ public class SurveyService {
 
     //GET METHODS
 
-    public SurveyDTO getSurveys() {
-        return restTemplate.getForObject(baseUrl, SurveyDTO.class);
+    public List<SurveyDTO> getSurveys() {
+        SurveyDTO[] surveys = restTemplate.getForObject(baseUrl, SurveyDTO[].class);
+        return List.of(surveys);
     }
 
     public SurveyDTO getSurveyById(int id) {
