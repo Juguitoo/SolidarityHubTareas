@@ -12,7 +12,8 @@ import java.util.Map;
 @Entity
 public class Survey {
     @Id
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @Setter
     private String surveyName;

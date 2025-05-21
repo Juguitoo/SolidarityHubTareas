@@ -1,10 +1,12 @@
 package solidarityhub.frontend.service;
 
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.SurveyDTO;
 
 import java.util.List;
 
+@Service
 public class SurveyService {
     private final RestTemplate restTemplate;
     private final String baseUrl;
