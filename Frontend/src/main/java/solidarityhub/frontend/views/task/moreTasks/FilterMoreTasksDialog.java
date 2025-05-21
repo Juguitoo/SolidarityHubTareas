@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.task;
+package solidarityhub.frontend.views.task.moreTasks;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;

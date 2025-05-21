@@ -15,8 +15,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.EmergencyLevel;
-import org.pingu.domain.enums.Status;
-import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
@@ -46,19 +44,23 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     public HomeView() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
-
         this.catastropheService = new CatastropheService();
         this.taskService = new TaskService();
         this.needService = new NeedService();
         this.formatService = FormatService.getInstance();
+
+        initializeTranslator();
+    }
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     @Override
@@ -75,40 +77,34 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         removeAll();
         setWidthFull();
         addClassName("home-view");
-        setSpacing(true);
-        setPadding(true);
 
         HeaderComponent header = new HeaderComponent(selectedCatastrophe.getName());
 
-        //Layout principal con dos columnas
         HorizontalLayout mainContent = new HorizontalLayout();
+        mainContent.addClassName("home-view-content");
         mainContent.setWidthFull();
-        mainContent.setSpacing(true);
-        mainContent.setAlignItems(FlexComponent.Alignment.START);
+        mainContent.setAlignItems(Alignment.START);
 
         // Columna izquierda
         VerticalLayout leftColumn = new VerticalLayout();
-        leftColumn.setWidth("50%");
-        leftColumn.setSpacing(true);
+        leftColumn.addClassName("column");
         leftColumn.setPadding(false);
 
         leftColumn.add(
-                getWelcomeCard(),
-                getAdminPreferences(),
-                getRecentTasksCard(),
-                getQuickStatsCard()
+            getAdminCard(),
+            getRecentTasksCard(),
+            getNeedsOverviewCard()
         );
+
         // Columna derecha
         VerticalLayout rightColumn = new VerticalLayout();
-        rightColumn.setWidth("50%");
-        rightColumn.setSpacing(true);
+        rightColumn.addClassName("column");
         rightColumn.setPadding(false);
 
         rightColumn.add(
                 getCatastropheCard(),
-                getCatastropheActionsCard(),
-                new ResourceSummaryView(selectedCatastrophe),
-                getNeedsOverviewCard()
+                getQuickStatsCard(),
+                new ResourceSummaryView(selectedCatastrophe)
         );
 
         mainContent.add(leftColumn, rightColumn);
@@ -117,13 +113,18 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     //===============================Get Components=========================================
+    //Admin Card
+    private Component getAdminCard(){
+        VerticalLayout adminCard = new VerticalLayout();
+        adminCard.addClassName("admin-card");
 
-    // Tarjeta de bienvenida mejorada
-    private Component getWelcomeCard() {
-        VerticalLayout welcomeCard = new VerticalLayout();
-        welcomeCard.addClassName("welcome-card");
-        welcomeCard.setPadding(true);
-        welcomeCard.setSpacing(true);
+        adminCard.add(getWelcomeAdmin(), getAdminPreferences());
+
+        return adminCard;
+    }
+
+    private Component getWelcomeAdmin() {
+        HorizontalLayout welcomeCard = new HorizontalLayout();
 
         HorizontalLayout welcomeHeader = new HorizontalLayout();
         welcomeHeader.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -144,30 +145,26 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         welcomeText.add(welcomeTitle, adminName, adminRole);
 
-        // Indicador de tiempo online
-        HorizontalLayout statusLayout = new HorizontalLayout();
-        statusLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        statusLayout.setSpacing(true);
-
-        Span statusIndicator = new Span("●");
-        statusIndicator.addClassName("status-online");
-        Span statusText = new Span(translator.get("online_now"));
-        statusText.addClassName("status-text");
-
-        statusLayout.add(statusIndicator, statusText);
+//        HorizontalLayout statusLayout = new HorizontalLayout();
+//        statusLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+//        statusLayout.setSpacing(true);
+//
+//        Span statusIndicator = new Span("●");
+//        statusIndicator.addClassName("status-online");
+//        Span statusText = new Span(translator.get("online_now"));
+//        statusText.addClassName("status-text");
+//
+//        statusLayout.add(statusIndicator, statusText);
 
         welcomeHeader.add(adminIcon, welcomeText);
-        welcomeCard.add(welcomeHeader, statusLayout);
+        welcomeCard.add(welcomeHeader);
 
         return welcomeCard;
     }
 
-    // Preferencias del administrador mejoradas
     private Component getAdminPreferences() {
         VerticalLayout preferencesCard = new VerticalLayout();
         preferencesCard.addClassName("preferences-card");
-        preferencesCard.setPadding(true);
-        preferencesCard.setSpacing(true);
 
         H3 preferencesTitle = new H3(translator.get("home_preferences"));
         preferencesTitle.addClassName("card-title");
@@ -177,19 +174,14 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         preferencesContent.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         preferencesContent.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // Selector de tema mejorado
         HorizontalLayout themeSection = new HorizontalLayout();
         themeSection.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Span themeLabel = new Span(translator.get("theme"));
         themeLabel.addClassName("preference-label");
 
-        Button themeToggle = (Button) getThemeBtn();
-        themeToggle.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        themeSection.add(themeLabel, getThemeBtn());
 
-        themeSection.add(themeLabel, themeToggle);
-
-        // Selector de idioma mejorado
         HorizontalLayout languageSection = new HorizontalLayout();
         languageSection.setAlignItems(FlexComponent.Alignment.CENTER);
 
@@ -206,105 +198,53 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         return preferencesCard;
     }
 
+    //Catastrophe Card
+    private Component getCatastropheCard() {
+        VerticalLayout catastropheCard = new VerticalLayout();
+        catastropheCard.addClassName("catastrophe-info-card");
+        catastropheCard.addClassName(getEmergencyLevelClass(selectedCatastrophe.getEmergencyLevel()));
 
-    // Nueva tarjeta de tareas recientes
-    private Component getRecentTasksCard() {
-        VerticalLayout tasksCard = new VerticalLayout();
-        tasksCard.addClassName("recent-tasks-card");
-        tasksCard.setPadding(true);
-        tasksCard.setSpacing(true);
+        HorizontalLayout catastropheHeader = new HorizontalLayout();
+        catastropheHeader.setWidthFull();
+        catastropheHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+        catastropheHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        HorizontalLayout tasksHeader = new HorizontalLayout();
-        tasksHeader.setWidthFull();
-        tasksHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        tasksHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+        H3 catastropheName = new H3(selectedCatastrophe.getName());
+        catastropheName.addClassName("catastrophe-name");
 
-        H3 tasksTitle = new H3(translator.get("recent_tasks"));
-        tasksTitle.addClassName("card-title");
+        Button editButton = new Button(translator.get("edit_catastrophe"), VaadinIcon.EDIT.create());
+        editButton.addClassName("edit-catastrophe-btn");
+        editButton.addClickListener(e -> openEditCatastropheDialog());
 
-        Button viewAllTasks = new Button(translator.get("view_all"), VaadinIcon.ARROW_RIGHT.create());
-        viewAllTasks.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        viewAllTasks.addClickListener(e -> UI.getCurrent().navigate("tasks"));
+        catastropheHeader.add(catastropheName, editButton);
 
-        tasksHeader.add(tasksTitle, viewAllTasks);
+        VerticalLayout catastropheInfo = new VerticalLayout();
+        catastropheInfo.setPadding(false);
 
-        // Obtener tareas recientes
-        VerticalLayout tasksContent = new VerticalLayout();
-        tasksContent.setPadding(false);
-        tasksContent.setSpacing(true);
+        Div catastropheDescription = new Div();
+        catastropheDescription.setText(selectedCatastrophe.getDescription());
+        catastropheDescription.addClassName("catastrophe-description");
 
-        try {
-            List<TaskDTO> recentTasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId())
-                    .stream()
-                    .sorted((t1, t2) -> t2.getStartTimeDate().compareTo(t1.getStartTimeDate()))
-                    .limit(3)
-                    .toList();
+        HorizontalLayout catastropheData = new HorizontalLayout();
+        catastropheData.addClassName("catastrophe-data");
+        catastropheData.setWidthFull();
+        catastropheData.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            if (recentTasks.isEmpty()) {
-                Span noTasks = new Span(translator.get("no_recent_tasks"));
-                noTasks.addClassName("empty-state-text");
-                tasksContent.add(noTasks);
-            } else {
-                for (TaskDTO task : recentTasks) {
-                    tasksContent.add(createTaskSummary(task));
-                }
-            }
-        } catch (Exception e) {
-            Span errorMessage = new Span(translator.get("error_loading_recent_tasks"));
-            errorMessage.addClassName("error-text");
-            tasksContent.add(errorMessage);
-        }
+        Span emergencyInfo = new Span(translator.get("emergency_level") + formatService.formatEmergencyLevel(selectedCatastrophe.getEmergencyLevel()));
+        emergencyInfo.addClassName("catastrophe-data__label");
 
-        tasksCard.add(tasksHeader, tasksContent);
-        return tasksCard;
+        Span dateInfo = new Span(translator.get("start_date") + selectedCatastrophe.getStartDate().format(DATE_FORMATTER));
+        dateInfo.addClassName("catastrophe-data__label");
+
+        catastropheData.add(emergencyInfo, dateInfo);
+
+        catastropheInfo.add(catastropheDescription, catastropheData);
+        catastropheCard.add(catastropheHeader, catastropheInfo);
+
+        return catastropheCard;
     }
 
-    // Crear resumen de tarea para la vista de inicio
-    private Component createTaskSummary(TaskDTO task) {
-        HorizontalLayout taskSummary = new HorizontalLayout();
-        taskSummary.addClassName("task-summary");
-        taskSummary.setWidthFull();
-        taskSummary.setAlignItems(FlexComponent.Alignment.CENTER);
-        taskSummary.setPadding(true);
-        taskSummary.setSpacing(true);
-
-        // Indicador de estado
-        Span statusIndicator = new Span();
-        statusIndicator.addClassName("task-status-indicator");
-        switch (task.getStatus()) {
-            case TO_DO -> statusIndicator.addClassName("status-todo");
-            case IN_PROGRESS -> statusIndicator.addClassName("status-in-progress");
-            case FINISHED -> statusIndicator.addClassName("status-finished");
-        }
-
-        VerticalLayout taskInfo = new VerticalLayout();
-        taskInfo.setPadding(false);
-        taskInfo.setSpacing(false);
-        taskInfo.setFlexGrow(1);
-
-        Span taskName = new Span(task.getName());
-        taskName.addClassName("task-name");
-
-        Span taskMeta = new Span(formatService.formatTaskStatus(task.getStatus()));
-
-        taskInfo.add(taskName, taskMeta);
-
-        Icon arrow = VaadinIcon.ANGLE_RIGHT.create();
-        arrow.addClassName("task-arrow");
-
-        taskSummary.add(statusIndicator, taskInfo, arrow);
-
-        // Hacer clickeable
-        taskSummary.addClickListener(e ->
-                UI.getCurrent().navigate("editTask", QueryParameters.simple(
-                        java.util.Collections.singletonMap("id", String.valueOf(task.getId()))
-                ))
-        );
-
-        return taskSummary;
-    }
-
-    // Nueva tarjeta de estadísticas rápidas
+    //QuickStats Card
     private Component getQuickStatsCard() {
         VerticalLayout statsCard = new VerticalLayout();
         statsCard.addClassName("quick-stats-card");
@@ -361,97 +301,103 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         return statItem;
     }
 
-    // Tarjeta de catástrofe mejorada
-    private Component getCatastropheCard() {
-        VerticalLayout catastropheCard = new VerticalLayout();
-        catastropheCard.addClassName("catastrophe-info-card");
-        catastropheCard.setPadding(true);
-        catastropheCard.setSpacing(true);
+    //Tasks Card
+    private Component getRecentTasksCard() {
+        VerticalLayout tasksCard = new VerticalLayout();
+        tasksCard.addClassName("recent-tasks-card");
+        tasksCard.setPadding(true);
+        tasksCard.setSpacing(true);
 
-        H3 catastropheTitle = new H3(translator.get("current_catastrophe"));
-        catastropheTitle.addClassName("card-title");
+        HorizontalLayout tasksHeader = new HorizontalLayout();
+        tasksHeader.setWidthFull();
+        tasksHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        tasksHeader.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // Información de la catástrofe
-        VerticalLayout catastropheInfo = new VerticalLayout();
-        catastropheInfo.setPadding(false);
-        catastropheInfo.setSpacing(true);
+        H3 tasksTitle = new H3(translator.get("recent_tasks"));
+        tasksTitle.addClassName("card-title");
 
-        H4 catastropheName = new H4(selectedCatastrophe.getName());
-        catastropheName.addClassName("catastrophe-name");
+        Button viewAllTasks = new Button(translator.get("view_all"), VaadinIcon.ARROW_RIGHT.create());
+        viewAllTasks.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        viewAllTasks.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
 
-        Div catastropheDescription = new Div();
-        catastropheDescription.setText(selectedCatastrophe.getDescription());
-        catastropheDescription.addClassName("catastrophe-description");
+        tasksHeader.add(tasksTitle, viewAllTasks);
 
-        // Metadatos de la catástrofe
-        HorizontalLayout metaLayout = new HorizontalLayout();
-        metaLayout.setWidthFull();
-        metaLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        // Obtener tareas recientes
+        VerticalLayout tasksContent = new VerticalLayout();
+        tasksContent.setPadding(false);
+        tasksContent.setSpacing(true);
 
-        VerticalLayout emergencyInfo = new VerticalLayout();
-        emergencyInfo.setPadding(false);
-        emergencyInfo.setSpacing(false);
+        try {
+            List<TaskDTO> recentTasks = taskService.getTasksByCatastrophe(selectedCatastrophe.getId())
+                    .stream()
+                    .sorted((t1, t2) -> t2.getStartTimeDate().compareTo(t1.getStartTimeDate()))
+                    .limit(3)
+                    .toList();
 
-        Span emergencyLabel = new Span(translator.get("emergency_level"));
-        emergencyLabel.addClassName("meta-label");
+            if (recentTasks.isEmpty()) {
+                Span noTasks = new Span(translator.get("no_recent_tasks"));
+                noTasks.addClassName("empty-state-text");
+                tasksContent.add(noTasks);
+            } else {
+                for (TaskDTO task : recentTasks) {
+                    tasksContent.add(createTaskSummary(task));
+                }
+            }
+        } catch (Exception e) {
+            Span errorMessage = new Span(translator.get("error_loading_recent_tasks"));
+            errorMessage.addClassName("error-text");
+            tasksContent.add(errorMessage);
+        }
 
-        Span emergencyValue = new Span(formatService.formatEmergencyLevel(selectedCatastrophe.getEmergencyLevel()));
-        emergencyValue.addClassName("emergency-level");
-        emergencyValue.addClassName(getEmergencyLevelClass(selectedCatastrophe.getEmergencyLevel()));
-
-        emergencyInfo.add(emergencyLabel, emergencyValue);
-
-        VerticalLayout dateInfo = new VerticalLayout();
-        dateInfo.setPadding(false);
-        dateInfo.setSpacing(false);
-
-        Span dateLabel = new Span(translator.get("start_date"));
-        dateLabel.addClassName("meta-label");
-
-        Span dateValue = new Span(selectedCatastrophe.getStartDate().format(DATE_FORMATTER));
-        dateValue.addClassName("meta-value");
-
-        dateInfo.add(dateLabel, dateValue);
-
-        metaLayout.add(emergencyInfo, dateInfo);
-
-        catastropheInfo.add(catastropheName, catastropheDescription, metaLayout);
-        catastropheCard.add(catastropheTitle, catastropheInfo);
-
-        return catastropheCard;
+        tasksCard.add(tasksHeader, tasksContent);
+        return tasksCard;
     }
 
-    // Nueva tarjeta de acciones de catástrofe
-    private Component getCatastropheActionsCard() {
-        VerticalLayout actionsCard = new VerticalLayout();
-        actionsCard.addClassName("catastrophe-actions-card");
-        actionsCard.setPadding(true);
-        actionsCard.setSpacing(true);
+    private Component createTaskSummary(TaskDTO task) {
+        HorizontalLayout taskSummary = new HorizontalLayout();
+        taskSummary.addClassName("task-summary");
+        taskSummary.setWidthFull();
+        taskSummary.setAlignItems(FlexComponent.Alignment.CENTER);
+        taskSummary.setPadding(true);
+        taskSummary.setSpacing(true);
 
-        H3 actionsTitle = new H3(translator.get("catastrophe_actions"));
-        actionsTitle.addClassName("card-title");
+        // Indicador de estado
+        Span statusIndicator = new Span();
+        statusIndicator.addClassName("task-status-indicator");
+        switch (task.getStatus()) {
+            case TO_DO -> statusIndicator.addClassName("status-todo");
+            case IN_PROGRESS -> statusIndicator.addClassName("status-in-progress");
+            case FINISHED -> statusIndicator.addClassName("status-finished");
+        }
 
-        HorizontalLayout actionsLayout = new HorizontalLayout();
-        actionsLayout.setWidthFull();
-        actionsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        actionsLayout.setSpacing(true);
+        VerticalLayout taskInfo = new VerticalLayout();
+        taskInfo.setPadding(false);
+        taskInfo.setSpacing(false);
+        taskInfo.setFlexGrow(1);
 
-        Button editButton = new Button(translator.get("edit_catastrophe"), VaadinIcon.EDIT.create());
-        editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        editButton.addClickListener(e -> openEditCatastropheDialog());
+        Span taskName = new Span(task.getName());
+        taskName.addClassName("task-name");
 
-        Button viewResourcesButton = new Button(translator.get("view_resources"), VaadinIcon.PACKAGE.create());
-        viewResourcesButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        viewResourcesButton.addClickListener(e -> UI.getCurrent().navigate("resources"));
+        Span taskMeta = new Span(formatService.formatTaskStatus(task.getStatus()));
 
+        taskInfo.add(taskName, taskMeta);
 
-        actionsLayout.add(editButton, viewResourcesButton);
-        actionsCard.add(actionsTitle, actionsLayout);
+        Icon arrow = VaadinIcon.ANGLE_RIGHT.create();
+        arrow.addClassName("task-arrow");
 
-        return actionsCard;
+        taskSummary.add(statusIndicator, taskInfo, arrow);
+
+        // Hacer clickeable
+        taskSummary.addClickListener(e ->
+                UI.getCurrent().navigate("editTask", QueryParameters.simple(
+                        java.util.Collections.singletonMap("id", String.valueOf(task.getId()))
+                ))
+        );
+
+        return taskSummary;
     }
 
-    // Nueva tarjeta de resumen de necesidades
+    //Needs Card
     private Component getNeedsOverviewCard() {
         VerticalLayout needsCard = new VerticalLayout();
         needsCard.addClassName("needs-overview-card");
@@ -567,14 +513,12 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     //===============================Helper Methods=========================================
-
-    private Component getThemeBtn() {
+    private Button getThemeBtn() {
         Span themeIcon = new Span();
         themeIcon.setText("🌙");
 
         Button toggleTheme = new Button(themeIcon);
         toggleTheme.addClassName("theme-toggle-btn");
-        toggleTheme.getElement().setAttribute("aria-label", translator.get("toggle_theme"));
 
         toggleTheme.addClickListener(event -> UI.getCurrent().getPage().executeJs("""
                 const html = document.documentElement;
@@ -648,10 +592,10 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         if (level == null) return "emergency-unknown";
 
         return switch (level) {
-            case LOW -> "emergency-low";
-            case MEDIUM -> "emergency-medium";
-            case HIGH -> "emergency-high";
-            case VERYHIGH -> "emergency-very-high";
+            case LOW -> "emergency-low-card";
+            case MEDIUM -> "emergency-medium-card";
+            case HIGH -> "emergency-high-card";
+            case VERYHIGH -> "emergency-very-high-card";
         };
     }
 }

@@ -1,13 +1,19 @@
-/* HomeView Styles */
-
 .home-view {
     background-color: var(--background-color);
     min-height: 100vh;
 }
 
+.home-view-content{
+    gap: 3rem;
+    padding: 0 50px;
+}
+
+.column{
+    gap: 1.5rem;
+}
+
 /* Cards Base Styles */
-.welcome-card,
-.preferences-card,
+.admin-card,
 .recent-tasks-card,
 .quick-stats-card,
 .catastrophe-info-card,
@@ -17,34 +23,16 @@
     border: 1px solid var(--border-color);
     border-radius: var(--card-border-radius);
     box-shadow: var(--card-shadow);
-    transition: all 0.3s ease;
 }
 
-/* Solo hover para las cards clickeables */
-.recent-tasks-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px var(--shadow-color);
-}
-
-/* Welcome Card */
-.welcome-card {
-    background: linear-gradient(135deg, var(--primary-light-color), var(--surface-color));
-    max-width: 100%;
-    overflow: hidden;
-}
-
-.welcome-card vaadin-horizontal-layout {
-    align-items: center;
-    width: 100%;
+/* AdminCard */
+.admin-card{
+    background: var(--primary-light-color);
 }
 
 .admin-icon-large {
-    width: 60px !important;
-    height: 60px !important;
-    max-width: 60px !important;
-    max-height: 60px !important;
-    min-width: 60px !important;
-    min-height: 60px !important;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--primary-color);
@@ -68,24 +56,12 @@
 .status-online {
     color: var(--success-color);
     font-size: 1rem;
-    animation: pulse 2s infinite;
 }
 
 .status-text {
     font-size: 0.875rem;
     color: var(--success-color);
     font-weight: 500;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-/* Preferences Card */
-.preferences-card {
-    border-left: 4px solid var(--primary-color);
 }
 
 .preference-label {
@@ -104,6 +80,60 @@
 
 .language-selector {
     width: 150px;
+}
+
+/* Catastrophe Info Card */
+.catastrophe-description {
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.catastrophe-data {
+    gap: 1rem;
+}
+
+.catastrophe-data__label {
+    font-size: 0.9rem;
+}
+
+.emergency-low-card {
+    border: 2px solid var(--success-color);
+}
+
+.emergency-medium-card {
+    border: 2px solid var(--warning-color);
+}
+
+.emergency-high-card {
+    border: 2px solid var(--accent-color);
+}
+
+.emergency-very-high-card {
+    border: 2px solid var(--accent-color);
+    box-shadow: 0 0 10px var(--accent-color);
+}
+
+/* Needs Overview Card */
+.needs-overview-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.needs-summary {
+    background: rgba(255, 59, 63, 0.1); /* Usando el color accent con transparencia */
+    border-radius: calc(var(--card-border-radius) / 2);
+    padding: 1rem;
+    border: 1px solid rgba(255, 59, 63, 0.3);
+}
+
+.needs-warning-icon {
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+.needs-warning-text {
+    color: var(--accent-color);
+    font-weight: 500;
 }
 
 /* Recent Tasks Card */
@@ -205,101 +235,6 @@
 
 .stat-item.stat-needs .stat-value {
     color: var(--accent-color);
-}
-
-/* Catastrophe Info Card */
-.catastrophe-info-card {
-    border-left: 4px solid var(--accent-color);
-}
-
-.catastrophe-name {
-    color: var(--text-color);
-    font-weight: 600;
-    margin: 0;
-}
-
-.catastrophe-description {
-    color: var(--text-color);
-    line-height: 1.6;
-    font-size: 1rem;
-}
-
-.meta-label {
-    font-size: 0.75rem;
-    color: var(--text-color);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-}
-
-.meta-value {
-    font-size: 1rem;
-    color: var(--text-color);
-    font-weight: 500;
-}
-
-.emergency-level {
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: calc(var(--card-border-radius) / 3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.emergency-level.emergency-low {
-    background-color: var(--success-color);
-    color: var(--surface-color);
-    opacity: 0.8;
-}
-
-.emergency-level.emergency-medium {
-    background-color: var(--warning-color);
-    color: var(--surface-color);
-}
-
-.emergency-level.emergency-high {
-    background-color: var(--accent-color);
-    color: var(--surface-color);
-}
-
-.emergency-level.emergency-very-high {
-    background-color: var(--accent-color);
-    color: var(--surface-color);
-    animation: blink 1.5s infinite;
-    box-shadow: 0 0 10px var(--accent-color);
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.7; }
-}
-
-/* Catastrophe Actions Card */
-.catastrophe-actions-card {
-    border-left: 4px solid var(--warning-color);
-}
-
-/* Needs Overview Card */
-.needs-overview-card {
-    border-left: 4px solid var(--primary-color);
-}
-
-.needs-summary {
-    background: rgba(255, 59, 63, 0.1); /* Usando el color accent con transparencia */
-    border-radius: calc(var(--card-border-radius) / 2);
-    padding: 1rem;
-    border: 1px solid rgba(255, 59, 63, 0.3);
-}
-
-.needs-warning-icon {
-    color: var(--accent-color);
-    font-size: 1rem;
-}
-
-.needs-warning-text {
-    color: var(--accent-color);
-    font-weight: 500;
 }
 
 /* Common Styles */

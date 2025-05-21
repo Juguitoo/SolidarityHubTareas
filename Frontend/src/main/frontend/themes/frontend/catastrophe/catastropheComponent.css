@@ -6,6 +6,7 @@
     border-radius: 8px;
     background-color: var(--surface-color);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
 }
 
 .catastrophe-card:hover {

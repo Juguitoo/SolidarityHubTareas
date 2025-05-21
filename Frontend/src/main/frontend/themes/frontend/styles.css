@@ -82,11 +82,32 @@
     --card-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
 }
 
-div, h1, h2, h3, p, span, a, label, button, select, ul, li, img, section, header, footer, nav, main, span {
+div, h1, h2, h3, h4, p, span, a, label, button, select, ul, li, img, section, header, footer, nav, main, span {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     color: var(--text-color);
+}
+
+/* Scroll */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    border: 2px solid var(--surface-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-dark-color);
 }
 
 /* Grids */
@@ -136,28 +157,6 @@ vaadin-tab[selected]{
 [data-theme="dark"] vaadin-tab:not([selected]):hover{
     color: var(--lumo-primary-color-60pct);
 }
-
-/* Scroll */
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--background-color);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: var(--primary-color);
-    border-radius: 4px;
-    border: 2px solid var(--surface-color);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: var(--primary-dark-color);
-}
-
 
 /* Fields */
 vaadin-text-field, vaadin-number-field, vaadin-integer-field, vaadin-text-area, vaadin-date-picker, vaadin-date-time-picker, vaadin-select, vaadin-combo-box, vaadin-multi-select-combo-box, vaadin-checkbox-group{
