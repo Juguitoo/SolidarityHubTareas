@@ -1,5 +1,6 @@
 package solidarityhub.backend.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.NotificationDTO;
@@ -92,5 +93,26 @@ public class NotificationController {
         }
 
         return dto;
+    }
+    @PutMapping("/mark-all-read")
+    public ResponseEntity<?> markAllAsRead() {
+        try {
+            // Usar query nativa para máximo rendimiento
+            int updatedCount = notificationRepository.markAllUnreadAsReadNative();
+
+            // Respuesta simple y rápida
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            // Log del error pero respuesta rápida
+            System.err.println("Error marking notifications as read: " + e.getMessage());
+
+            // Intentar con JPQL como respaldo
+            try {
+                int updatedCount = notificationRepository.markAllUnreadAsRead();
+                return ResponseEntity.ok().build();
+            } catch (Exception e2) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
     }
 }

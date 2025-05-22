@@ -236,12 +236,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     return; // No hay cambio, salir temprano
                 }
 
-                // Crear un TaskDTO parcial solo con los campos que necesitamos actualizar
-                TaskDTO statusUpdateDTO = new TaskDTO();
-                statusUpdateDTO.setId(taskId);
-                statusUpdateDTO.setStatus(newStatus);
-
-                // Llamar a un método optimizado que solo actualiza el estado
+                // Llamar al método que actualiza el estado en el backend
                 taskService.updateTaskStatus(taskId, newStatus);
 
                 // Actualizar UI sin recargar toda la vista

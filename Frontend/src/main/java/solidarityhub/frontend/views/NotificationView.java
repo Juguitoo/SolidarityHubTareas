@@ -1,13 +1,18 @@
 package solidarityhub.frontend.views;
 
+
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -30,6 +35,8 @@ public class NotificationView extends VerticalLayout {
     private static Translator translator;
     private final NotificationService notificationService;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private VerticalLayout notificationsContainer;
+    private List<NotificationDTO> currentNotifications;
 
     public NotificationView(NotificationService notificationService) {
         this.notificationService = notificationService;
@@ -44,23 +51,84 @@ public class NotificationView extends VerticalLayout {
         add(header);
 
         // Fetch notifications
-        List<NotificationDTO> notifications = notificationService.getAllNotifications();
+        currentNotifications = notificationService.getAllNotifications();
 
-        if (notifications.isEmpty()) {
+        if (currentNotifications.isEmpty()) {
             add(getEmptyState());
         } else {
             // Sort notifications by creation date (newest first)
-            notifications.sort(Comparator.comparing(NotificationDTO::getCreationDateTime).reversed());
+            currentNotifications.sort(Comparator.comparing(NotificationDTO::getCreationDateTime).reversed());
 
-            VerticalLayout notificationsContainer = new VerticalLayout();
+            // Add mark all as read button
+            add(getMarkAllAsReadButton());
+
+            notificationsContainer = new VerticalLayout();
             notificationsContainer.setPadding(true);
             notificationsContainer.setSpacing(true);
 
-            for (NotificationDTO notification : notifications) {
+            for (NotificationDTO notification : currentNotifications) {
                 notificationsContainer.add(createNotificationCard(notification));
             }
 
             add(notificationsContainer);
+        }
+    }
+
+    private Component getMarkAllAsReadButton() {
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setWidthFull();
+        buttonLayout.setJustifyContentMode(JustifyContentMode.END);
+        buttonLayout.setPadding(true);
+        buttonLayout.addClassName("mark-all-button-layout");
+
+        Button markAllAsReadButton = new Button(translator.get("mark_all_as_read"), VaadinIcon.CHECK_CIRCLE.create());
+        markAllAsReadButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        markAllAsReadButton.addClassName("mark-all-button");
+
+        markAllAsReadButton.addClickListener(e -> markAllAsRead());
+
+        buttonLayout.add(markAllAsReadButton);
+        return buttonLayout;
+    }
+
+    private void markAllAsRead() {
+        if (currentNotifications == null || currentNotifications.isEmpty()) {
+            return;
+        }
+
+        try {
+            // Llamada directa sin hilos adicionales
+            boolean success = notificationService.markAllAsRead();
+
+            if (success) {
+                // Show success notification
+                Notification.show(
+                        translator.get("all_notifications_marked_read"),
+                        2000,
+                        Notification.Position.BOTTOM_START
+                ).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+                // Clear the view immediately and show empty state
+                removeAll();
+
+                // Re-add header
+                HeaderComponent header = new HeaderComponent(translator.get("notifications_title"), "window.history.back()");
+                add(header);
+                add(getEmptyState());
+            } else {
+                // Show error notification
+                Notification.show(
+                        translator.get("error_marking_notifications"),
+                        3000,
+                        Notification.Position.BOTTOM_START
+                ).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        } catch (Exception e) {
+            Notification.show(
+                    translator.get("error_marking_notifications") + ": " + e.getMessage(),
+                    3000,
+                    Notification.Position.BOTTOM_START
+            ).addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
@@ -122,8 +190,10 @@ public class NotificationView extends VerticalLayout {
             card.removeFromParent();
 
             // If no more notifications, show empty state
-            if (card.getParent().get().getChildren().count() == 0) {
+            if (notificationsContainer.getChildren().count() == 0) {
                 removeAll();
+                HeaderComponent headerComponent = new HeaderComponent(translator.get("notifications_title"), "window.history.back()");
+                add(headerComponent);
                 add(getEmptyState());
             }
         });

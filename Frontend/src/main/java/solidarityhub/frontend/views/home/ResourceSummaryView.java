@@ -103,7 +103,9 @@ public class ResourceSummaryView extends VerticalLayout {
         ProgressBar usageProgress = new ProgressBar();
         usageProgress.setMin(0);
         usageProgress.setMax(100);
-        usageProgress.setValue(summary.getUsagePercentage());
+        double usagePercentage = summary.getUsagePercentage();
+        double safeValue = Math.max(0.0, Math.min(100.0, usagePercentage));
+        usageProgress.setValue(safeValue);
         usageProgress.setWidthFull();
 
         Span usageLabel = new Span(String.format("%.1f%% " + translator.get("used"),

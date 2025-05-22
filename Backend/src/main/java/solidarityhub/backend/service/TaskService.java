@@ -9,7 +9,10 @@ import solidarityhub.backend.model.Task;
 import solidarityhub.backend.model.builder.*;
 import solidarityhub.backend.model.enums.*;
 import solidarityhub.backend.observer.impl.TaskObservable;
+import solidarityhub.backend.observer.impl.ResourceObserver;
 import solidarityhub.backend.repository.TaskRepository;
+import solidarityhub.backend.repository.NotificationRepository;
+import solidarityhub.backend.repository.ResourceRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +23,35 @@ import java.util.function.Supplier;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final VolunteerService volunteerService;
-    @Autowired
-    private TaskObservable taskObservable;
+    private final TaskObservable taskObservable;
+    private final ResourceObserver resourceObserver;
 
     private final Map<UrgencyLevel, Supplier<TaskBuilder>> builderRegistry;
 
-    public TaskService(TaskRepository taskRepository, VolunteerService volunteerService) {
+    @Autowired
+    public TaskService(TaskRepository taskRepository,
+                       VolunteerService volunteerService,
+                       NotificationService notificationService,
+                       NotificationRepository notificationRepository,
+                       ResourceRepository resourceRepository,
+                       ResourceService resourceService) {
         this.taskRepository = taskRepository;
         this.volunteerService = volunteerService;
+        this.taskObservable = new TaskObservable();
+
+        // Crear el observer y configurarlo
+        this.resourceObserver = new ResourceObserver(
+                notificationService,
+                notificationRepository,
+                resourceRepository,
+                taskRepository,
+                resourceService,
+                this
+        );
+
+        // Agregar el observer al observable
+        this.taskObservable.addObserver(resourceObserver);
+
         builderRegistry = Map.of(
                 UrgencyLevel.URGENT, () -> new UrgentTaskBuilder(volunteerService),
                 UrgencyLevel.MODERATE, () -> new ModerateTaskBuilder(volunteerService),
@@ -37,6 +61,7 @@ public class TaskService {
 
     public Task save(Task task) {
         Task savedTask = taskRepository.save(task);
+        // Notificar al observable sobre el cambio
         taskObservable.setTask(savedTask);
         return savedTask;
     }
@@ -104,10 +129,17 @@ public class TaskService {
 
         return tasks;
     }
+
     public void checkAllTaskDeadlines() {
         List<Task> tasks = taskRepository.findAll();
         for (Task task : tasks) {
             taskObservable.setTask(task);
         }
+    }
+
+    // Método específico para actualizar el estado de una tarea
+    public void updateTaskStatus(Task task) {
+        Task savedTask = taskRepository.save(task);
+        taskObservable.setTask(savedTask);
     }
 }

@@ -23,19 +23,21 @@ import solidarityhub.backend.service.TaskService;
 @Component
 public class ResourceObserver implements Observer {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
+    private final ResourceRepository resourceRepository;
+    private final TaskRepository taskRepository;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private ResourceRepository resourceRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    public ResourceObserver(NotificationService notificationService, NotificationRepository notificationRepository, ResourceRepository resourceRepository, TaskRepository taskRepository, ResourceService resourceService, TaskService taskService) {
+    public ResourceObserver(NotificationService notificationService,
+                            NotificationRepository notificationRepository,
+                            ResourceRepository resourceRepository,
+                            TaskRepository taskRepository,
+                            ResourceService resourceService,
+                            TaskService taskService) {
+        this.notificationService = notificationService;
+        this.notificationRepository = notificationRepository;
+        this.resourceRepository = resourceRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Override
@@ -46,9 +48,13 @@ public class ResourceObserver implements Observer {
         } else if (observable instanceof StorageObservable && arg instanceof Storage) {
             Storage storage = (Storage) arg;
             checkStorageCapacity(storage);
-        } else if (observable instanceof TaskObservable && arg instanceof Task) {
-            Task task = (Task) arg;
-            checkTaskStatus(task);
+        } else if (observable instanceof TaskObservable) {
+            // Obtener la tarea del observable
+            TaskObservable taskObservable = (TaskObservable) observable;
+            Task task = taskObservable.getTask();
+            if (task != null) {
+                checkTaskStatus(task);
+            }
         }
     }
 
@@ -106,6 +112,17 @@ public class ResourceObserver implements Observer {
             taskRepository.save(task);
             createTaskStatusChangeNotification(task, "ha sido completada");
         }
+
+        // Crear notificación para cualquier cambio de estado manual
+        createTaskStatusChangeNotification(task, getStatusMessage(task.getStatus()));
+    }
+
+    private String getStatusMessage(Status status) {
+        return switch (status) {
+            case TO_DO -> "está pendiente";
+            case IN_PROGRESS -> "está en progreso";
+            case FINISHED -> "ha sido completada";
+        };
     }
 
     // Helper methods to create notifications
@@ -132,7 +149,7 @@ public class ResourceObserver implements Observer {
 
     private void createTaskStatusChangeNotification(Task task, String statusMessage) {
         String title = "Estado de tarea actualizado: " + task.getTaskName();
-        String body = "La tarea '" + task.getTaskName() + "' " + statusMessage + " automáticamente.";
+        String body = "La tarea '" + task.getTaskName() + "' " + statusMessage + ".";
 
         // Create notification for system (visible to all)
         Notification systemNotification = new Notification(title, body, task, null);

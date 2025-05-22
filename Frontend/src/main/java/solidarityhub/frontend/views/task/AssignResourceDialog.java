@@ -113,9 +113,14 @@ public class AssignResourceDialog extends Dialog {
                 unitSpan.setText(selectedResource.getUnit());
 
                 Double available = assignmentService.getAvailableQuantity(selectedResource.getId());
-                quantityField.setMax(available);
-            } else {
-                unitSpan.setText("");
+
+                // Fix: Validate available quantity before setting max
+                if (available != null && available > 0) {
+                    quantityField.setMax(available);
+                } else {
+                    quantityField.setMax(1000.0); // Set reasonable default
+                    quantityField.clear(); // Clear any existing value
+                }
             }
         });
 

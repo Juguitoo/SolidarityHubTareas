@@ -155,6 +155,9 @@ public class TaskController {
             return ResponseEntity.notFound().build();
         }
 
+        // Guardar el estado anterior para comparación
+        Status oldStatus = task.getStatus();
+
         task.getVolunteers().forEach(volunteer -> {volunteer.getTasks().remove(task); volunteerService.save(volunteer);});
         task.getNeeds().forEach(need -> {need.setTask(null); needService.save(need);});
 
@@ -196,7 +199,12 @@ public class TaskController {
         task.setType(taskDTO.getType());
         task.setMeetingDirection(taskDTO.getMeetingDirection());
 
-        taskService.save(task);
+        // Usar el método específico para actualización de estado si cambió
+        if (oldStatus != taskDTO.getStatus()) {
+            taskService.updateTaskStatus(task);
+        } else {
+            taskService.save(task);
+        }
 
         for (Need need : needs) {
             if(need.getTask() == null){
@@ -226,12 +234,7 @@ public class TaskController {
             }
         }
 
-
         Task updatedTask = taskService.save(task);
-
-        // Notify observers about the updated task
-        taskMonitorService.updateTaskStatus(updatedTask);
-
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
