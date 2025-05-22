@@ -22,6 +22,33 @@ public class ResourceAssignmentService {
         this.baseUrl = "http://localhost:8082/solidarityhub/resource-assignments";
     }
 
+    public void assignResourceToTask(int taskId, int resourceId, double quantity, String units) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            ResourceAssignmentDTO dto = new ResourceAssignmentDTO(taskId, resourceId, quantity, units);
+            HttpEntity<ResourceAssignmentDTO> request = new HttpEntity<>(dto, headers);
+
+            restTemplate.postForObject(baseUrl, request, ResourceAssignmentDTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void assignResourceToTask(ResourceAssignmentDTO dto) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<ResourceAssignmentDTO> request = new HttpEntity<>(dto, headers);
+
+            restTemplate.postForObject(baseUrl, request, ResourceAssignmentDTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<ResourceAssignmentDTO> getAssignmentsByTask(int taskId) {
         try {
             ResponseEntity<ResourceAssignmentDTO[]> response = restTemplate.exchange(
@@ -61,20 +88,6 @@ public class ResourceAssignmentService {
             return response.getBody();
         } catch (Exception e) {
             return 0.0;
-        }
-    }
-
-    public ResourceAssignmentDTO assignResourceToTask(int taskId, int resourceId, double quantity, String units) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            ResourceAssignmentDTO dto = new ResourceAssignmentDTO(taskId, resourceId, quantity, units);
-            HttpEntity<ResourceAssignmentDTO> request = new HttpEntity<>(dto, headers);
-
-            return restTemplate.postForObject(baseUrl, request, ResourceAssignmentDTO.class);
-        } catch (Exception e) {
-            return null;
         }
     }
 

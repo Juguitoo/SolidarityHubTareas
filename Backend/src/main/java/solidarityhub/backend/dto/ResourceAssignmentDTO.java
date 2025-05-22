@@ -4,8 +4,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import solidarityhub.backend.model.ResourceAssignment;
+import lombok.EqualsAndHashCode;
 
 @NoArgsConstructor
+@EqualsAndHashCode
 @Getter
 @Setter
 public class ResourceAssignmentDTO {

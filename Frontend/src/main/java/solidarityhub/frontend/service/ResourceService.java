@@ -29,6 +29,7 @@ public class ResourceService {
         restTemplate.postForEntity(baseUrl, resourceDTO, ResourceDTO.class);
     }
 
+    //GET METHODS
     public void updateResource(int id, ResourceDTO resourceDTO) {
         restTemplate.put(baseUrl + "/" + id, resourceDTO);
     }
@@ -40,8 +41,6 @@ public class ResourceService {
     public void clearCache() {
         resourceCache.clear();
     }
-
-    //GET METHODS
 
     public List<ResourceDTO> getResources(String type, String minQuantity, String storageId, Integer catastropheId) {
         if (resourceCache == null || resourceCache.isEmpty()) {
@@ -69,7 +68,7 @@ public class ResourceService {
                 }
 
             } catch (RestClientException e) {
-                return getExampleResources(5);
+                throw new RuntimeException("Error fetching resources", e);
             }
         }
         return resourceCache;
@@ -86,19 +85,10 @@ public class ResourceService {
                 return new ArrayList<>();
             }
         } catch (RestClientException e) {
-            return getExampleResources(5);
+            throw new RuntimeException("Error fetching resources by catastrophe ID", e);
         }
     }
 
-    //GET EXAMPLE RESOURCES
-
-    private List<ResourceDTO> getExampleResources(int limit) {
-        List<ResourceDTO> exampleResources = new ArrayList<>();
-        for (int i = 0; i < limit; i++) {
-            exampleResources.add(new ResourceDTO("Recurso ejemplo " + (i + 1), ResourceType.OTHER, i * 10,"unidades", 1, 1));
-        }
-        return exampleResources;
-    }
 
     public List<ResourceDTO> getResourcesByType(Integer id, String type) {
         List<ResourceDTO> filteredResources = new ArrayList<>();

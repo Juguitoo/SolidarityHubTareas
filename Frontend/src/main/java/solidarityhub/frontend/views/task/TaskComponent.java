@@ -136,7 +136,6 @@ public class TaskComponent extends VerticalLayout {
         return taskImg;
     }
 
-
     public Component getTaskNameComponent() {
         H2 taskNameTitle = new H2(taskName);
         taskNameTitle.addClassName("task-title");

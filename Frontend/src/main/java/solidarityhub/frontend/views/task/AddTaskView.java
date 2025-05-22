@@ -3,15 +3,15 @@ package solidarityhub.frontend.views.task;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.VaadinSession;
-import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.dto.NeedDTO;
-import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.dto.*;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.*;
 import com.vaadin.flow.component.button.Button;
@@ -31,7 +31,6 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import solidarityhub.frontend.dto.VolunteerDTO;
 import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
@@ -56,6 +55,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final FormatService formatService;
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
+    private final ResourceAssignmentService resourceAssignmentService;
     protected static Translator translator;
 
     protected CatastropheDTO selectedCatastrophe;
@@ -93,6 +93,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.coordinatesService = new CoordinatesService();
         this.catastropheService = new CatastropheService();
         this.formatService = FormatService.getInstance();
+        this.resourceAssignmentService = new ResourceAssignmentService();
 
         initializeTranslator();
 
@@ -149,7 +150,11 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         if (validateForm()) {
             try {
                 TaskDTO newTaskDTO = getTaskDTO();
-                taskService.addTask(newTaskDTO);
+                TaskDTO SavedTask = taskService.addAndGetNewTask(newTaskDTO);
+
+                System.out.println("New task added: " + newTaskDTO.getId());
+                System.out.println("Saved task: " + SavedTask.getId());
+                saveAssignedResources(SavedTask);
 
                 getConfirmationDialog().open();
 
@@ -253,7 +258,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation.setRequired(true);
         taskLocation.setHelperText(translator.get("meeting_point_helper"));
 
-        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation);
+        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation, getResourceAssignmentsBtn());
 
         starDateTimePicker.addValueChangeListener(event -> {
             LocalDate startValue;
@@ -343,6 +348,15 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         needsMultiSelectComboBox.getElement().addEventListener("click", e -> selectNeedsDialog.open());
 
         return needsMultiSelectComboBox;
+    }
+
+    protected Component getResourceAssignmentsBtn() {
+        return new Button(translator.get("assign_resource"),
+                e -> {
+                    AssignResourceDialog dialog = new AssignResourceDialog(selectedCatastrophe);
+                    dialog.open();
+                }
+        );
     }
 
     protected Component getButtons(){
@@ -680,6 +694,51 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
         confirmDialog.getFooter().add(addNewTaskButton, closeButton);
         return confirmDialog;
+    }
+
+    //===============================Assigned Resources Methods=========================================
+    @SuppressWarnings("unchecked")
+    private List<ResourceAssignmentDTO> getAssignedResourcesFromSession() {
+        List<ResourceAssignmentDTO> resources = (List<ResourceAssignmentDTO>)
+                VaadinSession.getCurrent().getAttribute("assignedResources");
+
+        for (ResourceAssignmentDTO resourceAssignmentDTO : resources) {
+            System.out.println("Recurso asignado: " + resourceAssignmentDTO.getResourceId());
+        }
+
+        return resources;
+    }
+
+    protected void clearAssignedResourcesFromSession() {
+        VaadinSession.getCurrent().setAttribute("assignedResources", null);
+    }
+
+    protected void saveAssignedResources(int taskId) {
+        List<ResourceAssignmentDTO> resourceAssignments = getAssignedResourcesFromSession();
+        if (!resourceAssignments.isEmpty()) {
+            for (ResourceAssignmentDTO resourceAssignment : resourceAssignments) {
+                try {
+                    resourceAssignmentService.assignResourceToTask(
+                            taskId,
+                            resourceAssignment.getResourceId(),
+                            resourceAssignment.getQuantity(),
+                            resourceAssignment.getUnits());
+                    System.out.println("Recurso asignado correctamente: " + resourceAssignment.getResourceId());
+                } catch (Exception e) {
+                    System.out.println("Error al asignar recursos al tarea: " + e.getMessage());
+                }
+            }
+        }else {
+            System.out.println("No se han asignado recursos al tarea");
+        }
+    }
+
+    protected void saveAssignedResources(TaskDTO taskDTO) {
+        saveAssignedResources(taskDTO.getId());
+    }
+
+    private int getResourceIdByName(String resourceName) {
+        return (int) VaadinSession.getCurrent().getAttribute(resourceName);
     }
 
     //===============================Validate Form=========================================

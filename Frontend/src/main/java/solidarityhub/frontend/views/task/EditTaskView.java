@@ -49,12 +49,12 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private final ResourceAssignmentService resourceAssignmentService;
 
-    public EditTaskView(NeedService needService, PDFCertificateService pdfCertificateService) {
+    public EditTaskView() {
         super();
         this.resourceAssignmentService = new ResourceAssignmentService();
         this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
-        this.needService = needService;
-        this.pdfCertificateService = pdfCertificateService;
+        this.needService = new NeedService();
+        this.pdfCertificateService = new PDFCertificateService();
         this.allNeeds = new ArrayList<>();
         this.allVolunteers = new ArrayList<>();
     }
@@ -74,26 +74,11 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     protected void buildView() {
         super.buildView();
 
-        add(getResourceAssignmentsComponent());
-
         loadTaskData();
 
         if (taskPreview != null) {
             taskPreview.enabledEditButton(false);
         }
-    }
-
-    @Override
-    protected Component getForms() {
-        var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
-
-        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
-        taskStatusComboBox.setItemLabelGenerator(formatService::formatTaskStatus);
-        taskStatusComboBox.setRequiredIndicatorVisible(true);
-        taskStatusComboBox.setRequired(true);
-
-        formLayout.add(taskStatusComboBox);
-        return formLayout;
     }
 
     private void updateTaskPreview(TaskDTO task) {
@@ -248,44 +233,20 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     //===============================Get Components=========================================
     @Override
     protected Component getHeader() {
-        return new HeaderComponent(translator.get("edit_task_title"), "tasks");
+        return new HeaderComponent(translator.get("edit_task_title"), "window.history.back()");
     }
 
     @Override
-    protected Component getButtons() {
-        HorizontalLayout buttons = new HorizontalLayout();
-        buttons.setWidthFull();
+    protected Component getForms() {
+        var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
 
-        Button updateButton = new Button(translator.get("update_button"));
-        updateButton.addClickListener(e -> updateTask());
+        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+        taskStatusComboBox.setItemLabelGenerator(formatService::formatTaskStatus);
+        taskStatusComboBox.setRequiredIndicatorVisible(true);
+        taskStatusComboBox.setRequired(true);
 
-        Button cancelButton = new Button(translator.get("cancel_button"));
-        cancelButton.addClickListener(e -> exitWithoutSavingDialog());
-
-        Button deleteButton = new Button(translator.get("delete_button"));
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        deleteButton.addClickListener(e -> deleteTask());
-
-        generateCertificatesButton = new Button(translator.get("generate_certificates_button"));
-        generateCertificatesButton.addClickListener(e -> generateCertificates());
-        generateCertificatesButton.setVisible(false);
-
-        HorizontalLayout certificatesButtonLayout = new HorizontalLayout();
-        certificatesButtonLayout.add(generateCertificatesButton);
-        certificatesButtonLayout.setWidthFull();
-        certificatesButtonLayout.setJustifyContentMode(JustifyContentMode.START);
-        certificatesButtonLayout.setAlignItems(Alignment.CENTER);
-
-        buttons.add(certificatesButtonLayout, cancelButton, deleteButton, updateButton);
-        setAlignSelf(Alignment.END, buttons);
-
-        return buttons;
-    }
-
-    private void generateCertificates() {
-        pdfCertificateService.createPDFCertificate(taskId);
-        Notification.show(translator.get("certificates_generated"), 3000, Notification.Position.BOTTOM_START)
-                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        formLayout.add(taskStatusComboBox);
+        return formLayout;
     }
 
     @Override
@@ -352,6 +313,47 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return needsDialog;
     }
 
+    @Override
+    protected Component getButtons() {
+        HorizontalLayout buttons = new HorizontalLayout();
+        buttons.setWidthFull();
+
+        Button updateButton = new Button(translator.get("update_button"));
+        updateButton.addClickListener(e -> updateTask());
+
+        Button cancelButton = new Button(translator.get("cancel_button"));
+        cancelButton.addClickListener(e -> exitWithoutSavingDialog());
+
+        Button deleteButton = new Button(translator.get("delete_button"));
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        deleteButton.addClickListener(e -> deleteTask());
+
+        generateCertificatesButton = new Button(translator.get("generate_certificates_button"));
+        generateCertificatesButton.addClickListener(e -> generateCertificates());
+        generateCertificatesButton.setVisible(false);
+
+        HorizontalLayout certificatesButtonLayout = new HorizontalLayout();
+        certificatesButtonLayout.add(generateCertificatesButton);
+        certificatesButtonLayout.setWidthFull();
+        certificatesButtonLayout.setJustifyContentMode(JustifyContentMode.START);
+        certificatesButtonLayout.setAlignItems(Alignment.CENTER);
+
+        buttons.add(certificatesButtonLayout, cancelButton, deleteButton, updateButton);
+        setAlignSelf(Alignment.END, buttons);
+
+        return buttons;
+    }
+
+    @Override
+    protected Component getResourceAssignmentsBtn() {
+        return new Button(translator.get("assign_resource"),
+                e -> {
+                    AssignResourceDialog dialog = new AssignResourceDialog(taskService.getTaskById(taskId), selectedCatastrophe);
+                    dialog.open();
+                }
+        );
+    }
+
     //===============================Task actions=========================================
     private void updateTask() {
         if (validateForm()) {
@@ -368,6 +370,65 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         } else {
             Notification.show(translator.get("check_fields"),
                     3000, Notification.Position.MIDDLE);
+        }
+    }
+
+    private void proceedWithUpdateTask() {
+        try{
+            List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
+            List<NeedDTO> needs = new ArrayList<>();
+            for (String need : selectedNeeds) {
+                allNeeds.stream()
+                        .filter(n -> n.getDescription().equals(need))
+                        .findFirst().ifPresent(needs::add);
+            }
+
+            if (needs.isEmpty()) {
+                Notification.show(translator.get("check_fields"),
+                        3000, Notification.Position.MIDDLE);
+                return;
+            }
+
+            List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
+            allVolunteers = volunteerService.getVolunteers("None", getTaskDTO());
+            Set<String> names = volunteerMultiSelectComboBox.getSelectedItems();
+            names.forEach(name -> {
+                if (name.equals(translator.get("auto_select_volunteers"))) {
+                    selectedVolunteers.addAll(allVolunteers.stream().limit(nAutoSelectVolunteers).toList());
+                } else {
+                    allVolunteers.stream()
+                            .filter(v -> v.getFirstName().equals(name)).forEach(selectedVolunteers::add);
+                }
+            });
+
+            TaskDTO updatedTaskDTO = new TaskDTO(
+                    taskName.getValue(),
+                    taskDescription.getValue(),
+                    starDateTimePicker.getValue(),
+                    endDatePicker.getValue().atTime(23, 59),
+                    needs.getFirst().getTaskType(),
+                    taskPriority.getValue(),
+                    taskEmergency.getValue(),
+                    taskStatusComboBox.getValue(),
+                    needs,
+                    selectedVolunteers,
+                    selectedCatastrophe.getId(),
+                    taskLocation.getValue()
+            );
+
+            taskService.updateTask(taskId, updatedTaskDTO);
+
+            saveAssignedResources(taskId);
+            clearAssignedResourcesFromSession();
+
+            Notification.show(translator.get("task_updated_success"));
+
+            // Navegar de vuelta a la lista
+            VaadinSession.getCurrent().setAttribute("cache", true);
+            UI.getCurrent().navigate("tasks");
+        } catch (Exception e) {
+            Notification.show(translator.get("error_updating_task") + e.getMessage(),
+                    5000, Notification.Position.MIDDLE);
         }
     }
 
@@ -440,65 +501,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return future;
     }
 
-    private void proceedWithUpdateTask() {
-        try{
-            // Obtener necesidades seleccionadas
-            List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-            List<NeedDTO> needs = new ArrayList<>();
-            for (String need : selectedNeeds) {
-                allNeeds.stream()
-                        .filter(n -> n.getDescription().equals(need))
-                        .findFirst().ifPresent(needs::add);
-            }
-
-            if (needs.isEmpty()) {
-                Notification.show(translator.get("check_fields"),
-                        3000, Notification.Position.MIDDLE);
-                return;
-            }
-
-            // Obtener voluntarios seleccionados
-            List<VolunteerDTO> selectedVolunteers = new ArrayList<>();
-            allVolunteers = volunteerService.getVolunteers("None", getTaskDTO());
-            Set<String> names = volunteerMultiSelectComboBox.getSelectedItems();
-            names.forEach(name -> {
-                        if (name.equals(translator.get("auto_select_volunteers"))) {
-                            selectedVolunteers.addAll(allVolunteers.stream().limit(nAutoSelectVolunteers).toList());
-                        } else {
-                            allVolunteers.stream()
-                                    .filter(v -> v.getFirstName().equals(name)).forEach(selectedVolunteers::add);
-                        }
-                    });
-
-            // Crear DTO con los datos actualizados
-            TaskDTO updatedTaskDTO = new TaskDTO(
-                    taskName.getValue(),
-                    taskDescription.getValue(),
-                    starDateTimePicker.getValue(),
-                    endDatePicker.getValue().atTime(23, 59),
-                    needs.getFirst().getTaskType(),
-                    taskPriority.getValue(),
-                    taskEmergency.getValue(),
-                    taskStatusComboBox.getValue(),
-                    needs,
-                    selectedVolunteers,
-                    selectedCatastrophe.getId(),
-                    taskLocation.getValue()
-            );
-
-            // Actualizar en backend
-            taskService.updateTask(taskId, updatedTaskDTO);
-            Notification.show(translator.get("task_updated_success"));
-
-            // Navegar de vuelta a la lista
-            VaadinSession.getCurrent().setAttribute("cache", true);
-            UI.getCurrent().navigate("tasks");
-        } catch (Exception e) {
-            Notification.show(translator.get("error_updating_task") + e.getMessage(),
-                    5000, Notification.Position.MIDDLE);
-        }
-    }
-
     @Override
     protected List<NeedDTO> getNeedsList() {
         List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
@@ -510,49 +512,10 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return needs;
     }
 
-    //===============================Asignmet resourcer=========================================
-    private Component getResourceAssignmentsComponent() {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setSpacing(true);
-        layout.setPadding(false);
-
-        H3 title = new H3(translator.get("assigned_resources"));
-
-        List<ResourceAssignmentDTO> assignments = resourceAssignmentService.getAssignmentsByTask(taskId);
-
-        if (assignments.isEmpty()) {
-            layout.add(title, new Span(translator.get("no_resources_assigned")));
-        } else {
-            Grid<ResourceAssignmentDTO> grid = new Grid<>(ResourceAssignmentDTO.class, false);
-            grid.addColumn(ResourceAssignmentDTO::getResourceName).setHeader(translator.get("resource_name"));
-            grid.addColumn(ResourceAssignmentDTO::getQuantity).setHeader(translator.get("quantity"));
-            grid.addColumn(ResourceAssignmentDTO::getUnits).setHeader(translator.get("unit"));
-
-            grid.setItems(assignments);
-
-            layout.add(title, grid);
-        }
-
-        Button assignResourceButton = new Button(translator.get("assign_resource"),
-                e -> {
-                    AssignResourceDialog dialog = new AssignResourceDialog(taskService.getTaskById(taskId));
-                    dialog.open();
-                    dialog.addOpenedChangeListener(event -> {
-                        if (!event.isOpened()) {
-                            // Refresh resource assignments when dialog closes
-                            updateContent();
-                        }
-                    });
-                }
-        );
-
-        layout.add(assignResourceButton);
-
-        return layout;
+    private void generateCertificates() {
+        pdfCertificateService.createPDFCertificate(taskId);
+        Notification.show(translator.get("certificates_generated"), 3000, Notification.Position.BOTTOM_START)
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
-    private void updateContent() {
-        remove(getComponentAt(getComponentCount() - 1)); // Remove the current resource assignments component
-        add(getResourceAssignmentsComponent()); // Add a fresh one
-    }
 }

@@ -30,6 +30,23 @@ public class TaskService {
         restTemplate.postForEntity(baseUrl, taskDTO, TaskDTO.class);
     }
 
+    public TaskDTO addAndGetNewTask(TaskDTO taskDTO) {
+        try {
+            ResponseEntity<TaskDTO> response = restTemplate.postForEntity(baseUrl, taskDTO, TaskDTO.class);
+
+            if (response.getBody() == null) {
+                System.err.println("Error: El servidor devolvió una respuesta vacía");
+                throw new RuntimeException("La respuesta del servidor está vacía");
+            }
+
+            System.out.println("Tarea guardada con ID: " + response.getBody().getId());
+            return response.getBody();
+        } catch (RestClientException e) {
+            System.err.println("Error al guardar la tarea: " + e.getMessage());
+            throw e;
+        }
+    }
+
     public void updateTask(int id, TaskDTO taskDTO) {
         restTemplate.put(baseUrl + "/" + id, taskDTO);
     }
