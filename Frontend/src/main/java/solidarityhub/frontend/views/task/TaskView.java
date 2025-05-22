@@ -242,44 +242,125 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         try {
             TaskDTO originalTask = taskService.getTaskById(taskId);
             if (originalTask != null && originalTask.getStatus() != newStatus) {
+                Status oldStatus = originalTask.getStatus();
+                System.out.println("Actualizando tarea " + taskId + " de " + oldStatus + " a " + newStatus);
 
-                // Usar el método específico para solo cambiar estado
+                // PRIMERO: Actualizar en la base de datos
                 taskService.updateTaskStatusOnly(taskId, newStatus);
+                System.out.println("✓ Estado actualizado en la base de datos");
 
-                // Resto del código igual...
+                // SEGUNDO: Verificar que se actualizó correctamente
+                TaskDTO updatedTask = taskService.getTaskByIdWithDebug(taskId);
+                if (updatedTask != null && updatedTask.getStatus() == newStatus) {
+                    System.out.println("✓ Verificación: Estado confirmado en BD como " + updatedTask.getStatus());
+
+                    // TERCERO: Actualizar la vista
+                    UI.getCurrent().access(() -> {
+                        // Limpiar caché
+                        taskService.clearCache();
+
+                        // Actualizar contenedores específicos
+                        updateTaskContainers(taskId, oldStatus, newStatus);
+
+                        // Mostrar notificación de éxito
+                        Notification.show("Tarea movida a " + formatStatus(newStatus),
+                                        2000, Notification.Position.BOTTOM_START)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    });
+                } else {
+                    System.err.println("✗ Error: La tarea no se actualizó correctamente en la BD");
+                    Notification.show("Error: No se pudo actualizar la tarea en la base de datos",
+                                    3000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+            } else if (originalTask == null) {
+                System.err.println("Tarea no encontrada con ID: " + taskId);
+                Notification.show("Error: Tarea no encontrada",
+                                3000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } else {
+                System.out.println("La tarea " + taskId + " ya está en estado " + newStatus);
             }
         } catch (Exception e) {
-            // Manejo de errores...
+            System.err.println("Error actualizando estado: " + e.getMessage());
+            e.printStackTrace();
+
+            Notification.show("Error al actualizar la tarea: " + e.getMessage(),
+                            3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            // En caso de error, reconstruir la vista para volver al estado correcto
+            UI.getCurrent().access(() -> buildView());
         }
     }
 
-    private void updateTaskUIAfterStatusChange(TaskDTO task, Status newStatus) {
-        Status oldStatus = task.getStatus();
-        task.setStatus(newStatus);
+    private void updateTaskContainers(int taskId, Status oldStatus, Status newStatus) {
+        try {
+            System.out.println("Actualizando contenedores: " + taskId + " de " + oldStatus + " a " + newStatus);
 
-        UI.getCurrent().access(() -> {
-            // Buscar los contenedores de tareas por estado
+            // Encontrar los contenedores
             Optional<VerticalLayout> sourceContainer = findTaskContainerByStatus(oldStatus);
             Optional<VerticalLayout> targetContainer = findTaskContainerByStatus(newStatus);
 
             if (sourceContainer.isPresent() && targetContainer.isPresent()) {
-                // Buscar el componente de tarea a mover
-                TaskComponent taskComponent = findTaskComponentById(task.getId(), sourceContainer.get());
+                System.out.println("✓ Contenedores encontrados");
+
+                // Buscar el componente de tarea específico
+                TaskComponent taskComponent = findTaskComponentById(taskId, sourceContainer.get());
 
                 if (taskComponent != null) {
-                    // Eliminar de su contenedor actual
+                    System.out.println("✓ Componente de tarea encontrado");
+
+                    // Remover de la fuente
                     sourceContainer.get().remove(taskComponent);
+                    System.out.println("✓ Tarea removida del contenedor fuente");
 
-                    // Añadir al nuevo contenedor
+                    // Agregar al destino (pero primero remover el mensaje de "no hay tareas" si existe)
+                    removeEmptyStateMessage(targetContainer.get());
                     targetContainer.get().add(taskComponent);
+                    System.out.println("✓ Tarea agregada al contenedor destino");
 
-                    // Actualizar el mensaje de "no hay tareas" si es necesario
+                    // Actualizar mensajes de estado vacío
                     updateEmptyStateMessages(sourceContainer.get(), oldStatus);
-                    updateEmptyStateMessages(targetContainer.get(), newStatus);
+
+                    System.out.println("✓ Tarea " + taskId + " movida visualmente de " + oldStatus + " a " + newStatus);
+                } else {
+                    System.err.println("✗ No se encontró el componente de tarea " + taskId + " en el contenedor fuente");
+                    System.out.println("Reconstruyendo vista como fallback...");
+                    buildView();
                 }
+            } else {
+                System.err.println("✗ No se encontraron los contenedores para el estado");
+                System.out.println("Source container present: " + sourceContainer.isPresent());
+                System.out.println("Target container present: " + targetContainer.isPresent());
+                System.out.println("Reconstruyendo vista como fallback...");
+                buildView();
             }
-        });
+        } catch (Exception e) {
+            System.err.println("✗ Error en updateTaskContainers: " + e.getMessage());
+            e.printStackTrace();
+            System.out.println("Reconstruyendo vista como fallback...");
+            buildView();
+        }
     }
+    private void removeEmptyStateMessage(VerticalLayout container) {
+        // Remover cualquier mensaje de "no hay tareas"
+        for (int i = container.getComponentCount() - 1; i >= 0; i--) {
+            Component comp = container.getComponentAt(i);
+            if (comp instanceof Span) {
+                container.remove(comp);
+            }
+        }
+    }
+    private String formatStatus(Status status) {
+        return switch (status) {
+            case TO_DO -> translator.get("todo_tasks");
+            case IN_PROGRESS -> translator.get("in_progress_tasks");
+            case FINISHED -> translator.get("terminated_tasks");
+        };
+    }
+
 
     private Optional<VerticalLayout> findTaskContainerByStatus(Status status) {
         // Buscar el contenedor correspondiente al estado
@@ -374,7 +455,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
         dropTarget.addDropListener(event -> {
             try {
-                // CORRECCIÓN: Manejo más robusto de los datos
+                System.out.println("=== INICIO DROP EVENT ===");
+                System.out.println("Drop target status: " + newStatus);
+
+                // Obtener datos del drag
                 Optional<Object> dragDataOpt = event.getDragData();
 
                 if (dragDataOpt.isPresent()) {
@@ -397,28 +481,47 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                     }
 
                     if (taskId != null) {
+                        System.out.println("Task ID extraído: " + taskId);
+
+                        // Obtener la tarea actual para verificar el estado
                         TaskDTO task = taskService.getTaskById(taskId);
 
-                        if (task != null && task.getStatus() != newStatus) {
-                            System.out.println("Actualizando tarea " + taskId + " de " + task.getStatus() + " a " + newStatus);
-                            updateTaskStatus(taskId, newStatus);
-                        } else if (task == null) {
-                            System.err.println("Tarea no encontrada con ID: " + taskId);
+                        if (task != null) {
+                            System.out.println("Tarea encontrada. Estado actual: " + task.getStatus() + ", Estado objetivo: " + newStatus);
+
+                            if (task.getStatus() != newStatus) {
+                                System.out.println("Iniciando actualización de estado...");
+                                // AQUÍ ES DONDE SE LLAMA AL MÉTODO DE ACTUALIZACIÓN
+                                updateTaskStatus(taskId, newStatus);
+                            } else {
+                                System.out.println("La tarea " + taskId + " ya está en estado " + newStatus);
+                            }
                         } else {
-                            System.out.println("La tarea " + taskId + " ya está en estado " + newStatus);
+                            System.err.println("Tarea no encontrada con ID: " + taskId);
+                            Notification.show("Error: Tarea no encontrada",
+                                            3000, Notification.Position.MIDDLE)
+                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
                     } else {
                         System.err.println("No se pudo obtener ID de tarea válido");
+                        Notification.show("Error: No se pudo identificar la tarea",
+                                        3000, Notification.Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 } else {
                     System.err.println("No hay datos de drag disponibles");
+                    Notification.show("Error: No se pudieron obtener los datos de la tarea",
+                                    3000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
+
+                System.out.println("=== FIN DROP EVENT ===");
 
             } catch (Exception e) {
                 System.err.println("Error en drop listener: " + e.getMessage());
                 e.printStackTrace();
 
-                Notification.show("Error al mover la tarea. Intenta recargar la página.",
+                Notification.show("Error al mover la tarea: " + e.getMessage(),
                                 3000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }

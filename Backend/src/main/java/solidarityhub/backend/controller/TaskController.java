@@ -3,6 +3,7 @@ package solidarityhub.backend.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.NeedDTO;
 import solidarityhub.backend.dto.TaskDTO;
@@ -159,8 +160,28 @@ public class TaskController {
         // Guardar el estado anterior para comparación
         Status oldStatus = task.getStatus();
 
-        task.getVolunteers().forEach(volunteer -> {volunteer.getTasks().remove(task); volunteerService.save(volunteer);});
-        task.getNeeds().forEach(need -> {need.setTask(null); needService.save(need);});
+        // VERIFICAR QUE LAS LISTAS NO SEAN NULL ANTES DE ITERAR
+        List<Volunteer> currentVolunteers = task.getVolunteers();
+        if (currentVolunteers != null && !currentVolunteers.isEmpty()) {
+            // Crear una copia para evitar ConcurrentModificationException
+            List<Volunteer> volunteersCopy = new ArrayList<>(currentVolunteers);
+            volunteersCopy.forEach(volunteer -> {
+                if (volunteer.getTasks() != null) {
+                    volunteer.getTasks().remove(task);
+                    volunteerService.save(volunteer);
+                }
+            });
+        }
+
+        List<Need> currentNeeds = task.getNeeds();
+        if (currentNeeds != null && !currentNeeds.isEmpty()) {
+            // Crear una copia para evitar ConcurrentModificationException
+            List<Need> needsCopy = new ArrayList<>(currentNeeds);
+            needsCopy.forEach(need -> {
+                need.setTask(null);
+                needService.save(need);
+            });
+        }
 
         List<Need> needs = new ArrayList<>();
         List<Volunteer> volunteers = new ArrayList<>();
@@ -185,7 +206,9 @@ public class TaskController {
         List<String> volunteerDnis = taskDTO.getVolunteers().stream().map(VolunteerDTO::getDni).toList();
         for (String volunteerID : volunteerDnis) {
             Volunteer volunteer = volunteerService.getVolunteer(volunteerID);
-            volunteers.add(volunteer);
+            if (volunteer != null) {
+                volunteers.add(volunteer);
+            }
         }
 
         task.setTaskName(taskDTO.getName());
@@ -215,6 +238,9 @@ public class TaskController {
         }
 
         for (Volunteer volunteer : volunteers) {
+            if (volunteer.getTasks() == null) {
+                volunteer.setTasks(new ArrayList<>());
+            }
             if(!volunteer.getTasks().contains(task)) {
                 volunteer.getTasks().add(task);
                 volunteerService.save(volunteer);
@@ -227,11 +253,21 @@ public class TaskController {
             notificationService.notifyApp(volunteer.getNotificationToken(),
                     "Tarea actualizada",
                     "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
-            if(taskDTO.getStatus() == Status.FINISHED && task.getAcceptedVolunteers().contains(volunteer)) {
-                List<PDFCertificate> certificates = volunteer.getCertificates().stream().filter(c -> c.getTask().getId() == task.getId()).toList();
 
-                certificates.forEach(c -> pdfService.delete(c.getId()));
-                pdfService.createPDFCertificate(volunteer, task);
+            // VERIFICACIÓN SEGURA DE ACCEPTED VOLUNTEERS
+            if(taskDTO.getStatus() == Status.FINISHED) {
+                List<Volunteer> acceptedVolunteers = task.getAcceptedVolunteers();
+                if (acceptedVolunteers != null && acceptedVolunteers.contains(volunteer)) {
+                    List<PDFCertificate> certificates = volunteer.getCertificates();
+                    if (certificates != null) {
+                        List<PDFCertificate> taskCertificates = certificates.stream()
+                                .filter(c -> c.getTask() != null && c.getTask().getId() == task.getId())
+                                .toList();
+
+                        taskCertificates.forEach(c -> pdfService.delete(c.getId()));
+                    }
+                    pdfService.createPDFCertificate(volunteer, task);
+                }
             }
         }
 
@@ -241,36 +277,50 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/status")
+    @Transactional
     public ResponseEntity<?> updateTaskStatus(@PathVariable Integer id, @RequestBody Map<String, String> statusUpdate) {
-        System.out.println("Actualizando solo el estado de la tarea " + id + " a: " + statusUpdate.get("status"));
+        System.out.println("=== BACKEND: Actualizando estado de tarea ===");
+        System.out.println("ID de tarea: " + id);
+        System.out.println("Nuevo estado recibido: " + statusUpdate.get("status"));
 
         Task task = taskService.getTaskById(id);
         if(task == null) {
+            System.err.println("✗ Tarea no encontrada con ID: " + id);
             return ResponseEntity.notFound().build();
         }
+
+        System.out.println("Estado actual de la tarea: " + task.getStatus());
 
         try {
             Status newStatus = Status.valueOf(statusUpdate.get("status"));
             Status oldStatus = task.getStatus();
 
-            task.setStatus(newStatus);
+            System.out.println("Cambiando de " + oldStatus + " a " + newStatus);
 
-            // Usar el método específico si hay cambio de estado
-            if (oldStatus != newStatus) {
-                taskService.updateTaskStatus(task);
+            // USAR EL MÉTODO ESPECÍFICO PARA ACTUALIZAR SOLO EL ESTADO
+            Task savedTask = taskService.updateTaskStatusOnly(task, newStatus);
+
+            // VERIFICAR QUE SE GUARDÓ CORRECTAMENTE
+            Task verifiedTask = taskService.getTaskById(id);
+            System.out.println("Estado después de guardar: " + verifiedTask.getStatus());
+
+            if (verifiedTask.getStatus() == newStatus) {
+                System.out.println("✓ Estado actualizado correctamente en BD");
+                return ResponseEntity.ok().body("Estado actualizado a: " + newStatus);
             } else {
-                taskService.save(task);
+                System.err.println("✗ Error: El estado no se actualizó en la BD");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error: El estado no se actualizó correctamente");
             }
 
-            // Verificar que se guardó
-            Task verifiedTask = taskService.getTaskById(id);
-            System.out.println("Estado verificado: " + verifiedTask.getStatus());
-
-            return ResponseEntity.ok().body("Estado actualizado a: " + newStatus);
-
+        } catch (IllegalArgumentException e) {
+            System.err.println("✗ Estado inválido: " + statusUpdate.get("status"));
+            return ResponseEntity.badRequest().body("Estado inválido: " + statusUpdate.get("status"));
         } catch (Exception e) {
-            System.err.println("Error actualizando estado: " + e.getMessage());
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            System.err.println("✗ Error actualizando estado: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno: " + e.getMessage());
         }
     }
 

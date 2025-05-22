@@ -86,9 +86,10 @@ public class Task {
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel, Status status,
                 List<Volunteer> volunteers, String meetingDirection) {
-        this.certificates = new ArrayList<>();
-        this.notifications = new ArrayList<>();
-        this.needs = needs;
+        // INICIALIZAR TODAS LAS LISTAS
+        initializeLists();
+
+        this.needs = needs != null ? needs : new ArrayList<>();
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.startTimeDate = startTimeDate;
@@ -96,11 +97,12 @@ public class Task {
         this.priority = priority;
         this.emergencyLevel = emergencyLevel;
         this.status = status;
-        this.volunteers= volunteers;
-        this.type = needs.getFirst().getTaskType();
+        this.volunteers = volunteers != null ? volunteers : new ArrayList<>();
+        this.type = (needs != null && !needs.isEmpty()) ? needs.get(0).getTaskType() : null;
         this.creationDate = LocalDate.now();
         this.meetingDirection = meetingDirection;
     }
+
     public Task(List<Need> needs, String taskName, String taskDescription, LocalDateTime startTimeDate,
                 LocalDateTime estimatedEndTimeDate, Priority priority, EmergencyLevel emergencyLevel,
                 Status status, List<Volunteer> volunteers, String meetingDirection, Catastrophe catastrophe) {
@@ -110,15 +112,73 @@ public class Task {
 
     public Task(){
         this.creationDate = LocalDate.now();
+        initializeLists();
+    }
+
+    // MÉTODO PRIVADO PARA INICIALIZAR TODAS LAS LISTAS
+    private void initializeLists() {
         this.notifications = new ArrayList<>();
         this.certificates = new ArrayList<>();
+        this.resourceAssignments = new ArrayList<>();
+        this.acceptedVolunteers = new ArrayList<>();
+        this.volunteers = new ArrayList<>();
+        this.needs = new ArrayList<>();
     }
 
     public void addNotification(Notification notification) {
+        if (this.notifications == null) {
+            this.notifications = new ArrayList<>();
+        }
         this.notifications.add(notification);
     }
 
     public void addResourceAssignment(ResourceAssignment assignment) {
+        if (this.resourceAssignments == null) {
+            this.resourceAssignments = new ArrayList<>();
+        }
         this.resourceAssignments.add(assignment);
+    }
+
+    // GETTERS SEGUROS QUE VERIFICAN NULL
+    public List<ResourceAssignment> getResourceAssignments() {
+        if (this.resourceAssignments == null) {
+            this.resourceAssignments = new ArrayList<>();
+        }
+        return this.resourceAssignments;
+    }
+
+    public List<Volunteer> getAcceptedVolunteers() {
+        if (this.acceptedVolunteers == null) {
+            this.acceptedVolunteers = new ArrayList<>();
+        }
+        return this.acceptedVolunteers;
+    }
+
+    public List<Volunteer> getVolunteers() {
+        if (this.volunteers == null) {
+            this.volunteers = new ArrayList<>();
+        }
+        return this.volunteers;
+    }
+
+    public List<Need> getNeeds() {
+        if (this.needs == null) {
+            this.needs = new ArrayList<>();
+        }
+        return this.needs;
+    }
+
+    public List<Notification> getNotifications() {
+        if (this.notifications == null) {
+            this.notifications = new ArrayList<>();
+        }
+        return this.notifications;
+    }
+
+    public List<PDFCertificate> getCertificates() {
+        if (this.certificates == null) {
+            this.certificates = new ArrayList<>();
+        }
+        return this.certificates;
     }
 }

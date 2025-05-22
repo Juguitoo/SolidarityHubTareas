@@ -123,32 +123,36 @@ public class ResourceScheduler {
 
     // Helper method to process resource consumption when a task is completed
     private void consumeResourcesForCompletedTask(Task task) {
-        if (task.getResourceAssignments() == null || task.getResourceAssignments().isEmpty()) {
+        // AGREGAR VERIFICACIÓN DE NULL
+        List<ResourceAssignment> assignments = task.getResourceAssignments();
+        if (assignments == null || assignments.isEmpty()) {
             return;
         }
 
-        for (ResourceAssignment assignment : task.getResourceAssignments()) {
+        for (ResourceAssignment assignment : assignments) {
             Resource resource = assignment.getResource();
-            double assignedQuantity = assignment.getQuantity();
+            if (resource != null) {
+                double assignedQuantity = assignment.getQuantity();
 
-            // Subtract the used quantity from the resource
-            double newQuantity = resource.getQuantity() - assignedQuantity;
-            double oldQuantity = resource.getQuantity();
+                // Subtract the used quantity from the resource
+                double newQuantity = resource.getQuantity() - assignedQuantity;
+                double oldQuantity = resource.getQuantity();
 
-            // Ensure we don't go below zero
-            newQuantity = Math.max(0, newQuantity);
+                // Ensure we don't go below zero
+                newQuantity = Math.max(0, newQuantity);
 
-            // Update the resource quantity
-            resource.setQuantity(newQuantity);
-            resource.setCantidad(resource.getQuantity() + " " + resource.getUnit());
+                // Update the resource quantity
+                resource.setQuantity(newQuantity);
+                resource.setCantidad(resource.getQuantity() + " " + resource.getUnit());
 
-            // Save the updated resource
-            resourceRepository.save(resource);
+                // Save the updated resource
+                resourceRepository.save(resource);
 
-            // Check if the resource is now below threshold after consumption
-            if (oldQuantity >= Resource.MINIMUM_RESOURCE_THRESHOLD &&
-                    newQuantity < Resource.MINIMUM_RESOURCE_THRESHOLD) {
-                createLowResourceNotification(resource);
+                // Check if the resource is now below threshold after consumption
+                if (oldQuantity >= Resource.MINIMUM_RESOURCE_THRESHOLD &&
+                        newQuantity < Resource.MINIMUM_RESOURCE_THRESHOLD) {
+                    createLowResourceNotification(resource);
+                }
             }
         }
     }

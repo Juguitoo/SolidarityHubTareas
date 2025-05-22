@@ -375,6 +375,9 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private void proceedWithUpdateTask() {
         try{
+            System.out.println("=== FRONTEND: Iniciando actualización de tarea ===");
+            System.out.println("Task ID: " + taskId);
+
             List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
             List<NeedDTO> needs = new ArrayList<>();
             for (String need : selectedNeeds) {
@@ -416,9 +419,17 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                     taskLocation.getValue()
             );
 
+            System.out.println("TaskDTO creado - Estado: " + updatedTaskDTO.getStatus());
+            System.out.println("Llamando a taskService.updateTask...");
+
             taskService.updateTask(taskId, updatedTaskDTO);
 
+            System.out.println("✓ taskService.updateTask completado sin errores");
+
+            System.out.println("Guardando recursos asignados...");
             saveAssignedResources(taskId);
+            System.out.println("✓ Recursos asignados guardados");
+
             clearAssignedResourcesFromSession();
 
             Notification.show(translator.get("task_updated_success"));
@@ -426,7 +437,12 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             // Navegar de vuelta a la lista
             VaadinSession.getCurrent().setAttribute("cache", true);
             UI.getCurrent().navigate("tasks");
+
         } catch (Exception e) {
+            System.err.println("✗ Error en proceedWithUpdateTask: " + e.getMessage());
+            System.err.println("Tipo de excepción: " + e.getClass().getName());
+            e.printStackTrace();
+
             Notification.show(translator.get("error_updating_task") + e.getMessage(),
                     5000, Notification.Position.MIDDLE);
         }

@@ -112,4 +112,28 @@ public class Volunteer extends Person {
         return Math.sqrt(Math.pow(this.getLocation().getLatitude() - averageLatitude, 2) +
                 Math.pow(this.getLocation().getLongitude() - averageLongitude, 2));
     }
+    public List<Task> getTasks() {
+        if (this.tasks == null) {
+            this.tasks = new ArrayList<>();
+        }
+        return this.tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks != null ? tasks : new ArrayList<>();
+    }
+
+    public List<PDFCertificate> getCertificates() {
+        if (this.certificates == null) {
+            this.certificates = new ArrayList<>();
+        }
+        return this.certificates;
+    }
+
+    public List<Task> getAcceptedTasks() {
+        if (this.acceptedTasks == null) {
+            this.acceptedTasks = new ArrayList<>();
+        }
+        return this.acceptedTasks;
+    }
 }

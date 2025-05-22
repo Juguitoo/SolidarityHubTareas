@@ -2,6 +2,7 @@ package solidarityhub.backend.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import solidarityhub.backend.criteria.tasks.*;
 import solidarityhub.backend.dto.TaskDTO;
 import solidarityhub.backend.model.Need;
@@ -60,15 +61,63 @@ public class TaskService {
     }
 
     public Task save(Task task) {
-        Task savedTask = taskRepository.save(task);
-        // Notificar al observable sobre el cambio
-        taskObservable.setTask(savedTask);
-        return savedTask;
+        try {
+            System.out.println("=== BACKEND: Guardando tarea ===");
+            System.out.println("ID: " + task.getId());
+            System.out.println("Estado antes de guardar: " + task.getStatus());
+
+            Task savedTask = taskRepository.save(task);
+
+            System.out.println("Estado después de guardar: " + savedTask.getStatus());
+            System.out.println("✓ Tarea guardada en BD");
+
+            // Notificar al observable sobre el cambio SOLO si es necesario
+            if (task.getStatus() != null) {
+                taskObservable.setTask(savedTask);
+            }
+
+            return savedTask;
+        } catch (Exception e) {
+            System.err.println("✗ Error guardando tarea: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    // Método específico para actualización de estado que evita efectos secundarios
+    @Transactional
+    public Task updateTaskStatusOnly(Task task, Status newStatus) {
+        try {
+            System.out.println("=== BACKEND: Actualizando solo estado ===");
+            System.out.println("ID: " + task.getId());
+            System.out.println("Estado anterior: " + task.getStatus());
+            System.out.println("Estado nuevo: " + newStatus);
+
+            // Actualizar solo el estado
+            task.setStatus(newStatus);
+
+            // Guardar directamente en el repositorio sin observables
+            Task savedTask = taskRepository.save(task);
+
+            System.out.println("Estado guardado: " + savedTask.getStatus());
+            System.out.println("✓ Estado actualizado exitosamente");
+
+            return savedTask;
+        } catch (Exception e) {
+            System.err.println("✗ Error actualizando estado: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public List<Task> getAllTasks() {return this.taskRepository.findAll();}
-    public Task getTaskById(Integer id) {return this.taskRepository.findById(id).get();}
+
+    public Task getTaskById(Integer id) {
+        return this.taskRepository.findById(id).orElse(null);
+    }
+
     public void deleteTask(Task task) {this.taskRepository.delete(task);}
+
     public List<TaskDTO> getTasksByCatastropheId(Integer catastropheId) {
         return this.taskRepository.findAllByCatastropheId(catastropheId);
     }

@@ -1,15 +1,12 @@
 package solidarityhub.backend.observer.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import solidarityhub.backend.model.Notification;
-import solidarityhub.backend.model.Resource;
-import solidarityhub.backend.model.Storage;
-import solidarityhub.backend.model.Task;
-import solidarityhub.backend.model.Volunteer;
+import solidarityhub.backend.model.*;
 import solidarityhub.backend.model.enums.Status;
 import solidarityhub.backend.observer.Observable;
 import solidarityhub.backend.observer.Observer;
@@ -85,24 +82,27 @@ public class ResourceObserver implements Observer {
                 task.getEstimatedEndTimeDate() != null &&
                 task.getEstimatedEndTimeDate().isBefore(now)) {
 
-            // Process resource consumption
-            if (task.getResourceAssignments() != null) {
-                task.getResourceAssignments().forEach(assignment -> {
+            // Process resource consumption - VERIFICACIONES COMPLETAS DE NULL
+            List<ResourceAssignment> assignments = task.getResourceAssignments();
+            if (assignments != null && !assignments.isEmpty()) {
+                assignments.forEach(assignment -> {
                     Resource resource = assignment.getResource();
-                    double assignedQuantity = assignment.getQuantity();
+                    if (resource != null) {
+                        double assignedQuantity = assignment.getQuantity();
 
-                    // Subtract the used quantity from the resource
-                    double newQuantity = resource.getQuantity() - assignedQuantity;
+                        // Subtract the used quantity from the resource
+                        double newQuantity = resource.getQuantity() - assignedQuantity;
 
-                    // Update the resource quantity
-                    resource.updateQuantity(Math.max(0, newQuantity));
+                        // Update the resource quantity
+                        resource.updateQuantity(Math.max(0, newQuantity));
 
-                    // Save the updated resource
-                    resourceRepository.save(resource);
+                        // Save the updated resource
+                        resourceRepository.save(resource);
 
-                    // Check if resource is now below threshold
-                    if (resource.isBelowThreshold()) {
-                        createLowResourceNotification(resource);
+                        // Check if resource is now below threshold
+                        if (resource.isBelowThreshold()) {
+                            createLowResourceNotification(resource);
+                        }
                     }
                 });
             }
@@ -157,8 +157,9 @@ public class ResourceObserver implements Observer {
         notificationRepository.save(systemNotification);
 
         // Create notification for each volunteer assigned to the task
-        if (task.getVolunteers() != null) {
-            for (Volunteer volunteer : task.getVolunteers()) {
+        List<Volunteer> volunteers = task.getVolunteers();
+        if (volunteers != null && !volunteers.isEmpty()) {
+            for (Volunteer volunteer : volunteers) {
                 Notification notification = new Notification(title, body, task, volunteer);
                 notification.setSeen(false);
                 notificationRepository.save(notification);
