@@ -6,8 +6,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -27,9 +25,8 @@ import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.PDFCertificateService;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.task.AssignResourceDialog;
 import solidarityhub.frontend.service.ResourceAssignmentService;
-import solidarityhub.frontend.dto.ResourceAssignmentDTO;
+
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -164,8 +161,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             generateCertificatesButton.setVisible(true);
         }
 
-        starDateTimePicker.setMin(null);  // Permitir editar fechas pasadas
-        starDateTimePicker.setValue(task.getStartTimeDate());
+        startDateTimePicker.setMin(null);  // Permitir editar fechas pasadas
+        startDateTimePicker.setValue(task.getStartTimeDate());
 
         if (task.getEstimatedEndTimeDate() != null) {
             endDatePicker.setMin(null);  // Permitir editar fechas pasadas
@@ -407,7 +404,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
             TaskDTO updatedTaskDTO = new TaskDTO(
                     taskName.getValue(),
                     taskDescription.getValue(),
-                    starDateTimePicker.getValue(),
+                    startDateTimePicker.getValue(),
                     endDatePicker.getValue().atTime(23, 59),
                     needs.getFirst().getTaskType(),
                     taskPriority.getValue(),
@@ -490,7 +487,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
                 taskPriority != null && taskPriority.getValue() != null ||
                 taskEmergency != null && taskEmergency.getValue() != null ||
                 needsMultiSelectComboBox != null && !needsMultiSelectComboBox.getSelectedItems().isEmpty() ||
-                starDateTimePicker != null && starDateTimePicker.getValue() != null ||
+                startDateTimePicker != null && startDateTimePicker.getValue() != null ||
                 volunteerMultiSelectComboBox != null && !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
                 taskLocation != null && !taskLocation.isEmpty();
     }

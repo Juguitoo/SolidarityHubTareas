@@ -270,7 +270,6 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     align-self: end;
     margin-left: auto;
     background: transparent;
-    color: var(--primary-color);
 }
 .notification__button:hover{
     color: var(--btn-text-color);

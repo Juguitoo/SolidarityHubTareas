@@ -113,7 +113,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
     private void setFormValues(TaskDTO task) {
         // Asegurarse de que los componentes están inicializados
         if (taskName == null || taskDescription == null || taskPriority == null ||
-                taskEmergency == null || starDateTimePicker == null || endDatePicker == null) {
+                taskEmergency == null || startDateTimePicker == null || endDatePicker == null) {
             Notification.show(translator.get("form_not_initialized"));
             UI.getCurrent().navigate("suggested-tasks");
             return;
@@ -130,11 +130,11 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
         taskStatusComboBox.setValue(task.getStatus());
 
         //startDateTimePicker configuration
-        starDateTimePicker.setMin(null);
-        starDateTimePicker.setValue(task.getStartTimeDate());
+        startDateTimePicker.setMin(null);
+        startDateTimePicker.setValue(task.getStartTimeDate());
 
         if (task.getStartTimeDate().isAfter(LocalDateTime.now())) {
-            starDateTimePicker.setMin(LocalDateTime.now());
+            startDateTimePicker.setMin(LocalDateTime.now());
         }
 
         // Configurar fecha estimada de finalización
@@ -250,7 +250,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
                 TaskDTO suggestedTaskDTO = new TaskDTO(
                         taskName.getValue(),
                         taskDescription.getValue(),
-                        starDateTimePicker.getValue(),
+                        startDateTimePicker.getValue(),
                         endDatePicker.getValue().atTime(23, 59),
                         needs.isEmpty() ? null : needs.getFirst().getTaskType(),
                         taskPriority.getValue(),

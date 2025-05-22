@@ -45,17 +45,6 @@
     box-sizing: border-box;
 }
 
-/* Título "Catástrofe seleccionada" */
-.selected-catastrophe-title {
-    margin: 0;
-    padding: 0.5rem 1rem 0.2rem 1rem;
-    color: var(--lumo-tertiary-text-color);
-    font-size: var(--lumo-font-size-xs);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
 .no-catastrophe-title {
     margin: 0;
     padding: 0.5rem 1rem 0.2rem 1rem;
@@ -64,15 +53,6 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-}
-
-/* Nombre de la catástrofe */
-.selected-catastrophe-name {
-    margin: 0;
-    padding: 0.2rem 1rem 0.5rem 1rem;
-    color: var(--lumo-primary-color);
-    font-weight: bold;
-    font-size: var(--lumo-font-size-s);
 }
 
 /* Versión compacta del nombre (con ellipsis) */
@@ -98,21 +78,7 @@
 }
 
 /* Botón para cambiar catástrofe */
-.change-catastrophe-button {
-    margin: 0.3rem 0 0.5rem 1rem;
-    background-color: transparent;
-    color: var(--lumo-primary-color);
-    font-size: var(--lumo-font-size-xs);
-    padding: 0.2rem 0.5rem;
-    height: 24px;
-    min-width: auto;
-    border-radius: var(--lumo-border-radius-s);
-    transition: background-color 0.2s;
-}
 
-.change-catastrophe-button:hover {
-    background-color: var(--lumo-primary-color-10pct);
-}
 
 /* Botón para seleccionar catástrofe */
 .select-catastrophe-button {

@@ -1,14 +1,6 @@
-/* Asegurar que la transición del ancho sea fluida */
-vaadin-app-layout::part(content) {
-  margin-left: var(--drawer-width);
-  transition: margin-left var(--transition-duration) var(--transition-easing);
-}
-
-/* Estilos para la barra superior con el selector de idioma */
-.top-bar {
+.main-layout {
+  --_vaadin-app-layout-drawer-width: var(--drawer-width);
   background-color: var(--background-color);
-  padding: 0 1rem;
-  height: 40px;
 }
 
 .language-selector {
@@ -18,87 +10,67 @@ vaadin-app-layout::part(content) {
   --lumo-font-size-s: 14px;
 }
 
-/* Ajuste para el contenido principal con la barra superior */
-vaadin-app-layout::part(navbar) {
-  min-height: 40px;
-  z-index: 1000;
-}
+/* ============================== MENU ======================================== */
 
-/* Estilos para el lado del drawer */
 .drawer-content {
-  background-color: var(--lumo-base-color);
-  border-right: 1px solid var(--lumo-contrast-10pct);
+  background-color: var(--background-color);
+  border-right: 1px solid var(--primary-light-color);
 }
 
-/* Ajustes para que el contenido principal se posicione correctamente */
+vaadin-app-layout::part(content) {
+  margin-left: var(--drawer-width);
+  transition: margin-left var(--transition-duration) var(--transition-easing);
+}
+
 vaadin-app-layout::part(content) {
   padding-top: 40px;
 }
 
-/* Ocultar el toggle del drawer */
 [part="navbar"] [slot="navbar"] vaadin-drawer-toggle,
 .drawer-toggle {
   display: none;
 }
 
-/* Transición para el contenido de la aplicación */
 [part="content"] {
   transition: margin-left var(--transition-duration) var(--transition-easing);
 }
 
-/* Personalización del AppLayout */
-.main-layout {
-  --_vaadin-app-layout-drawer-width: var(--drawer-width);
-}
-
-/* Drawer y sus componentes */
 .drawer-content {
-  background-color: var(--sidebar-bg-color);
   transition: width var(--transition-duration) var(--transition-easing),
   margin var(--transition-duration) var(--transition-easing);
   overflow-x: hidden;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+/* HEADER */
 .drawer-header {
+  width: 100%;
   padding: var(--lumo-space-m);
-  border-bottom: 1px solid var(--lumo-contrast-10pct);
   min-height: 60px;
   transition: all var(--transition-duration) ease;
   display: flex;
   align-items: center;
 }
 
-.logo-layout {
-  display: flex;
-  align-items: center;
-  transition: all var(--transition-duration) ease;
-}
-
 .logo-principal {
-  width: 32px;
-  height: 32px;
-  max-width: 32px;
-  max-height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
 .logo-button {
   background: transparent;
   border: none;
-  cursor: pointer;
   padding: 6px;
   margin: 0;
-  color: var(--lumo-primary-color);
   transition: transform var(--transition-duration) ease, color var(--transition-duration) ease;
-  display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logo-button:hover {
   transform: scale(1.1);
-  color: var(--lumo-primary-color-50pct);
+  background-color: var(--background-color);
 }
 
 .logo-button,
@@ -110,7 +82,7 @@ vaadin-app-layout::part(content) {
   font-size: var(--lumo-font-size-l);
   font-weight: 600;
   margin-left: var(--lumo-space-s);
-  color: var(--lumo-primary-color);
+  color: var(--primary-color);
   transition: opacity var(--transition-duration) var(--transition-easing),
   width var(--transition-duration) var(--transition-easing),
   transform var(--transition-duration) var(--transition-easing);
@@ -118,39 +90,52 @@ vaadin-app-layout::part(content) {
   overflow: hidden;
 }
 
-/* Perfil de usuario simplificado */
-.profile-section {
-  padding: var(--lumo-space-m);
-  border-bottom: 1px solid var(--lumo-contrast-10pct);
-  display: flex;
-  align-items: center;
-  transition: all var(--transition-duration) ease;
-  overflow: hidden;
-}
 
-/* Información de catástrofe seleccionada */
+/* SELECTED CATASTROPHE */
 .selected-catastrophe-info {
   padding: var(--lumo-space-m);
-  border-bottom: 1px solid var(--lumo-contrast-10pct);
-  background-color: var(--lumo-contrast-5pct);
+  background-color: var(--primary-light-color);
   transition: all var(--transition-duration) ease;
+}
+
+.selected-catastrophe-info-layout{
+  background-color: var(--primary-light-color);
 }
 
 .selected-catastrophe-title {
-  font-size: var(--lumo-font-size-s);
-  font-weight: 600;
-  color: var(--lumo-secondary-text-color);
-  margin: 0 0 var(--lumo-space-xs) 0;
+  margin: 0;
+  padding: 0.5rem 1rem 0.2rem 1rem;
+  color: var(--text-color);
+  font-size: var(--lumo-font-size-xs);
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .selected-catastrophe-name {
-  font-size: var(--lumo-font-size-m);
-  font-weight: 500;
-  color: var(--lumo-primary-text-color);
-  margin: 0 0 var(--lumo-space-s) 0;
-  line-height: 1.3;
+  margin: 0;
+  padding: 0.2rem 1rem 0.5rem 1rem;
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: var(--lumo-font-size-s);
+}
+
+.change-catastrophe-button {
+  width: 100%;
+  font-size: var(--lumo-font-size-xs);
+  --lumo-button-size: var(--lumo-size-s);
+  color: var(--text-color);
+  margin: 0.3rem 0 0.6rem 0;
+  background-color: transparent;
+  padding: 0.2rem 0.5rem;
+  height: 24px;
+  min-width: auto;
+  border-radius: var(--lumo-border-radius-s);
+  transition: background-color 0.2s;
+}
+
+.change-catastrophe-button:hover {
+  background-color: var(--lumo-primary-color-10pct);
 }
 
 .no-catastrophe-title {
@@ -160,19 +145,9 @@ vaadin-app-layout::part(content) {
   text-align: center;
 }
 
-.change-catastrophe-button,
-.select-catastrophe-button {
-  width: 100%;
-  font-size: var(--lumo-font-size-xs);
-  --lumo-button-size: var(--lumo-size-s);
-}
-
-.change-catastrophe-button {
-  --lumo-primary-color: var(--lumo-contrast-60pct);
-}
-
-/* Navegación */
+/* NAVIGATION */
 .nav-scroller {
+  margin-top: 1rem;
   border-top: none;
   padding: var(--lumo-space-s);
   flex: 1;
@@ -183,8 +158,8 @@ vaadin-app-layout::part(content) {
   width: 100%;
 }
 
-/* Estilizando los items del navegador */
-.nav-item {
+vaadin-side-nav-item{
+  color: var(--text-color);
   margin-bottom: var(--lumo-space-xs);
   border-radius: var(--lumo-border-radius-m);
   transition: all var(--transition-duration) var(--transition-easing);
@@ -196,24 +171,38 @@ vaadin-app-layout::part(content) {
   position: relative;
 }
 
-/* Asegurar transición suave para etiquetas */
-.nav-item span {
-  transition: opacity 0.2s ease;
-  white-space: nowrap;
-}
-
-/* Estilos para estados hover y activo */
-.nav-item:hover {
+vaadin-side-nav-item:hover {
   background-color: var(--sidebar-item-hover-bg);
+  text-decoration: underline;
 }
 
-.nav-item[active] {
-  background-color: var(--sidebar-item-active-bg);
-  color: var(--sidebar-item-active-color);
+vaadin-side-nav-item[current] {
+  background-color: var(--primary-light-color);
+  color: var(--text-color);
   font-weight: 600;
 }
 
-/* Íconos dentro de los items */
+vaadin-side-nav-item::part(content){
+  width: 100%;
+}
+
+vaadin-side-nav-item[current]::part(content){
+  background-color: transparent;
+}
+
+vaadin-side-nav-item::part(link){
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+vaadin-side-nav-item[current]::part(link) {
+  background-color: transparent;
+}
+
+.nav-item__icon{
+  color: var(--text-color);
+}
+
 .side-nav .nav-item [slot="prefix"],
 .side-nav .nav-item .nav-icon {
   display: flex;
@@ -230,18 +219,36 @@ vaadin-app-layout::part(content) {
 /* Footer */
 .drawer-footer {
   padding: var(--lumo-space-s) var(--lumo-space-m);
-  border-top: 1px solid var(--lumo-contrast-10pct);
-  color: var(--lumo-tertiary-text-color);
+  color: var(--text-color);
   font-size: var(--lumo-font-size-xs);
   display: flex;
   justify-content: center;
 }
 
-.version-info {
-  opacity: 0.7;
+.log-out-button {
+  background-color: var(--accent-color);
+  transition: background-color 0.3s ease;
 }
 
-/* Estado minimizado */
+.log-out-button:hover {
+  background-color: var(--accent-color);
+  filter: brightness(80%);
+}
+
+/* ============================== MINIMIZADO ======================================== */
+.drawer-content {
+  overflow-x: hidden;
+}
+
+.drawer-minimized {
+  overflow-x: hidden;
+}
+
+.nav-scroller {
+  overflow-x: hidden;
+}
+
+
 .drawer-minimized ~ [part="content"] {
   margin-left: var(--drawer-minimized-width);
 }
@@ -297,8 +304,8 @@ vaadin-app-layout::part(content) {
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  background: var(--lumo-base-color);
-  color: var(--lumo-primary-text-color);
+  background: var(--primary-color);
+  color: var(--text-color);
   padding: 4px 8px;
   border-radius: 4px;
   white-space: nowrap;
@@ -330,7 +337,7 @@ vaadin-app-layout::part(content) {
 }
 
 .drawer-minimized .side-nav span {
-  display: none !important;
+  display: none;
 }
 
 .drawer-minimized .side-nav .nav-item {
@@ -338,7 +345,6 @@ vaadin-app-layout::part(content) {
   padding: 0;
 }
 
-/* Indicador lateral para elementos activos */
 .nav-item::before {
   content: '';
   position: absolute;
@@ -346,7 +352,7 @@ vaadin-app-layout::part(content) {
   height: 0;
   top: 50%;
   left: 0;
-  background-color: var(--lumo-primary-color);
+  background-color: var(--primary-color);
   transform: translateY(-50%);
   transition: height var(--transition-duration) ease;
 }
@@ -357,20 +363,6 @@ vaadin-app-layout::part(content) {
 
 .nav-item[active]::before {
   height: 90%;
-}
-
-/* Mejoras para temas oscuros */
-html[theme~="dark"] .drawer-content {
-  background-color: var(--lumo-base-color);
-}
-
-html[theme~="dark"] vaadin-icon,
-html[theme~="dark"] .app-name {
-  color: var(--lumo-primary-color);
-}
-
-html[theme~="dark"] .selected-catastrophe-info {
-  background-color: var(--lumo-shade-10pct);
 }
 
 /* Estilos globales para el botón de tema */
@@ -386,16 +378,6 @@ html[theme~="dark"] .selected-catastrophe-info {
   transform: scale(1.1);
 }
 
-[data-theme="dark"] .theme-toggle-btn {
-  background-color: var(--lumo-shade-10pct);
-}
-
-
-
-
-
-
-/* Responsividad */
 @media (max-width: 800px) {
   .drawer-content:not(.drawer-minimized) {
     width: 100vw !important;

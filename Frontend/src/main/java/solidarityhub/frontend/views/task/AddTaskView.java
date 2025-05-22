@@ -3,8 +3,6 @@ package solidarityhub.frontend.views.task;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -41,7 +39,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,7 +63,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected TextArea taskDescription;
     protected ComboBox<Priority> taskPriority;
     protected ComboBox<EmergencyLevel> taskEmergency;
-    protected DateTimePicker starDateTimePicker;
+    protected DateTimePicker startDateTimePicker;
     protected DatePicker endDatePicker;
     protected TextField taskLocation;
     protected MultiSelectComboBox<String> volunteerMultiSelectComboBox;
@@ -101,7 +98,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskDescription = new TextArea(translator.get("preview_task_description"));
         taskPriority = new ComboBox<>(translator.get("preview_task_priority"));
         taskEmergency = new ComboBox<>(translator.get("preview_task_emergency_level"));
-        starDateTimePicker = new DateTimePicker(translator.get("preview_start_date"));
+        startDateTimePicker = new DateTimePicker(translator.get("preview_start_date"));
         endDatePicker = new DatePicker(translator.get("preview_end_date"));
         taskLocation = new TextField(translator.get("preview_meeting_point"));
         volunteerMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_volunteers"));
@@ -173,7 +170,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             endDateTime = endDatePicker.getValue().atTime(23, 59);
         }
 
-        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), starDateTimePicker.getValue(), endDateTime,
+        return new TaskDTO(taskName.getValue(), taskDescription.getValue(), startDateTimePicker.getValue(), endDateTime,
                 getTaskType(), taskPriority.getValue(), taskEmergency.getValue(), Status.TO_DO, getNeedsList(), selectedVolunteersList, catastropheDTO.getId(), taskLocation.getValue());
     }
 
@@ -242,10 +239,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskEmergency.setRequiredIndicatorVisible(true);
         taskEmergency.setRequired(true);
 
-        starDateTimePicker.setRequiredIndicatorVisible(true);
-        starDateTimePicker.setMin(LocalDateTime.now());
-        starDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
-        starDateTimePicker.setHelperText(translator.get("start_date_field_helper"));
+        startDateTimePicker.setRequiredIndicatorVisible(true);
+        startDateTimePicker.setMin(LocalDateTime.now());
+        startDateTimePicker.setDatePickerI18n(new DatePicker.DatePickerI18n().setFirstDayOfWeek(1));
+        startDateTimePicker.setHelperText(translator.get("start_date_field_helper"));
 
         endDatePicker.setRequiredIndicatorVisible(true);
         endDatePicker.setMin(LocalDate.now());
@@ -256,9 +253,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation.setRequired(true);
         taskLocation.setHelperText(translator.get("meeting_point_helper"));
 
-        addTaskForm.add(taskName, taskDescription, starDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation, getResourceAssignmentsBtn());
+        addTaskForm.add(taskName, taskDescription, startDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation, getResourceAssignmentsBtn());
 
-        starDateTimePicker.addValueChangeListener(event -> {
+        startDateTimePicker.addValueChangeListener(event -> {
             LocalDate startValue;
             try {
                 startValue = event.getValue().toLocalDate();
@@ -317,7 +314,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
 
         volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
-            if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
+            if (startDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
                 // Si no hay fechas seleccionadas, mostrar notificación
                 Notification notification = Notification.show(
                         translator.get("select_date_to_filter"),
@@ -413,7 +410,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         Span noVolunteersMessage = new Span(translator.get("no_available_volunteers"));
         noVolunteersMessage.setVisible(false);
 
-        if (starDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
+        if (startDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
             Notification.show(translator.get("first_select_dates"),
                     3000, Notification.Position.MIDDLE);
             volunteerDialog.close();
@@ -745,7 +742,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected boolean validateForm() {
         return !taskName.isEmpty() &&
                 !taskDescription.isEmpty() &&
-                starDateTimePicker.getValue() != null &&
+                startDateTimePicker.getValue() != null &&
                 endDatePicker.getValue() != null &&  // Esto ya está, pero es importante verificarlo
                 taskPriority.getValue() != null &&
                 taskEmergency.getValue() != null &&
@@ -760,7 +757,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 taskPriority.getValue() != null ||
                 taskEmergency.getValue() != null ||
                 needsMultiSelectComboBox.getValue() != null ||
-                starDateTimePicker.getValue() != null ||
+                startDateTimePicker.getValue() != null ||
                 !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
                 !taskLocation.isEmpty();
     }
@@ -803,19 +800,19 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     protected void setupFormListeners() {
         taskName.addValueChangeListener(e ->
-                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue())
+                updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, startDateTimePicker.getValue())
         );
 
         taskDescription.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue()));
+                updatePreview(taskName.getValue(), e.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, startDateTimePicker.getValue()));
 
         taskPriority.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), e.getValue(), taskEmergency.getValue(), taskType, startDateTimePicker.getValue()));
 
         taskEmergency.addValueChangeListener(e ->
-                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue(), taskType, starDateTimePicker.getValue()));
+                updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), e.getValue(), taskType, startDateTimePicker.getValue()));
 
-        starDateTimePicker.addValueChangeListener(e -> {
+        startDateTimePicker.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, e.getValue());
             }
@@ -834,7 +831,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             skillsVolunteersList.clear();
             distanceVolunteersList.clear();
             taskType = getTaskType();
-            updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, starDateTimePicker.getValue());
+            updatePreview(taskName.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, startDateTimePicker.getValue());
         });
     }
 

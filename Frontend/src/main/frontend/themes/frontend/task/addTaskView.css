@@ -84,3 +84,12 @@
     font-weight: bold;
 }
 
+.dateTimePicker-focus{
+    --vaadin-input-field-border-color: var(--primary-color);
+    animation: borderAnimation 0.5s ease-in-out 0s 3;
+}
+
+@keyframes borderAnimation {
+    from { --vaadin-input-field-border-color: transparent; }
+    to { --vaadin-input-field-border-color: var(--primary-color); }
+}
