@@ -125,25 +125,30 @@ public class SurveyView extends VerticalLayout {
         grid.addColumn(survey -> {
             // Aquí habría que obtener el creador desde el backend
             return "Admin"; // Valor temporal
-        }).setHeader(translator.get("survey_creator")).setFlexGrow(1);
+        }).setHeader(translator.get("survey_creator")).setFlexGrow(1)
+                .setSortable(true);
         
         grid.addColumn(survey -> {
             if (survey.getCreatedDate() != null) {
                 return survey.getCreatedDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             }
             return "";
-        }).setHeader(translator.get("survey_creation_date")).setFlexGrow(1);
+        }).setHeader(translator.get("survey_creation_date")).setFlexGrow(1)
+                .setSortable(true);
         
         grid.addColumn(survey -> {
             if (survey.getQuestions() != null) {
                 return survey.getQuestions().size();
             }
             return 0;
-        }).setHeader(translator.get("survey_questions_count")).setFlexGrow(1);
+        }).setHeader(translator.get("survey_questions_count")).setFlexGrow(1)
+                .setSortable(true);
+
         
         grid.addColumn(SurveyDTO::getAverageQualification)
             .setHeader(translator.get("survey_average_rating"))
-            .setFlexGrow(1);
+            .setFlexGrow(1)
+            .setSortable(true);
             
         // Agregar columna de acciones
         grid.addComponentColumn(survey -> {
