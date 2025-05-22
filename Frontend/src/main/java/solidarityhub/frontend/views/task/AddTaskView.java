@@ -700,6 +700,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         List<ResourceAssignmentDTO> resources = (List<ResourceAssignmentDTO>)
                 VaadinSession.getCurrent().getAttribute("assignedResources");
 
+        if (resources == null) {
+            resources = new ArrayList<>();
+        }
+
         return resources;
     }
 

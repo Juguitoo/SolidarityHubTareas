@@ -211,6 +211,10 @@ public class TaskController {
             }
         }
 
+        if(task.getResourceAssignments() == null){
+            task.setResourceAssignments(new ArrayList<>());
+        }
+
         task.setTaskName(taskDTO.getName());
         task.setTaskDescription(taskDTO.getDescription());
         task.setStartTimeDate(taskDTO.getStartTimeDate());
