@@ -16,12 +16,10 @@
 }
 
 .task-section {
-    width: 100%;
-    max-width: 500px;
-    height: auto;
-    background-color: var(--primary-light-color);
-    border-radius: var(--card-border-radius);
-    box-shadow: var(--card-shadow);
+    min-height: 200px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--lumo-contrast-20pct);
 }
 
 .section-title {
@@ -58,6 +56,21 @@
 .suggested-tasks-view{
     background-color: var(--background-color);
 }
+.draggable-task {
+    cursor: move;
+    transition: transform 0.2s ease;
+}
+
+.draggable-task.dragging {
+    opacity: 0.7;
+    transform: rotate(2deg);
+}
+
+.drop-zone.drag-over {
+    background-color: var(--lumo-primary-color-10pct);
+    border: 2px dashed var(--lumo-primary-color);
+}
+
 
 /* Responsive design */
 @media (max-width: 768px) {

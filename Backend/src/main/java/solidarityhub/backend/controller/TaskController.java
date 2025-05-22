@@ -13,6 +13,7 @@ import solidarityhub.backend.service.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/solidarityhub/tasks")
@@ -237,6 +238,40 @@ public class TaskController {
         Task updatedTask = taskService.save(task);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateTaskStatus(@PathVariable Integer id, @RequestBody Map<String, String> statusUpdate) {
+        System.out.println("Actualizando solo el estado de la tarea " + id + " a: " + statusUpdate.get("status"));
+
+        Task task = taskService.getTaskById(id);
+        if(task == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            Status newStatus = Status.valueOf(statusUpdate.get("status"));
+            Status oldStatus = task.getStatus();
+
+            task.setStatus(newStatus);
+
+            // Usar el método específico si hay cambio de estado
+            if (oldStatus != newStatus) {
+                taskService.updateTaskStatus(task);
+            } else {
+                taskService.save(task);
+            }
+
+            // Verificar que se guardó
+            Task verifiedTask = taskService.getTaskById(id);
+            System.out.println("Estado verificado: " + verifiedTask.getStatus());
+
+            return ResponseEntity.ok().body("Estado actualizado a: " + newStatus);
+
+        } catch (Exception e) {
+            System.err.println("Error actualizando estado: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

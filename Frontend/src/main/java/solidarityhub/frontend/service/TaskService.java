@@ -1,16 +1,13 @@
 package solidarityhub.frontend.service;
 
 import org.pingu.domain.enums.Status;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.TaskDTO;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class TaskService {
@@ -131,35 +128,27 @@ public class TaskService {
         }
     }
 
-    public void updateTaskStatus(int id, Status newStatus) {
+    public void updateTaskStatusOnly(int id, Status newStatus) {
         try {
-            // Obtener la tarea actual
-            TaskDTO currentTask = getTaskById(id);
-            if (currentTask == null) {
-                return;
-            }
+            Map<String, String> statusUpdate = new HashMap<>();
+            statusUpdate.put("status", newStatus.toString());
 
-            // Clonar la tarea y actualizar solo el estado
-            TaskDTO updatedTask = new TaskDTO(
-                    currentTask.getName(),
-                    currentTask.getDescription(),
-                    currentTask.getStartTimeDate(),
-                    currentTask.getEstimatedEndTimeDate(),
-                    currentTask.getType(),
-                    currentTask.getPriority(),
-                    currentTask.getEmergencyLevel(),
-                    newStatus, // Nuevo estado
-                    currentTask.getNeeds(),
-                    currentTask.getVolunteers(),
-                    currentTask.getCatastropheId(),
-                    currentTask.getMeetingDirection()
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(statusUpdate, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    baseUrl + "/" + id + "/status",
+                    HttpMethod.PUT,
+                    requestEntity,
+                    String.class
             );
 
-            // Actualizar en el backend
-            restTemplate.put(baseUrl + "/" + id, updatedTask);
+            System.out.println("Respuesta del servidor: " + response.getBody());
+
         } catch (Exception e) {
-            // Manejar la excepción
-            System.err.println("Error al actualizar el estado de la tarea: " + e.getMessage());
+            System.err.println("Error actualizando estado: " + e.getMessage());
             throw e;
         }
     }

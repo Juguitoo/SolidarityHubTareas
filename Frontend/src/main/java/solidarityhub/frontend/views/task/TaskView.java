@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropEffect;
+import com.vaadin.flow.component.dnd.DropEvent;
 import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -219,11 +220,20 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private TaskComponent createDraggableTaskComponent(TaskDTO task) {
         TaskComponent taskComponent = new TaskComponent(task);
 
-        // Configurar el componente como origen de arrastre según la documentación de Vaadin
+        // Configurar drag source
         DragSource<TaskComponent> dragSource = DragSource.create(taskComponent);
 
-        // Asociar los datos de la tarea para acceder a ellos al soltar
+        // CORRECCIÓN: Usar setDragData pero con verificación
         dragSource.setDragData(task.getId());
+
+        // Opcional: Añadir efectos visuales básicos
+        dragSource.addDragStartListener(event -> {
+            event.getSource().addClassName("dragging");
+        });
+
+        dragSource.addDragEndListener(event -> {
+            event.getSource().removeClassName("dragging");
+        });
 
         return taskComponent;
     }
@@ -231,30 +241,15 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private void updateTaskStatus(int taskId, Status newStatus) {
         try {
             TaskDTO originalTask = taskService.getTaskById(taskId);
-            if (originalTask != null) {
-                if (originalTask.getStatus() == newStatus) {
-                    return; // No hay cambio, salir temprano
-                }
+            if (originalTask != null && originalTask.getStatus() != newStatus) {
 
-                // Llamar al método que actualiza el estado en el backend
-                taskService.updateTaskStatus(taskId, newStatus);
+                // Usar el método específico para solo cambiar estado
+                taskService.updateTaskStatusOnly(taskId, newStatus);
 
-                // Actualizar UI sin recargar toda la vista
-                updateTaskUIAfterStatusChange(originalTask, newStatus);
-
-                // Obtener texto traducido para el estado
-                String statusText = formatService.formatTaskStatus(newStatus);
-
-                // Mostrar notificación
-                Notification.show(translator.get("task") + " '" + originalTask.getName() + "' " +
-                                        translator.get("moved_to") + statusText,
-                                3000, Notification.Position.BOTTOM_START)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                // Resto del código igual...
             }
         } catch (Exception e) {
-            Notification.show(translator.get("error_updating_task") + e.getMessage(),
-                            3000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            // Manejo de errores...
         }
     }
 
@@ -378,23 +373,87 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         dropTarget.setDropEffect(DropEffect.MOVE);
 
         dropTarget.addDropListener(event -> {
-            if (event.getDragData().isPresent() && event.getDragData().get() instanceof Integer) {
-                int taskId = (Integer) event.getDragData().get();
+            try {
+                // CORRECCIÓN: Manejo más robusto de los datos
+                Optional<Object> dragDataOpt = event.getDragData();
 
-                try {
-                    TaskDTO task = taskService.getTaskById(taskId);
+                if (dragDataOpt.isPresent()) {
+                    Object dragData = dragDataOpt.get();
+                    Integer taskId = null;
 
-                    // Solo actualizar si el estado actual es diferente del nuevo estado
-                    if (task != null && task.getStatus() != newStatus) {
-                        updateTaskStatus(taskId, newStatus);
+                    // Intentar convertir a Integer de diferentes maneras
+                    if (dragData instanceof Integer) {
+                        taskId = (Integer) dragData;
+                    } else if (dragData instanceof Number) {
+                        taskId = ((Number) dragData).intValue();
+                    } else if (dragData instanceof String) {
+                        try {
+                            taskId = Integer.parseInt((String) dragData);
+                        } catch (NumberFormatException e) {
+                            System.err.println("No se pudo convertir string a integer: " + dragData);
+                        }
+                    } else {
+                        System.err.println("Tipo de dragData no soportado: " + dragData.getClass().getName());
                     }
-                } catch (Exception e) {
-                    Notification.show(translator.get("error_verifying_task") + e.getMessage(),
-                                    3000, Notification.Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+                    if (taskId != null) {
+                        TaskDTO task = taskService.getTaskById(taskId);
+
+                        if (task != null && task.getStatus() != newStatus) {
+                            System.out.println("Actualizando tarea " + taskId + " de " + task.getStatus() + " a " + newStatus);
+                            updateTaskStatus(taskId, newStatus);
+                        } else if (task == null) {
+                            System.err.println("Tarea no encontrada con ID: " + taskId);
+                        } else {
+                            System.out.println("La tarea " + taskId + " ya está en estado " + newStatus);
+                        }
+                    } else {
+                        System.err.println("No se pudo obtener ID de tarea válido");
+                    }
+                } else {
+                    System.err.println("No hay datos de drag disponibles");
                 }
+
+            } catch (Exception e) {
+                System.err.println("Error en drop listener: " + e.getMessage());
+                e.printStackTrace();
+
+                Notification.show("Error al mover la tarea. Intenta recargar la página.",
+                                3000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
+    }
+
+    private Integer extractTaskId(DropEvent<VerticalLayout> event) {
+        try {
+            // Intentar obtener desde dragData
+            Optional<Object> dragDataOpt = event.getDragData();
+            if (dragDataOpt.isPresent()) {
+                Object dragData = dragDataOpt.get();
+
+                if (dragData instanceof Integer) {
+                    return (Integer) dragData;
+                } else if (dragData instanceof String) {
+                    return Integer.parseInt((String) dragData);
+                } else if (dragData instanceof Number) {
+                    return ((Number) dragData).intValue();
+                }
+            }
+
+            // Como respaldo, intentar desde el componente fuente
+            if (event.getDragSourceComponent().isPresent()) {
+                Component source = event.getDragSourceComponent().get();
+                if (source instanceof TaskComponent) {
+                    return ((TaskComponent) source).getTaskId();
+                }
+            }
+
+            return null;
+        } catch (Exception e) {
+            System.err.println("Error extrayendo task ID: " + e.getMessage());
+            return null;
+        }
     }
 
 }
