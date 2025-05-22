@@ -152,8 +152,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 TaskDTO newTaskDTO = getTaskDTO();
                 TaskDTO SavedTask = taskService.addAndGetNewTask(newTaskDTO);
 
-                System.out.println("New task added: " + newTaskDTO.getId());
-                System.out.println("Saved task: " + SavedTask.getId());
                 saveAssignedResources(SavedTask);
 
                 getConfirmationDialog().open();
@@ -702,10 +700,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         List<ResourceAssignmentDTO> resources = (List<ResourceAssignmentDTO>)
                 VaadinSession.getCurrent().getAttribute("assignedResources");
 
-        for (ResourceAssignmentDTO resourceAssignmentDTO : resources) {
-            System.out.println("Recurso asignado: " + resourceAssignmentDTO.getResourceId());
-        }
-
         return resources;
     }
 
@@ -723,17 +717,19 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                             resourceAssignment.getResourceId(),
                             resourceAssignment.getQuantity(),
                             resourceAssignment.getUnits());
-                    System.out.println("Recurso asignado correctamente: " + resourceAssignment.getResourceId());
                 } catch (Exception e) {
                     System.out.println("Error al asignar recursos al tarea: " + e.getMessage());
                 }
             }
-        }else {
-            System.out.println("No se han asignado recursos al tarea");
         }
     }
 
     protected void saveAssignedResources(TaskDTO taskDTO) {
+        if (taskDTO == null || taskDTO.getId() <= 0) {
+            System.err.println("Error: TaskDTO es nulo o no tiene ID");
+            return;
+        }
+
         saveAssignedResources(taskDTO.getId());
     }
 

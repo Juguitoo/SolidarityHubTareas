@@ -82,7 +82,6 @@ public class TaskController {
             }
         }
 
-
         List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
         for (Integer id : needIds) {
             Need need = needService.findNeed(id);
@@ -120,32 +119,33 @@ public class TaskController {
             }
         }
 
-        taskService.save(task);
+        // Guardar la tarea para obtener el ID
+        Task savedTask = taskService.save(task);
 
         for (Need need : needs) {
-            need.setTask(task);
+            need.setTask(savedTask);
             needService.save(need);
         }
 
         for (Volunteer volunteer : volunteers) {
-            volunteer.getTasks().add(task);
+            volunteer.getTasks().add(savedTask);
 
-            Notification notification = getNotification(volunteer, task, "Nueva tarea");
-            task.addNotification(notification);
+            Notification notification = getNotification(volunteer, savedTask, "Nueva tarea");
+            savedTask.addNotification(notification);
 
             notificationService.notifyEmail(volunteer.getEmail(), notification);
             notificationService.notifyApp(volunteer.getNotificationToken(),"Nueva tarea",
-                    "Se le ha asignado una nueva tarea: " + task.getTaskName());
+                    "Se le ha asignado una nueva tarea: " + savedTask.getTaskName());
         }
-        taskService.save(task);
 
-
-        Task savedTask = taskService.save(task);
+        // Guardar nuevamente para persistir las relaciones
+        savedTask = taskService.save(savedTask);
 
         // Notify observers about the new task
         taskMonitorService.checkTask(savedTask);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        // CAMBIO PRINCIPAL: Devolver la tarea creada en lugar de una respuesta vacía
+        return ResponseEntity.status(HttpStatus.CREATED).body(new TaskDTO(savedTask));
     }
 
     @PutMapping("/{id}")

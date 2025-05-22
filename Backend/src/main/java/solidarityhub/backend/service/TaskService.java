@@ -40,6 +40,7 @@ public class TaskService {
         taskObservable.setTask(savedTask);
         return savedTask;
     }
+
     public List<Task> getAllTasks() {return this.taskRepository.findAll();}
     public Task getTaskById(Integer id) {return this.taskRepository.findById(id).get();}
     public void deleteTask(Task task) {this.taskRepository.delete(task);}
