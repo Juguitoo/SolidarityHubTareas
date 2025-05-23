@@ -76,11 +76,11 @@ public class ResourceController {
                 resourceDTO.getUnit(),
                 storage,
                 catastrophe);
-        resourceService.save(resource);
 
         Resource savedResource = resourceService.save(resource);
-        resourceMonitorService.resourceUpdated(savedResource);
-
+        try {
+            resourceMonitorService.resourceUpdated(savedResource);
+        } catch (Exception _) {}
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -117,7 +117,7 @@ public class ResourceController {
             return ResponseEntity.notFound().build();
         }
         resourceService.deleteResource(resource);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/summary")

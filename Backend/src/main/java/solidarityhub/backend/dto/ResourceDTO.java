@@ -9,6 +9,8 @@ import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.model.enums.ResourceType;
 
+import java.util.Objects;
+
 @NoArgsConstructor
 @Getter
 @Setter
@@ -44,6 +46,20 @@ public class ResourceDTO {
 
     public String getCantidad() {
         return quantity + " " + unit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ResourceDTO that = (ResourceDTO) o;
+        return id == that.id &&
+                Double.compare(that.quantity, quantity) == 0 &&
+                Objects.equals(name, that.name) &&
+                type == that.type &&
+                Objects.equals(unit, that.unit) &&
+                Objects.equals(storageId, that.storageId) &&
+                Objects.equals(catastropheId, that.catastropheId);
     }
 
 }
