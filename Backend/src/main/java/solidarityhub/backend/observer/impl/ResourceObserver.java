@@ -112,9 +112,6 @@ public class ResourceObserver implements Observer {
             taskRepository.save(task);
             createTaskStatusChangeNotification(task, "ha sido completada");
         }
-
-        // Crear notificación para cualquier cambio de estado manual
-        createTaskStatusChangeNotification(task, getStatusMessage(task.getStatus()));
     }
 
     private String getStatusMessage(Status status) {
