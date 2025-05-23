@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.pingu.web.BackendObservableService.BackendObservableService;
 import org.pingu.web.BackendObservableService.Singleton;
-import org.pingu.web.BackendObservableService.observableList.concrete.DTOObservableList;
+import org.pingu.web.BackendObservableService.observableList.concrete.BackendDTOObservableList;
 import org.springframework.core.ParameterizedTypeReference;
 
 @Getter
@@ -21,13 +21,13 @@ public class BackendDTOObservableService extends Singleton implements BackendObs
         try {
             log.info("Iniciando los observadores del backend");
 
-            CatastropheList = new DTOObservableList<>("http://localhost:8082/solidarityhub/catastrophes", 5,  new ParameterizedTypeReference<>() {});
+            CatastropheList = new BackendDTOObservableList <>("http://localhost:8082/solidarityhub/catastrophes", 5,  new ParameterizedTypeReference<>() {});
             Thread.sleep(1000);
 
-            StorageList = new DTOObservableList<>("http://localhost:8082/solidarityhub/storages", 5,  new ParameterizedTypeReference<>() {});
+            StorageList = new BackendDTOObservableList<>("http://localhost:8082/solidarityhub/storages", 5,  new ParameterizedTypeReference<>() {});
             Thread.sleep(1000);
 
-            TaskList = new DTOObservableList<>("http://localhost:8082/solidarityhub/tasks", 3, new ParameterizedTypeReference<>() {});
+            TaskList = new BackendDTOObservableList<>("http://localhost:8082/solidarityhub/tasks", 3, new ParameterizedTypeReference<>() {});
             Thread.sleep(1000);
         }
         catch (InterruptedException e){
@@ -36,9 +36,9 @@ public class BackendDTOObservableService extends Singleton implements BackendObs
         }
     }
 
-    private final DTOObservableList<CatastropheDTO> CatastropheList;
-    private final DTOObservableList<StorageDTO> StorageList;
-    private final DTOObservableList<TaskDTO> TaskList;
+    private final BackendDTOObservableList<CatastropheDTO> CatastropheList;
+    private final BackendDTOObservableList<StorageDTO> StorageList;
+    private final BackendDTOObservableList<TaskDTO> TaskList;
 
     @Override
     public void shutdown(){
