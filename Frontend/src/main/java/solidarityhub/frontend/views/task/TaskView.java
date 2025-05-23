@@ -93,15 +93,15 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         actionButtonsLayout.addClassName("action-buttons__layout");
 
         Button addTaskButton = new Button(translator.get("add_task_button"), new Icon("vaadin", "plus"));
-        addTaskButton.addClickListener(e ->UI.getCurrent().navigate("addtask"));
+        addTaskButton.addClickListener(e ->UI.getCurrent().navigate("tasks/addtask"));
         addTaskButton.addClassNames("tasks-button");
 
         Button moreTasksButton = new Button(translator.get("all_tasks_button"), new Icon("vaadin", "clipboard"));
-        moreTasksButton.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
+        moreTasksButton.addClickListener(e -> UI.getCurrent().navigate("tasks/moretasks"));
         moreTasksButton.addClassName("tasks-button");
 
         Button sugestedTasksButton = new Button(translator.get("suggested_tasks_button"), new Icon("vaadin", "lightbulb"));
-        sugestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
+        sugestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("tasks/suggested-tasks"));
         sugestedTasksButton.addClassName("tasks-button");
 
         actionButtonsLayout.setAlignItems(Alignment.CENTER);
@@ -344,6 +344,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             buildView();
         }
     }
+
     private void removeEmptyStateMessage(VerticalLayout container) {
         // Remover cualquier mensaje de "no hay tareas"
         for (int i = container.getComponentCount() - 1; i >= 0; i--) {
@@ -353,6 +354,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             }
         }
     }
+
     private String formatStatus(Status status) {
         return switch (status) {
             case TO_DO -> translator.get("todo_tasks");
@@ -360,7 +362,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             case FINISHED -> translator.get("terminated_tasks");
         };
     }
-
 
     private Optional<VerticalLayout> findTaskContainerByStatus(Status status) {
         // Buscar el contenedor correspondiente al estado
@@ -526,37 +527,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
-    }
-
-    private Integer extractTaskId(DropEvent<VerticalLayout> event) {
-        try {
-            // Intentar obtener desde dragData
-            Optional<Object> dragDataOpt = event.getDragData();
-            if (dragDataOpt.isPresent()) {
-                Object dragData = dragDataOpt.get();
-
-                if (dragData instanceof Integer) {
-                    return (Integer) dragData;
-                } else if (dragData instanceof String) {
-                    return Integer.parseInt((String) dragData);
-                } else if (dragData instanceof Number) {
-                    return ((Number) dragData).intValue();
-                }
-            }
-
-            // Como respaldo, intentar desde el componente fuente
-            if (event.getDragSourceComponent().isPresent()) {
-                Component source = event.getDragSourceComponent().get();
-                if (source instanceof TaskComponent) {
-                    return ((TaskComponent) source).getTaskId();
-                }
-            }
-
-            return null;
-        } catch (Exception e) {
-            System.err.println("Error extrayendo task ID: " + e.getMessage());
-            return null;
-        }
     }
 
 }

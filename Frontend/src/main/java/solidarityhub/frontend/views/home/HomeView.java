@@ -24,6 +24,7 @@ import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
+import solidarityhub.frontend.views.catastrophe.EditCatastropheDialog;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -214,7 +215,10 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         Button editButton = new Button(translator.get("edit_catastrophe"), VaadinIcon.EDIT.create());
         editButton.addClassName("edit-catastrophe-btn");
-        editButton.addClickListener(e -> openEditCatastropheDialog());
+        editButton.addClickListener(e -> {
+            Dialog editCatastropheDialog = new EditCatastropheDialog(selectedCatastrophe);
+            editCatastropheDialog.open();
+        });
 
         catastropheHeader.add(catastropheName, editButton);
 
@@ -318,7 +322,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         Button viewAllTasks = new Button(translator.get("view_all"), VaadinIcon.ARROW_RIGHT.create());
         viewAllTasks.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        viewAllTasks.addClickListener(e -> UI.getCurrent().navigate("moretasks"));
+        viewAllTasks.addClickListener(e -> UI.getCurrent().navigate("tasks/moretasks"));
 
         tasksHeader.add(tasksTitle, viewAllTasks);
 
@@ -414,7 +418,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         Button addTaskButton = new Button(translator.get("create_task"), VaadinIcon.PLUS.create());
         addTaskButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        addTaskButton.addClickListener(e -> UI.getCurrent().navigate("addtask"));
+        addTaskButton.addClickListener(e -> UI.getCurrent().navigate("tasks/addtask"));
 
         needsHeader.add(needsTitle, addTaskButton);
 
@@ -563,29 +567,6 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
             case "va" -> "Valencià";
             default -> "Español";
         };
-    }
-
-    private void openEditCatastropheDialog() {
-        Dialog editDialog = new Dialog();
-        editDialog.setHeaderTitle(translator.get("edit_catastrophe"));
-        editDialog.setWidth("500px");
-
-        VerticalLayout content = new VerticalLayout();
-        content.add(new Span(translator.get("edit_catastrophe_description")));
-
-        Button editButton = new Button(translator.get("edit"), e -> {
-            editDialog.close();
-            // Aquí podrías navegar a una vista de edición específica
-            // o abrir un formulario más completo
-            UI.getCurrent().navigate("add-catastrophe");
-        });
-        editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        Button cancelButton = new Button(translator.get("cancel"), e -> editDialog.close());
-
-        editDialog.getFooter().add(cancelButton, editButton);
-        editDialog.add(content);
-        editDialog.open();
     }
 
     private String getEmergencyLevelClass(EmergencyLevel level) {

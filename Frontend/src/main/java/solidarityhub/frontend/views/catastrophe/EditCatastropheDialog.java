@@ -41,9 +41,9 @@ public class EditCatastropheDialog extends Dialog {
     private Button saveButton;
     private Button cancelButton;
 
-    public EditCatastropheDialog(CatastropheDTO catastrophe, CatastropheService catastropheService) {
+    public EditCatastropheDialog(CatastropheDTO catastrophe) {
         this.catastrophe = catastrophe;
-        this.catastropheService = catastropheService;
+        this.catastropheService = new CatastropheService();
 
         initializeTranslator();
         buildDialog();

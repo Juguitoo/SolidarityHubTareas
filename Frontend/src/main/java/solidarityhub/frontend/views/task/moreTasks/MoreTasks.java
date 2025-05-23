@@ -26,22 +26,14 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @PageTitle("Ver más tareas")
-@Route("moretasks")
+@Route("tasks/moretasks")
 public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     private static Translator translator;
     private final FormatService formatService;
 
     private final TaskService taskService;
     private CatastropheDTO selectedCatastrophe;
-    private ListDataProvider<TaskDTO> tasksDataProvider;
     private final Grid<TaskDTO> taskGrid;
-
-    // Columnas para filtros
-    private Grid.Column<TaskDTO> nameColumn;
-    private Grid.Column<TaskDTO> statusColumn;
-    private Grid.Column<TaskDTO> priorityColumn;
-    private Grid.Column<TaskDTO> typeColumn;
-    private Grid.Column<TaskDTO> emergencyLevelColumn;
 
     // Valores de filtro
     private String statusFilterValue = "";
@@ -153,7 +145,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void populateTaskGrid() {
-        this.tasksDataProvider = new ListDataProvider<>(getTasksList());
+        ListDataProvider<TaskDTO> tasksDataProvider = new ListDataProvider<>(getTasksList());
 
         if (tasksDataProvider.getItems().isEmpty()) {
             taskGrid.setVisible(false);
@@ -175,8 +167,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void setupColumns() {
-        // Columna de nombre
-        nameColumn = taskGrid.addColumn(TaskDTO::getName)
+        taskGrid.addColumn(TaskDTO::getName)
                 .setHeader(translator.get("more_tasks_name"))
                 .setAutoWidth(true);
 
@@ -189,32 +180,32 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
                 .setAutoWidth(true);
 
         // Columna de tipo de tarea
-        typeColumn = taskGrid.addColumn(task -> formatService.formatTaskType(task.getType()))
+        taskGrid.addColumn(task -> formatService.formatTaskType(task.getType()))
                 .setHeader(translator.get("more_tasks_type"))
                 .setAutoWidth(true);
 
         // Columna de prioridad
-        priorityColumn = taskGrid.addColumn(task -> formatService.formatPriority(task.getPriority()))
+        taskGrid.addColumn(task -> formatService.formatPriority(task.getPriority()))
                 .setHeader(translator.get("more_tasks_priority"))
                 .setAutoWidth(true);
 
         // Columna de nivel de emergencia
-        emergencyLevelColumn = taskGrid.addColumn(task -> formatService.formatEmergencyLevel(task.getEmergencyLevel()))
+        taskGrid.addColumn(task -> formatService.formatEmergencyLevel(task.getEmergencyLevel()))
                 .setHeader(translator.get("preview_task_emergency_level"))
                 .setAutoWidth(true);
 
         // Columna de estado
-        statusColumn = taskGrid.addColumn(task -> formatService.formatTaskStatus(task.getStatus()))
+        taskGrid.addColumn(task -> formatService.formatTaskStatus(task.getStatus()))
                 .setHeader(translator.get("more_tasks_status"))
                 .setAutoWidth(true);
 
         // Columna de fecha de inicio
-        taskGrid.addColumn(task -> formatService.formatDate(task.getStartTimeDate()))
+        taskGrid.addColumn(task -> formatService.formatDateTime(task.getStartTimeDate()))
                 .setHeader(translator.get("more_tasks_start_date"))
                 .setAutoWidth(true);
 
         // Columna de fecha estimada de finalización
-        taskGrid.addColumn(task -> formatService.formatDate(task.getEstimatedEndTimeDate()))
+        taskGrid.addColumn(task -> formatService.formatDate(task.getEstimatedEndTimeDate().toLocalDate()))
                 .setHeader(translator.get("more_tasks_end_date"))
                 .setAutoWidth(true);
 

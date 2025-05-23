@@ -147,11 +147,13 @@ vaadin-app-layout::part(content) {
 
 /* NAVIGATION */
 .nav-scroller {
+  width: 80%;
   margin-top: 1rem;
   border-top: none;
   padding: var(--lumo-space-s);
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .side-nav {
@@ -243,11 +245,6 @@ vaadin-side-nav-item[current]::part(link) {
 .drawer-minimized {
   overflow-x: hidden;
 }
-
-.nav-scroller {
-  overflow-x: hidden;
-}
-
 
 .drawer-minimized ~ [part="content"] {
   margin-left: var(--drawer-minimized-width);

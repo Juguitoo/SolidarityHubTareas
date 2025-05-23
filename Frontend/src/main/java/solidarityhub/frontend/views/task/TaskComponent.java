@@ -187,7 +187,7 @@ public class TaskComponent extends VerticalLayout {
         // Agregar tooltip traducido
         editButton.getElement().setAttribute("title", translator.get("edit_task_button_tooltip"));
 
-        editButton.addClickListener(event -> UI.getCurrent().navigate("editTask", QueryParameters.simple(
+        editButton.addClickListener(event -> UI.getCurrent().navigate("tasks/editTask", QueryParameters.simple(
                 Collections.singletonMap("id", String.valueOf(this.taskId)))));
 
         buttonLayout.add(editButton);

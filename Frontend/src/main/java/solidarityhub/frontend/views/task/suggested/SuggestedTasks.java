@@ -22,7 +22,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @PageTitle("Suggested Tasks")
-@Route("suggested-tasks")
+@Route("tasks/suggested-tasks")
 public class SuggestedTasks extends VerticalLayout {
     private static Translator translator;
     private final TaskService taskService;
@@ -105,7 +105,7 @@ public class SuggestedTasks extends VerticalLayout {
         clickableTask.addClickListener(event -> {
             TaskDTO selectedTask = suggestedTasks.stream().filter(t -> Objects.equals(t.getName(), task.getTaskName())).findFirst().orElse(null);
             VaadinSession.getCurrent().setAttribute("selectedSuggestedTask", selectedTask);
-            getUI().ifPresent(ui -> ui.navigate("editSuggestedTask"));
+            getUI().ifPresent(ui -> ui.navigate("tasks/editSuggestedTask"));
         });
 
         clickableTask.getStyle().set("cursor", "pointer");

@@ -260,7 +260,9 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     width: 40px;
     height: 40px;
     padding: 6px;
+    color: var(--text-color);
 }
+
 
 .notification__button{
     width: 40px;
@@ -271,7 +273,7 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     margin-left: auto;
     background: transparent;
 }
-.notification__button:hover{
+.notification__button:hover .notification__icon{
     color: var(--btn-text-color);
 }
 

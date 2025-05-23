@@ -43,7 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @PageTitle("Añadir tarea")
-@Route("addtask")
+@Route("tasks/addtask")
 public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
     protected final TaskService taskService;
@@ -204,7 +204,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 0,
                 translator.get("preview_task_name"),
                 translator.get("preview_task_description"),
-                formatService.formatDate(LocalDateTime.now()),
+                formatService.formatDateTime(LocalDateTime.now()),
                 translator.get("preview_task_priority"),
                 translator.get("preview_task_emergency_level"),
                 TaskType.OTHER
@@ -858,7 +858,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         if(date != null){
-            taskPreview.updateDate(formatService.formatDate(date));
+            taskPreview.updateDate(formatService.formatDateTime(date));
         }
     }
 }

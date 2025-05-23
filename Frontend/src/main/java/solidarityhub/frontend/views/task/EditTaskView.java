@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@Route("editTask")
+@Route("tasks/editTask")
 @PageTitle("Editar tarea")
 public class EditTaskView extends AddTaskView implements HasUrlParameter<String> {
     private Button generateCertificatesButton;
@@ -82,7 +82,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         if (taskPreview != null) {
             taskPreview.updateName(task.getName());
             taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatService.formatDate(task.getStartTimeDate()));
+            taskPreview.updateDate(formatService.formatDateTime(task.getStartTimeDate()));
             taskPreview.updatePriority(task.getPriority().toString());
             taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
             taskPreview.updateTaskType(task.getType());

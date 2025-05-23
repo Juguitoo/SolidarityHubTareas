@@ -7,6 +7,13 @@
     min-height: 100vh;
 }
 
+
+.action-buttons__layout{
+    width: 100%;
+    margin-left: 15px;
+    margin-bottom: 1rem;
+}
+
 .tasksLists__layout {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -16,10 +23,12 @@
 }
 
 .task-section {
-    min-height: 200px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--lumo-contrast-20pct);
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    background-color: var(--primary-light-color);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--card-shadow);
 }
 
 .section-title {
@@ -28,11 +37,6 @@
     border-bottom: 2px solid #e0e0e0;
     color: var(--text-color);
     text-align: center;
-}
-
-.action-buttons__layout{
-    width: 100%;
-    margin-left: 15px;
 }
 
 .need-type{

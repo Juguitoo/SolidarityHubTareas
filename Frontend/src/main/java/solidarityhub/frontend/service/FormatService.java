@@ -5,6 +5,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.*;
 import solidarityhub.frontend.i18n.Translator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -111,7 +112,11 @@ public class FormatService {
         };
     }
 
-    public String formatDate(LocalDateTime taskDate){
+    public String formatDateTime(LocalDateTime taskDate){
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+    }
+
+    public String formatDate(LocalDate taskDate){
+        return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     }
 }

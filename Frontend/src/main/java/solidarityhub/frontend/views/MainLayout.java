@@ -34,40 +34,7 @@ public class MainLayout extends AppLayout {
         setPrimarySection(Section.DRAWER);
         addClassName("main-layout");
         addDrawerContent();
-        addToNavbar(createTopBar());
         UI.getCurrent().addAfterNavigationListener(e -> updateSelectedCatastropheInfo());
-    }
-
-    //===============================Top bar=========================================
-    private Component createTopBar() {
-        HorizontalLayout topBar = new HorizontalLayout();
-        topBar.getElement().setAttribute("background-color", "var(--background-color)");
-        topBar.setWidthFull();
-        topBar.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        topBar.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        topBar.add(getThemeBtn());
-        return topBar;
-    }
-
-    private Component getThemeBtn(){
-        Span themeIcon = new Span();
-        themeIcon.setText("🌙");
-
-        Button toggleTheme = new Button(themeIcon);
-        toggleTheme.getElement().setAttribute("aria-label", "Cambiar tema");
-
-        toggleTheme.addClickListener(event -> UI.getCurrent().getPage().executeJs("""
-            const html = document.documentElement;
-            const current = html.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            const icon = next === 'dark' ? '🌙' : '🌞';
-            document.getElementById('theme-icon').textContent = icon;"""
-    ));
-        themeIcon.setId("theme-icon");
-        return toggleTheme;
     }
 
     //===============================Menu=========================================
@@ -153,6 +120,7 @@ public class MainLayout extends AppLayout {
 
     private SideNavItem createNavItem(String label, VaadinIcon icon, String url) {
         SideNavItem item = new SideNavItem(label, url);
+        item.setMatchNested(true);
         item.addClassName("nav-item");
 
         Icon iconComponent = icon.create();

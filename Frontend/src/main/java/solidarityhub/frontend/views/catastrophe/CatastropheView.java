@@ -138,7 +138,7 @@ public class CatastropheView extends VerticalLayout {
 
     private void openEditDialog(CatastropheDTO catastrophe) {
         try {
-            EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe, catastropheService);
+            EditCatastropheDialog dialog = new EditCatastropheDialog(catastrophe);
             dialog.open();
         } catch (Exception e) {
             Notification.show("Error al abrir el diálogo de edición: " + e.getMessage(),

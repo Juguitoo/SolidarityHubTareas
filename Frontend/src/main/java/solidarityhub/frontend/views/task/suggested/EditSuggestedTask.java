@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Route("editSuggestedTask")
+@Route("tasks/editSuggestedTask")
 @PageTitle("Editar tarea")
 public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<String> {
 
@@ -81,7 +81,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
         if (taskPreview != null) {
             taskPreview.updateName(task.getName());
             taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatService.formatDate(task.getStartTimeDate()));
+            taskPreview.updateDate(formatService.formatDateTime(task.getStartTimeDate()));
             taskPreview.updatePriority(task.getPriority().toString());
             taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
             taskPreview.updateTaskType(task.getType());
