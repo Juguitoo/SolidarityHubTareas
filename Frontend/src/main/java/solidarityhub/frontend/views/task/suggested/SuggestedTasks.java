@@ -80,7 +80,6 @@ public class SuggestedTasks extends VerticalLayout {
                     task.editButton.setEnabled(false);
                     Div clickableTask = clickableTaskComponent(task);
                     suggestedTasksDiv.add(clickableTask);
-                    clickableTask.addClassName("suggested-task");
                 });
             } catch (Exception e) {
                 suggestedTasksLayout.add(new Span(translator.get("error_loading_suggested_tasks") + ": " + e.getMessage()));
@@ -108,7 +107,7 @@ public class SuggestedTasks extends VerticalLayout {
             getUI().ifPresent(ui -> ui.navigate("tasks/editSuggestedTask"));
         });
 
-        clickableTask.getStyle().set("cursor", "pointer");
+        clickableTask.addClassName("suggested-task");
         clickableTask.getElement().setAttribute("title", translator.get("click_to_edit"));
         return clickableTask;
     }

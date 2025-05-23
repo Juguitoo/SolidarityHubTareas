@@ -249,11 +249,13 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     justify-content: space-between;
     position: relative;
     width: 100%;
+    padding-top: 0.5rem;
     margin-bottom: 0.8rem;
 }
 
 .back-button{
     justify-self: start;
+    margin-left: 1rem;
 }
 
 .notification__icon{
@@ -262,7 +264,6 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     padding: 6px;
     color: var(--text-color);
 }
-
 
 .notification__button{
     width: 40px;
@@ -296,12 +297,4 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     align-items: center;
     width: 100%;
     margin: 5rem 0
-}
-
-.suggested-task{
-    width: 75%;
-}
-
-.suggested-task:hover{
-    transform: scale(1.05);
 }

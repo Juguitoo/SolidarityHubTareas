@@ -57,9 +57,6 @@
     background-color: var(--lumo-contrast-10pct);
 }
 
-.suggested-tasks-view{
-    background-color: var(--background-color);
-}
 .draggable-task {
     cursor: move;
     transition: transform 0.2s ease;
@@ -75,6 +72,20 @@
     border: 2px dashed var(--lumo-primary-color);
 }
 
+/* Suggested View */
+.suggested-tasks-view{
+    background-color: var(--background-color);
+}
+
+.suggested-task{
+    max-width: 550px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.suggested-task:hover{
+    transform: scale(1.05);
+}
 
 /* Responsive design */
 @media (max-width: 768px) {

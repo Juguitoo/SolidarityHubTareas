@@ -1,6 +1,5 @@
 package solidarityhub.frontend.views;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -34,6 +33,16 @@ public class MainLayout extends AppLayout {
         setPrimarySection(Section.DRAWER);
         addClassName("main-layout");
         addDrawerContent();
+
+        UI.getCurrent().getPage().executeJs(
+                "return localStorage.getItem('drawerMinimized') === 'true';"
+        ).then(Boolean.class, savedState -> {
+            if (savedState != null && savedState) {
+                minimized = false;
+                toggleDrawerMinimized();
+            }
+        });
+
         UI.getCurrent().addAfterNavigationListener(e -> updateSelectedCatastropheInfo());
     }
 
@@ -170,6 +179,11 @@ public class MainLayout extends AppLayout {
 
     private void toggleDrawerMinimized() {
         minimized = !minimized;
+
+        UI.getCurrent().getPage().executeJs(
+                "localStorage.setItem('drawerMinimized', $0)", minimized
+        );
+
         if (minimized) {
             sideNav.getItems().forEach(item -> item.getElement().setAttribute("title", item.getLabel()));
             drawerContent.getElement().setAttribute("class", "drawer-content drawer-minimized");
