@@ -308,6 +308,16 @@ public class TaskController {
             Task verifiedTask = taskService.getTaskById(id);
             System.out.println("Estado después de guardar: " + verifiedTask.getStatus());
 
+            for (Volunteer v : task.getVolunteers()) {
+                Notification notification = getNotification(v, task, "Tarea actualizada");
+                task.addNotification(notification);
+
+                notificationService.notifyEmail(v.getEmail(), notification);
+                notificationService.notifyApp(v.getNotificationToken(),
+                        "Tarea actualizada",
+                        "Se ha actualizado la tarea " + task.getTaskName() + " que se le había asignado. ");
+            }
+
             if (verifiedTask.getStatus() == newStatus) {
                 System.out.println("✓ Estado actualizado correctamente en BD");
                 return ResponseEntity.ok().body("Estado actualizado a: " + newStatus);
