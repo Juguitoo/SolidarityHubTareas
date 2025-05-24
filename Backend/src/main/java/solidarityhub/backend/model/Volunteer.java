@@ -64,11 +64,11 @@ public class Volunteer extends Person {
         super(dni, firstName, lastName, email, phone, address, password);
         this.tasks = new ArrayList<>();
         this.certificates = new ArrayList<>();
+        this.notifications = new ArrayList<>();
+        this.completedSurveys = new ArrayList<>();
+        this.acceptedTasks = new ArrayList<>();
         this.scheduleAvailabilities = scheduleAvailabilities;
         this.taskTypes = taskTypes;
-        for (ScheduleAvailability s : this.scheduleAvailabilities) {
-            s.setVolunteer(this);
-        }
     }
 
     public int isAvailable(LocalDateTime startTimeTask, LocalDateTime endTimeTask) {
