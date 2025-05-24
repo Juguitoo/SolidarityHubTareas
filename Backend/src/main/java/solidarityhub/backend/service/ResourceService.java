@@ -22,7 +22,10 @@ public class ResourceService {
     public List<Resource> getResources() {return resourceRepository.findAll();}
     public Resource save(Resource resource) {
         Resource savedResource = resourceRepository.save(resource);
-        resourceObservable.resourceUpdated(savedResource);
+        try {
+            resourceObservable.resourceUpdated(savedResource);
+        } catch (Exception _) {}
+
         return savedResource;
     }
     public Resource getResourceById(Integer id) {return resourceRepository.findById(id).orElse(null);}

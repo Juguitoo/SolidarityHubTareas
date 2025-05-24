@@ -32,4 +32,17 @@ public class VolunteerDTO {
         volunteer.getTasks().forEach(t ->{tasks.add(t.getId());});
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VolunteerDTO)) return false;
+
+        VolunteerDTO that = (VolunteerDTO) o;
+
+        return dni != null ? dni.equals(that.dni) : that.dni == null &&
+               firstName != null ? firstName.equals(that.firstName) : that.firstName == null &&
+               lastName != null ? lastName.equals(that.lastName) : that.lastName == null &&
+               email != null ? email.equals(that.email) : that.email == null;
+    }
+
 }

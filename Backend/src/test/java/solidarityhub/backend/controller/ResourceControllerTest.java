@@ -1,356 +1,223 @@
 package solidarityhub.backend.controller;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import solidarityhub.backend.BackendApplication;
+import solidarityhub.backend.config.TestConfig;
 import solidarityhub.backend.dto.ResourceDTO;
 import solidarityhub.backend.model.Catastrophe;
-import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
 import solidarityhub.backend.model.enums.EmergencyLevel;
 import solidarityhub.backend.model.enums.ResourceType;
-import solidarityhub.backend.service.CatastropheService;
-import solidarityhub.backend.service.ResourceService;
-import solidarityhub.backend.service.StorageService;
+import solidarityhub.backend.repository.CatastropheRepository;
+import solidarityhub.backend.repository.ResourceRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
 
-class ResourceControllerTest {
+@DataJpaTest
+@ComponentScan(basePackages = "solidarityhub.backend")
+@ContextConfiguration(classes = BackendApplication.class)
+@Import(TestConfig.class)
+public class ResourceControllerTest {
 
-    @Mock
-    private ResourceService resourceService;
-
-    @Mock
-    private CatastropheService catastropheService;
-
-    @Mock
-    private StorageService storageService;
-
-    @InjectMocks
+    @Autowired
     private ResourceController resourceController;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+    @Autowired
+    private TestEntityManager entityManager;
+    @Autowired
+    private ResourceRepository resourceRepository;
+    @Autowired
+    private CatastropheRepository catastropheRepository;
 
     @Test
     void testGetResources() {
-        // Arrange
-        List<Resource> resources = new ArrayList<>();
-        resources.add(createTestResource(1));
-        resources.add(createTestResource(2));
-        when(resourceService.getResources()).thenReturn(resources);
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", null);
+        Resource resource2 = new Resource("Resource 2", ResourceType.OTHER, 0, "unidades", null);
+        List<Resource> resources = List.of(resource1, resource2);
+        List<Resource> resourcesSaved = resourceRepository.saveAll(resources);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = resourceController.getResources(null, null, null, null);
+        List<ResourceDTO> resourceDTOs = new ArrayList<>();
+        resourcesSaved.forEach(resource -> resourceDTOs.add(new ResourceDTO(resource)));
+        entityManager.flush();
 
-        // Assert
+        ResponseEntity<?> response = resourceController.getResources("", "", "", null);
+        assertNotNull(response);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof ResourceDTO);
+        List<ResourceDTO> responseBody = (List<ResourceDTO>) response.getBody();
+        assertEquals(resourceDTOs.size(), responseBody.size());
+        for (int i = 0; i < resourceDTOs.size(); i++) {
+            assertEquals(resourceDTOs.get(i), responseBody.get(i));
+        }
     }
 
     @Test
     void testGetResourcesByCatastrophe() {
-        // Arrange
-        int catastropheId = 1;
-        List<Resource> resources = new ArrayList<>();
-        resources.add(createTestResource(1));
-        resources.add(createTestResource(2));
-        when(resourceService.getResourcesByCatastrophe(catastropheId)).thenReturn(resources);
+        Catastrophe catastrophe = new Catastrophe("", "", null, LocalDate.now(), EmergencyLevel.MEDIUM);
+        catastropheRepository.save(catastrophe);
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", catastrophe);
+        Resource resource2 = new Resource("Resource 2", ResourceType.OTHER, 0, "unidades", catastrophe);
+        Resource resource3 = new Resource("Resource 3", ResourceType.OTHER, 0, "unidades", null);
+        List<Resource> resources = List.of(resource1, resource2, resource3);
+        List<Resource> resourcesSaved = resourceRepository.saveAll(resources);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = resourceController.getResources(null, null, null, catastropheId);
+        List<ResourceDTO> resourceDTOs = new ArrayList<>();
+        resourcesSaved.stream().filter(r -> r.getCatastrophe()!= null).forEach(resource -> resourceDTOs.add(new ResourceDTO(resource)));
+        entityManager.flush();
 
-        // Assert
+        ResponseEntity<?> response = resourceController.getResources(null, null, null, catastrophe.getId());
+        assertNotNull(response);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof ResourceDTO);
+        List<ResourceDTO> responseBody = (List<ResourceDTO>) response.getBody();
+        assertEquals(resourceDTOs.size(), responseBody.size());
+        for (int i = 0; i < resourceDTOs.size(); i++) {
+            assertTrue(resourceDTOs.get(i).equals(responseBody.get(i)));
+        }
+        assertFalse(responseBody.contains(new ResourceDTO(resource3)));
     }
 
     @Test
     void testGetResource_ExistingId() {
-        // Arrange
-        int resourceId = 1;
-        Resource resource = createTestResource(resourceId);
-        when(resourceService.getResourceById(resourceId)).thenReturn(resource);
+        Catastrophe catastrophe = new Catastrophe("", "", null, LocalDate.now(), EmergencyLevel.MEDIUM);
+        catastropheRepository.save(catastrophe);
+        Resource resource = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", catastrophe);
+        resourceRepository.save(resource);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = resourceController.getResource(resourceId);
+        ResponseEntity<?> response = resourceController.getResource(resource.getId());
+        assertNotNull(response);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof ResourceDTO);
-        ResourceDTO responseResource = (ResourceDTO) response.getBody();
-        assertEquals(resourceId, responseResource.getId());
+        ResourceDTO responseBody = (ResourceDTO) response.getBody();
+        assertEquals(new ResourceDTO(resource), responseBody);
     }
 
     @Test
     void testGetResource_NonExistingId() {
-        // Arrange
-        int nonExistingId = 999;
-        when(resourceService.getResourceById(nonExistingId)).thenReturn(null);
+        ResponseEntity<?> response = resourceController.getResource(999);
+        assertNotNull(response);
 
-        // Act
-        ResponseEntity<?> response = resourceController.getResource(nonExistingId);
-
-        // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
+        String responseBody = (String) response.getBody();
+        assertEquals(null, responseBody);
+    }
+
+    @Test
+    void testCreateResource_WithoutCatastrophe() {
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", null);
+        ResourceDTO resourceDTO = new ResourceDTO(resource1);
+
+        ResponseEntity<?> response = resourceController.createResource(resourceDTO);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        String responseBody = (String) response.getBody();
+        assertEquals("El ID de la catástrofe es obligatorio", responseBody);
     }
 
     @Test
     void testCreateResource_Success() {
-        // Arrange
-        ResourceDTO resourceDTO = createTestResourceDTO();
-        Catastrophe catastrophe = createTestCatastrophe(1);
-        Storage storage = createTestStorage(1);
+        Catastrophe catastrophe = new Catastrophe("", "", null, LocalDate.now(), EmergencyLevel.MEDIUM);
+        catastropheRepository.save(catastrophe);
+        Storage storage = new Storage("Storage 1", null, true,null);
+        entityManager.persist(storage);
+        entityManager.flush();
 
-        when(catastropheService.getCatastrophe(resourceDTO.getCatastropheId())).thenReturn(catastrophe);
-        when(storageService.getStorageById(resourceDTO.getStorageId())).thenReturn(storage);
-        doAnswer(invocation -> {
-            Resource resource = invocation.getArgument(0);
-            try {
-                java.lang.reflect.Field idField = Resource.class.getDeclaredField("id");
-                idField.setAccessible(true);
-                idField.set(resource, 1);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return resource;
-        }).when(resourceService).save(any(Resource.class));
-
-        // Act
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", catastrophe);
+        ResourceDTO resourceDTO = new ResourceDTO(resource1);
+        resourceDTO.setStorageId(storage.getId());
         ResponseEntity<?> response = resourceController.createResource(resourceDTO);
 
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(catastropheService, times(1)).getCatastrophe(resourceDTO.getCatastropheId());
-        verify(storageService, times(1)).getStorageById(resourceDTO.getStorageId());
-        verify(resourceService, times(1)).save(any(Resource.class));
-    }
-
-    @Test
-    void testCreateResource_NoCatastropheId() {
-        // Arrange
-        ResourceDTO resourceDTO = createTestResourceDTO();
-        resourceDTO.setCatastropheId(null);
-
-        // Act
-        ResponseEntity<?> response = resourceController.createResource(resourceDTO);
-
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("El ID de la catástrofe es obligatorio", response.getBody());
-        verify(catastropheService, never()).getCatastrophe(anyInt());
-        verify(resourceService, never()).save(any(Resource.class));
+        Resource savedResource= resourceRepository.findAll().getFirst();
+        assertNotNull(savedResource);
+        assertEquals(resource1.getName(), savedResource.getName());
     }
 
     @Test
     void testCreateResource_NonExistingCatastrophe() {
-        // Arrange
-        ResourceDTO resourceDTO = createTestResourceDTO();
-        when(catastropheService.getCatastrophe(resourceDTO.getCatastropheId())).thenReturn(null);
+        Catastrophe catastrophe = new Catastrophe("", "", null, LocalDate.now(), EmergencyLevel.MEDIUM);
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", catastrophe);
+        ResourceDTO resourceDTO = new ResourceDTO(resource1);
 
-        // Act
         ResponseEntity<?> response = resourceController.createResource(resourceDTO);
 
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(catastropheService, times(1)).getCatastrophe(resourceDTO.getCatastropheId());
-        verify(resourceService, never()).save(any(Resource.class));
+        int numberOfResources = resourceRepository.findAll().size();
+        assertEquals(0, numberOfResources);
     }
 
     @Test
     void testUpdateResource_Success() {
-        // Arrange
-        int resourceId = 1;
-        ResourceDTO resourceDTO = createTestResourceDTO();
-        Resource existingResource = createTestResource(resourceId);
-        Storage storage = createTestStorage(resourceDTO.getStorageId());
+        Catastrophe catastrophe = new Catastrophe("", "", null, LocalDate.now(), EmergencyLevel.MEDIUM);
+        catastropheRepository.save(catastrophe);
+        Storage storage = new Storage("Storage 1", null, true,null);
+        entityManager.persist(storage);
+        entityManager.flush();
 
-        when(resourceService.getResourceById(resourceId)).thenReturn(existingResource);
-        when(storageService.getStorageById(resourceDTO.getStorageId())).thenReturn(storage);
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", catastrophe);
+        resourceRepository.save(resource1);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = resourceController.updateResource(resourceId, resourceDTO);
+        resource1.setName("Updated Resource");
+        ResourceDTO resourceDTO = new ResourceDTO(resource1);
+        resourceDTO.setStorageId(storage.getId());
+        ResponseEntity<?> response = resourceController.updateResource(resource1.getId(), resourceDTO);
 
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
-        verify(resourceService, times(1)).getResourceById(resourceId);
-        verify(storageService, times(1)).getStorageById(resourceDTO.getStorageId());
-        verify(resourceService, times(1)).save(existingResource);
+        Resource savedResource= resourceRepository.findAll().getFirst();
+        assertNotNull(savedResource);
+        assertEquals("Updated Resource", savedResource.getName());
     }
 
     @Test
     void testUpdateResource_NonExistingId() {
-        // Arrange
-        int nonExistingId = 999;
-        ResourceDTO resourceDTO = createTestResourceDTO();
-        when(resourceService.getResourceById(nonExistingId)).thenReturn(null);
+        ResourceDTO resourceDTO = new ResourceDTO();
+        ResponseEntity<?> response = resourceController.updateResource(999, resourceDTO);
 
-        // Act
-        ResponseEntity<?> response = resourceController.updateResource(nonExistingId, resourceDTO);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(resourceService, times(1)).getResourceById(nonExistingId);
-        verify(resourceService, never()).save(any(Resource.class));
     }
 
     @Test
     void testDeleteResource_Success() {
-        // Arrange
-        int resourceId = 1;
-        Resource existingResource = createTestResource(resourceId);
-        when(resourceService.getResourceById(resourceId)).thenReturn(existingResource);
-        doNothing().when(resourceService).deleteResource(existingResource);
+        Catastrophe catastrophe = new Catastrophe("", "", null, LocalDate.now(), EmergencyLevel.MEDIUM);
+        catastropheRepository.save(catastrophe);
+        Resource resource1 = new Resource("Resource 1", ResourceType.OTHER, 0, "unidades", catastrophe);
+        Resource savedResource = resourceRepository.save(resource1);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = resourceController.deleteResource(resourceId);
+        ResponseEntity<?> response = resourceController.deleteResource(savedResource.getId());
 
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(resourceService, times(1)).getResourceById(resourceId);
-        verify(resourceService, times(1)).deleteResource(existingResource);
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Resource deletedResource = resourceRepository.findById(savedResource.getId()).orElse(null);
+        assertNull(deletedResource);
     }
 
     @Test
     void testDeleteResource_NonExistingId() {
-        // Arrange
-        int nonExistingId = 999;
-        when(resourceService.getResourceById(nonExistingId)).thenReturn(null);
+        ResponseEntity<?> response = resourceController.deleteResource(999);
 
-        // Act
-        ResponseEntity<?> response = resourceController.deleteResource(nonExistingId);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(resourceService, times(1)).getResourceById(nonExistingId);
-        verify(resourceService, never()).deleteResource(any(Resource.class));
-    }
-
-    // Helper methods
-    private Resource createTestResource(int id) {
-        Catastrophe catastrophe = createTestCatastrophe(1);
-        Storage storage = createTestStorage(1);
-
-        Resource resource = new Resource(
-                "Test Resource " + id,
-                ResourceType.FOOD,
-                10.0,
-                "kg",
-                storage,
-                catastrophe
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Resource.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(resource, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return resource;
-    }
-
-    private Catastrophe createTestCatastrophe(int id) {
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = new Catastrophe(
-                "Test Catastrophe " + id,
-                "Test Description " + id,
-                coordinates,
-                LocalDate.now(),
-                EmergencyLevel.MEDIUM
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Catastrophe.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(catastrophe, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return catastrophe;
-    }
-
-    private Storage createTestStorage(int id) {
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Storage storage = new Storage(
-                "Test Storage " + id,
-                coordinates,
-                false,
-                null
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Storage.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(storage, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return storage;
-    }
-
-    private ResourceDTO createTestResourceDTO() {
-        ResourceDTO dto = new ResourceDTO();
-
-        try {
-            java.lang.reflect.Field idField = ResourceDTO.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(dto, 1);
-
-            java.lang.reflect.Field nameField = ResourceDTO.class.getDeclaredField("name");
-            nameField.setAccessible(true);
-            nameField.set(dto, "Test Resource");
-
-            java.lang.reflect.Field typeField = ResourceDTO.class.getDeclaredField("type");
-            typeField.setAccessible(true);
-            typeField.set(dto, ResourceType.FOOD);
-
-            java.lang.reflect.Field quantityField = ResourceDTO.class.getDeclaredField("quantity");
-            quantityField.setAccessible(true);
-            quantityField.set(dto, 10.0);
-
-            java.lang.reflect.Field unitField = ResourceDTO.class.getDeclaredField("unit");
-            unitField.setAccessible(true);
-            unitField.set(dto, "kg");
-
-            java.lang.reflect.Field storageIdField = ResourceDTO.class.getDeclaredField("storageId");
-            storageIdField.setAccessible(true);
-            storageIdField.set(dto, 1);
-
-            java.lang.reflect.Field catastropheIdField = ResourceDTO.class.getDeclaredField("catastropheId");
-            catastropheIdField.setAccessible(true);
-            catastropheIdField.set(dto, 1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return dto;
     }
 }

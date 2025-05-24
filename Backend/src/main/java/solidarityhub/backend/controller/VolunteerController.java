@@ -54,7 +54,11 @@ public class VolunteerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getVolunteer(@PathVariable String id) {
-        return ResponseEntity.ok(new VolunteerDTO(volunteerService.getVolunteer(id)));
+        Volunteer volunteer = volunteerService.getVolunteer(id);
+        if (volunteer == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new VolunteerDTO(volunteer));
     }
 
     @PostMapping("/checkAvailability")
