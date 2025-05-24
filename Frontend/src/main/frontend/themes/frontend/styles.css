@@ -298,3 +298,9 @@ vaadin-dialog-overlay::part(overlay), vaadin-dialog-overlay::part(header), vaadi
     width: 100%;
     margin: 5rem 0
 }
+
+@media (max-width: 800px) {
+    .back-button{
+        display: none;
+    }
+}

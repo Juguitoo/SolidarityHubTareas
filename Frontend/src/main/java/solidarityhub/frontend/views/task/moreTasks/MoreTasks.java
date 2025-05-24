@@ -160,7 +160,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
         taskGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
                 TaskDTO selectedTask = event.getItem();
-                UI.getCurrent().navigate("editTask", QueryParameters.simple(
+                UI.getCurrent().navigate("tasks/editTask", QueryParameters.simple(
                         Collections.singletonMap("id", String.valueOf(selectedTask.getId()))));
             }
         });

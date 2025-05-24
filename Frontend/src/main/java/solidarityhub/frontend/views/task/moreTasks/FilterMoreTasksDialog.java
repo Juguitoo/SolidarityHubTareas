@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.Locale;
 
 public class FilterMoreTasksDialog extends Dialog {
-    private Translator translator;
-    private FormatService formatService;
+    private final Translator translator;
+    private final FormatService formatService;
 
-    private Select<Status> statusFilter = new Select<>();
-    private Select<Priority> priorityFilter = new Select<>();
-    private Select<TaskType> typeFilter = new Select<>();
-    private Select<EmergencyLevel> emergencyLevelFilter = new Select<>();
+    private final Select<Status> statusFilter = new Select<>();
+    private final Select<Priority> priorityFilter = new Select<>();
+    private final Select<TaskType> typeFilter = new Select<>();
+    private final Select<EmergencyLevel> emergencyLevelFilter = new Select<>();
 
 
     public FilterMoreTasksDialog() {

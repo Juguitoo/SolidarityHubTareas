@@ -91,9 +91,7 @@ public class MainLayout extends AppLayout {
 
         logOutButton = new Button("Log Out", VaadinIcon.SIGN_OUT.create());
         logOutButton.addClassName("log-out-button");
-        logOutButton.addClickListener(e -> {
-            UI.getCurrent().getPage().setLocation("http://localhost:8080/logout");
-        });
+        logOutButton.addClickListener(e -> UI.getCurrent().getPage().setLocation("http://localhost:8080/logout"));
 
         footerLayout.add(logOutButton, minimizeButton);
 

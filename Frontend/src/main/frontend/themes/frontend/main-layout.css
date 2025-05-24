@@ -46,6 +46,7 @@ vaadin-app-layout::part(content) {
   width: 36px;
   height: 36px;
   object-fit: contain;
+  background-color: transparent;
 }
 
 .logo-button {
@@ -59,8 +60,8 @@ vaadin-app-layout::part(content) {
 }
 
 .logo-button:hover {
+  background: transparent;
   transform: scale(1.1);
-  background-color: var(--background-color);
 }
 
 .app-name {
@@ -181,12 +182,10 @@ vaadin-side-nav-item[current]::part(link) {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   width: var(--nav-icon-size);
   height: var(--nav-icon-size);
   margin-right: var(--lumo-space-s);
-  transition: margin var(--transition-duration) var(--transition-easing),
-  transform var(--transition-duration) var(--transition-easing);
+  transition: all var(--transition-duration) var(--transition-easing);
 }
 
 /* Indicador lateral animado */
@@ -255,6 +254,11 @@ vaadin-side-nav-item[current]::part(link) {
   overflow-x: hidden;
 }
 
+.drawer-minimized .side-nav .nav-item [slot="prefix"],
+.drawer-minimized .side-nav .nav-item .nav-icon {
+  margin-right: 0;
+}
+
 .drawer-minimized .logo-button {
   margin-left: 4px;
   padding: 6px;
@@ -280,7 +284,7 @@ vaadin-side-nav-item[current]::part(link) {
 
 .drawer-minimized .side-nav .nav-item {
   justify-content: center;
-  padding: 0;
+  padding-left: var(--lumo-space-xs);
 }
 
 .drawer-minimized .nav-item::before {
