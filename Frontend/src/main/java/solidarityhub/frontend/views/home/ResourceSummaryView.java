@@ -54,15 +54,11 @@ public class ResourceSummaryView extends VerticalLayout {
 
         List<ResourceSummaryDTO> summaries = resourceSummaryService.getResourceSummary(catastrophe.getId());
 
-        List<ResourceSummaryDTO> filteredSummaries = summaries.stream()
-                .filter(summary -> summary.getUsagePercentage() > 0.0)
-                .toList();
 
-
-        if (filteredSummaries.isEmpty()) {
+        if (summaries.isEmpty()) {
             add(new Span(translator.get("no_resources")));
         } else {
-            for (ResourceSummaryDTO summary : filteredSummaries) {
+            for (ResourceSummaryDTO summary : summaries) {
                 add(createResourceSummaryCard(summary));
             }
         }

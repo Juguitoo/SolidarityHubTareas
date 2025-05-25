@@ -157,4 +157,12 @@ public class ResourceService {
         List<Resource> resources = resourceRepository.findAll();
         resourceObservable.setResources(resources);
     }
+
+    public Integer getCountByType(ResourceType resourceType, Integer catastropheId) {
+        return resourceRepository.getCountByType(resourceType, catastropheId);
+    }
+
+    public Double getTotalQuantityByType(ResourceType resourceType, Integer catastropheId) {
+        return resourceRepository.getTotalQuantityByType(resourceType, catastropheId);
+    }
 }
