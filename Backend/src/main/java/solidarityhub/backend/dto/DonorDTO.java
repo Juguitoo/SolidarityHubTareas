@@ -17,4 +17,12 @@ public class DonorDTO {
         this.name = donor.getName();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        DonorDTO donorDTO = (DonorDTO) obj;
+        return dni.equals(donorDTO.dni) && name.equals(donorDTO.name);
+    }
+
 }
