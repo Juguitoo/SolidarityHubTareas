@@ -80,7 +80,7 @@ public class MainLayout extends AppLayout {
         logoImage.addClassName("logo-principal");
         Button logoButton = new Button(logoImage);
         logoButton.addClassName("logo-button");
-        logoButton.addClickListener(e -> toggleDrawerMinimized());
+        logoButton.addClickListener(e -> UI.getCurrent().navigate("http://localhost:8083/home"));
 
         appName = new Span("SolidarityHub");
         appName.addClassName("app-name");
