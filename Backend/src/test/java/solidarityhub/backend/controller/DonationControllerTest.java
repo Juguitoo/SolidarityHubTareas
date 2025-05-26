@@ -1,12 +1,16 @@
 package solidarityhub.backend.controller;
 
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import solidarityhub.backend.BackendApplication;
+import solidarityhub.backend.config.TestConfig;
 import solidarityhub.backend.dto.DonationDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Donation;
@@ -15,271 +19,225 @@ import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.enums.DonationStatus;
 import solidarityhub.backend.model.enums.DonationType;
 import solidarityhub.backend.model.enums.EmergencyLevel;
-import solidarityhub.backend.service.DonationService;
+import solidarityhub.backend.repository.CatastropheRepository;
+import solidarityhub.backend.repository.DonationRepository;
+import solidarityhub.backend.repository.DonorRepository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
-class DonationControllerTest {
+@DataJpaTest
+@ComponentScan(basePackages = "solidarityhub.backend")
+@ContextConfiguration(classes = BackendApplication.class)
+@Import(TestConfig.class)
+public class DonationControllerTest {
 
-    @Mock
-    private DonationService donationService;
-
-    @InjectMocks
+    @Autowired
     private DonationController donationController;
+    @Autowired
+    private DonationRepository donationRepository;
+    @Autowired
+    private EntityManager entityManager;
+    @Autowired
+    private DonorRepository donorRepository;
+    @Autowired
+    private CatastropheRepository catastropheRepository;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Test
+    void testGetAllDonations() {
+        Donor donor = new Donor("12345678A", "Donor 1");
+        donorRepository.save(donor);
+        Donation donation1 = new Donation(DonationType.MATERIAL, "Test Donation 1", LocalDate.now(), DonationStatus.COMPLETED, donor, null, 0.0, "kg");
+        Donation donation2 = new Donation(DonationType.MATERIAL, "Test Donation 2", LocalDate.now(), DonationStatus.IN_PROGRESS, donor, null, 0.0, "kg");
+        List<Donation> donations = List.of(donation1, donation2);
+        List<Donation> savedDonations = donationRepository.saveAll(donations);
+        entityManager.flush();
+
+        List<DonationDTO> savedDonationDTOs = savedDonations.stream().map(DonationDTO::new).toList();
+
+        ResponseEntity<?> response = donationController.getDonations(null, null, null, null, null);
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<DonationDTO> donationDTOs = (List<DonationDTO>) response.getBody();
+        assertNotNull(donationDTOs);
+        for( DonationDTO donationDTO : donationDTOs) {
+            assertInstanceOf(DonationDTO.class, donationDTO);
+            assertTrue(savedDonationDTOs.contains(donationDTO));
+        }
     }
 
     @Test
-    void testGetDonations() {
-        // Arrange
-        List<Donation> donations = new ArrayList<>();
-        donations.add(createTestDonation(1));
-        donations.add(createTestDonation(2));
-        when(donationService.getAllDonations()).thenReturn(donations);
+    void testGetDonationWithFilters() {
+        Donor donor = new Donor("12345678A", "Donor 1");
+        donorRepository.save(donor);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.save(catastrophe);
 
-        // Act
-        ResponseEntity<?> response = donationController.getDonations(null, null, null, null, null);
+        Donation donation1 = new Donation(DonationType.SERVICE, "Test Donation 1", LocalDate.now(), DonationStatus.SCHEDULED, donor, catastrophe, 5.0, "kg");
+        Donation donation2 = new Donation(DonationType.MATERIAL, "Test Donation 2", LocalDate.now(), DonationStatus.IN_PROGRESS, donor, null, 1.0, "kg");
+        Donation donation3 = new Donation(DonationType.MATERIAL, "Test Donation 3", LocalDate.now(), DonationStatus.COMPLETED, donor, catastrophe, 10.0, "kg");
+        Donation donation4 = new Donation(DonationType.MATERIAL, "Test Donation 4", LocalDate.now(), DonationStatus.COMPLETED, donor, catastrophe, 2.0, "kg");
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof DonationDTO);
+        List<Donation> savedDonations = donationRepository.saveAll(List.of(donation1, donation2, donation3, donation4));
+        entityManager.flush();
+
+        List<Donation> donationsWithCatastrophe = List.of(savedDonations.get(0), savedDonations.get(2), savedDonations.get(3));
+        Donation donationWithoutCatastrophe = savedDonations.get(1);
+
+        List<Donation> donationsWithTypeM = List.of(savedDonations.get(3), savedDonations.get(2));
+        Donation donationWithTypeS = savedDonations.get(0);
+
+        List<Donation> donationsWithStatusCompleted = List.of(savedDonations.get(3), savedDonations.get(2));
+        Donation donationWithStatusInProgress = savedDonations.get(0);
+
+        List<DonationDTO> donationsWithCatastropheDTOs = donationsWithCatastrophe.stream().map(DonationDTO::new).toList();
+        DonationDTO donationDTOWithoutCatastrophe = new DonationDTO(donationWithoutCatastrophe);
+
+        List<DonationDTO> donationsWithTypeMDTOs = donationsWithTypeM.stream().map(DonationDTO::new).toList();
+        DonationDTO donationWithTypeSDTO = new DonationDTO(donationWithTypeS);
+
+        List<DonationDTO> donationsWithStatusCompletedDTOs = donationsWithStatusCompleted.stream().map(DonationDTO::new).toList();
+        DonationDTO donationWithStatusInProgressDTO = new DonationDTO(donationWithStatusInProgress);
+
+        ResponseEntity<?> responseCatastrophe = donationController.getDonations(null, null, null, null, catastrophe.getId());
+        assertNotNull(responseCatastrophe);
+        assertEquals(HttpStatus.OK, responseCatastrophe.getStatusCode());
+        List<DonationDTO> donationCatastropheDTOs = (List<DonationDTO>) responseCatastrophe.getBody();
+        assertNotNull(donationCatastropheDTOs);
+        assertTrue(donationCatastropheDTOs.containsAll(donationsWithCatastropheDTOs));
+        assertFalse(donationCatastropheDTOs.contains(donationDTOWithoutCatastrophe));
+
+        ResponseEntity<?> responseType = donationController.getDonations(DonationType.MATERIAL.toString(), null, null, null, catastrophe.getId());
+        assertNotNull(responseType);
+        assertEquals(HttpStatus.OK, responseType.getStatusCode());
+        List<DonationDTO> donationTypeDTOs = (List<DonationDTO>) responseType.getBody();
+        assertNotNull(donationTypeDTOs);
+        assertTrue(donationTypeDTOs.containsAll(donationsWithTypeMDTOs));
+        assertFalse(donationTypeDTOs.contains(donationWithTypeSDTO));
+
+        ResponseEntity<?> responseStatus = donationController.getDonations(null, DonationStatus.COMPLETED.toString(), null, null, catastrophe.getId());
+        assertNotNull(responseStatus);
+        assertEquals(HttpStatus.OK, responseStatus.getStatusCode());
+        List<DonationDTO> donationStatusDTOs = (List<DonationDTO>) responseStatus.getBody();
+        assertNotNull(donationStatusDTOs);
+        assertTrue(donationStatusDTOs.containsAll(donationsWithStatusCompletedDTOs));
+        assertFalse(donationStatusDTOs.contains(donationWithStatusInProgressDTO));
     }
 
     @Test
     void testGetDonation_ExistingId() {
-        // Arrange
-        int donationId = 1;
-        Donation donation = createTestDonation(donationId);
-        when(donationService.getDonationById(donationId)).thenReturn(donation);
+        Donor donor = new Donor("12345678A", "Donor 1");
+        donorRepository.save(donor);
+        Donation donation = new Donation(DonationType.MATERIAL, "Test Donation", LocalDate.now(), DonationStatus.COMPLETED, donor, null, 0.0, "kg");
+        Donation savedDonation = donationRepository.save(donation);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = donationController.getDonation(donationId);
-
-        // Assert
+        ResponseEntity<?> response = donationController.getDonation(savedDonation.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof DonationDTO);
-        DonationDTO responseDonation = (DonationDTO) response.getBody();
-        assertEquals(donationId, responseDonation.getId());
+        DonationDTO responseBody = (DonationDTO) response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(new DonationDTO(savedDonation), responseBody);
     }
 
     @Test
     void testGetDonation_NonExistingId() {
-        // Arrange
-        int nonExistingId = 999;
-        when(donationService.getDonationById(nonExistingId)).thenReturn(null);
-
-        // Act
-        ResponseEntity<?> response = donationController.getDonation(nonExistingId);
-
-        // Assert
+        ResponseEntity<?> response = donationController.getDonation(999);
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
     }
 
     @Test
-    void testGetDonationsByCatastrophe() {
-        // Arrange
-        int catastropheId = 1;
-        List<Donation> donations = new ArrayList<>();
-        donations.add(createTestDonation(1));
-        donations.add(createTestDonation(2));
-        when(donationService.getDonationsByCatastrophe(catastropheId)).thenReturn(donations);
-
-        // Act
-        ResponseEntity<?> response = donationController.getDonationsByCatastrophe(catastropheId);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof DonationDTO);
-    }
-
-    @Test
     void testCreateDonation_Success() {
-        // Arrange
-        DonationDTO donationDTO = createTestDonationDTO();
-        Donation createdDonation = createTestDonation(1);
-        when(donationService.createDonation(anyString(), anyInt(), any(Donation.class))).thenReturn(createdDonation);
+        Donor donor = new Donor("12345678A", "Donor 1");
+        donorRepository.save(donor);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.save(catastrophe);
 
-        // Act
+        Donation donation1 = new Donation(DonationType.MATERIAL, "Test Donation 1", LocalDate.now(), DonationStatus.COMPLETED, donor, catastrophe, 5.0, "kg");
+        DonationDTO donationDTO = new DonationDTO(donation1);
+
         ResponseEntity<?> response = donationController.createDonation(donationDTO);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertTrue(response.getBody() instanceof DonationDTO);
-        verify(donationService, times(1)).createDonation(anyString(), anyInt(), any(Donation.class));
+
+        DonationDTO createdDonation = (DonationDTO) response.getBody();
+        assertNotNull(createdDonation);
+        assertEquals(donationDTO.getDescription(), createdDonation.getDescription());
+        assertEquals(donationDTO.getType(), createdDonation.getType());
+        assertEquals(donationDTO.getStatus(), createdDonation.getStatus());
+        assertEquals(donationDTO.getDonorDni(), createdDonation.getDonorDni());
     }
 
     @Test
-    void testCreateDonation_Failure() {
-        // Arrange
-        DonationDTO donationDTO = createTestDonationDTO();
-        when(donationService.createDonation(anyString(), anyInt(), any(Donation.class))).thenReturn(null);
+    void testCreateDonation_InvalidCatastrophe() {
+        DonationDTO donationDTO = new DonationDTO();
+        donationDTO.setType(DonationType.MATERIAL);
+        donationDTO.setDescription("Test Donation");
+        donationDTO.setStatus(DonationStatus.COMPLETED);
+        donationDTO.setDonorDni("12345678A");
+        donationDTO.setQuantity(5.0);
+        donationDTO.setUnit("kg");
 
-        // Act
         ResponseEntity<?> response = donationController.createDonation(donationDTO);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Invalid donor or catastrophe", response.getBody());
-        verify(donationService, times(1)).createDonation(anyString(), anyInt(), any(Donation.class));
+        assertEquals("El ID de la catástrofe es obligatorio", response.getBody());
     }
 
     @Test
     void testUpdateDonation_Success() {
-        // Arrange
-        int donationId = 1;
-        DonationDTO donationDTO = createTestDonationDTO();
-        Donation existingDonation = createTestDonation(donationId);
-        Donation updatedDonation = createTestDonation(donationId);
-        updatedDonation.setDescription("Updated Description");
+        Donor donor = new Donor("12345678A", "Donor 1");
+        donorRepository.save(donor);
+        Donation donation = new Donation(DonationType.MATERIAL, "Test Donation", LocalDate.now(), DonationStatus.COMPLETED, donor, null, 0.0, "kg");
+        Donation savedDonation = donationRepository.save(donation);
+        entityManager.flush();
 
-        when(donationService.getDonationById(donationId)).thenReturn(existingDonation);
-        when(donationService.saveDonation(any(Donation.class))).thenReturn(updatedDonation);
+        DonationDTO donationDTO = new DonationDTO(savedDonation);
+        donationDTO.setDescription("Updated Description");
+        donationDTO.setStatus(DonationStatus.IN_PROGRESS);
 
-        // Act
-        ResponseEntity<?> response = donationController.updateDonation(donationId, donationDTO);
-
-        // Assert
+        ResponseEntity<?> response = donationController.updateDonation(savedDonation.getId(), donationDTO);
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof DonationDTO);
-        DonationDTO responseDTO = (DonationDTO) response.getBody();
-        assertEquals("Updated Description", responseDTO.getDescription());
-        verify(donationService, times(1)).getDonationById(donationId);
-        verify(donationService, times(1)).saveDonation(any(Donation.class));
+
+        DonationDTO updatedDonation = (DonationDTO) response.getBody();
+        assertNotNull(updatedDonation);
+        assertEquals("Updated Description", updatedDonation.getDescription());
+        assertEquals(DonationStatus.IN_PROGRESS, updatedDonation.getStatus());
     }
 
     @Test
     void testUpdateDonation_NonExistingId() {
-        // Arrange
-        int nonExistingId = 999;
-        DonationDTO donationDTO = createTestDonationDTO();
-        when(donationService.getDonationById(nonExistingId)).thenReturn(null);
+        DonationDTO donationDTO = new DonationDTO();
+        donationDTO.setType(DonationType.MATERIAL);
+        donationDTO.setDescription("Test Donation");
+        donationDTO.setStatus(DonationStatus.COMPLETED);
+        donationDTO.setDonorDni("12345678A");
+        donationDTO.setQuantity(5.0);
+        donationDTO.setUnit("kg");
 
-        // Act
-        ResponseEntity<?> response = donationController.updateDonation(nonExistingId, donationDTO);
-
-        // Assert
+        ResponseEntity<?> response = donationController.updateDonation(999, donationDTO);
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(donationService, times(1)).getDonationById(nonExistingId);
-        verify(donationService, never()).saveDonation(any(Donation.class));
     }
 
     @Test
     void testDeleteDonation() {
-        // Arrange
-        int donationId = 1;
-        doNothing().when(donationService).deleteDonationById(donationId);
+        Donor donor = new Donor("12345678A", "Donor 1");
+        donorRepository.save(donor);
+        Donation donation = new Donation(DonationType.MATERIAL, "Test Donation", LocalDate.now(), DonationStatus.COMPLETED, donor, null, 0.0, "kg");
+        Donation savedDonation = donationRepository.save(donation);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = donationController.deleteDonation(donationId);
-
-        // Assert
+        ResponseEntity<?> response = donationController.deleteDonation(savedDonation.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(donationService, times(1)).deleteDonationById(donationId);
-    }
 
-    // Helper methods
-    private Donation createTestDonation(int id) {
-        Donor donor = new Donor("D-" + id, "Donor " + id);
-        Catastrophe catastrophe = createTestCatastrophe(id);
-
-        Donation donation = new Donation(
-                DonationType.MATERIAL,
-                "Test Donation " + id,
-                LocalDate.now(),
-                DonationStatus.COMPLETED,
-                donor,
-                catastrophe,
-                10.0,
-                "kg"
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Donation.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(donation, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return donation;
-    }
-
-    private Catastrophe createTestCatastrophe(int id) {
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = new Catastrophe(
-                "Test Catastrophe " + id,
-                "Test Description " + id,
-                coordinates,
-                LocalDate.now(),
-                EmergencyLevel.MEDIUM
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Catastrophe.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(catastrophe, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return catastrophe;
-    }
-
-    private DonationDTO createTestDonationDTO() {
-        DonationDTO dto = new DonationDTO();
-
-        try {
-            java.lang.reflect.Field typeField = DonationDTO.class.getDeclaredField("type");
-            typeField.setAccessible(true);
-            typeField.set(dto, DonationType.MATERIAL);
-
-            java.lang.reflect.Field descriptionField = DonationDTO.class.getDeclaredField("description");
-            descriptionField.setAccessible(true);
-            descriptionField.set(dto, "Test Donation");
-
-            java.lang.reflect.Field statusField = DonationDTO.class.getDeclaredField("status");
-            statusField.setAccessible(true);
-            statusField.set(dto, DonationStatus.COMPLETED);
-
-            java.lang.reflect.Field donorDniField = DonationDTO.class.getDeclaredField("donorDni");
-            donorDniField.setAccessible(true);
-            donorDniField.set(dto, "D-1");
-
-            java.lang.reflect.Field catastropheIdField = DonationDTO.class.getDeclaredField("catastropheId");
-            catastropheIdField.setAccessible(true);
-            catastropheIdField.set(dto, 1);
-
-            java.lang.reflect.Field quantityField = DonationDTO.class.getDeclaredField("quantity");
-            quantityField.setAccessible(true);
-            quantityField.set(dto, 10.0);
-
-            java.lang.reflect.Field unitField = DonationDTO.class.getDeclaredField("unit");
-            unitField.setAccessible(true);
-            unitField.set(dto, "kg");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return dto;
+        assertFalse(donationRepository.existsById(savedDonation.getId()));
     }
 }

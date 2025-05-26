@@ -51,4 +51,24 @@ public class DonationDTO {
         }
         return cantidad;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DonationDTO)) return false;
+
+        DonationDTO that = (DonationDTO) o;
+
+        if (id != that.id) return false;
+        if (Double.compare(that.quantity, quantity) != 0) return false;
+        if (!type.equals(that.type)) return false;
+        if (!description.equals(that.description)) return false;
+        if (!date.equals(that.date)) return false;
+        if (status != that.status) return false;
+        if (!donorDni.equals(that.donorDni)) return false;
+        if (!donorName.equals(that.donorName)) return false;
+        if (catastropheId != null ? !catastropheId.equals(that.catastropheId) : that.catastropheId != null)
+            return false;
+        return unit.equals(that.unit);
+    }
 }
