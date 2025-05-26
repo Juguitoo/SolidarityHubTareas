@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.ResourceDTO;
+import solidarityhub.backend.dto.ResourceQuantityDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
@@ -140,6 +141,13 @@ public class ResourceController {
         });
 
         return ResponseEntity.ok(summaries);
+    }
+
+    @GetMapping("/availableQuantities/{catastropheId}")
+    public ResponseEntity<List<ResourceQuantityDTO>> getAvailableQuantities(@PathVariable Integer catastropheId) {
+        List<ResourceQuantityDTO> availableQuantities = resourceService.getResourceAndAvailableQuantities(catastropheId);
+
+        return ResponseEntity.ok(availableQuantities);
     }
 
 

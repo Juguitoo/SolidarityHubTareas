@@ -3,6 +3,8 @@ package solidarityhub.backend.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import solidarityhub.backend.criteria.resources.*;
+import solidarityhub.backend.dto.ResourceDTO;
+import solidarityhub.backend.dto.ResourceQuantityDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Donation;
 import solidarityhub.backend.model.Resource;
@@ -12,6 +14,7 @@ import solidarityhub.backend.observer.impl.ResourceObservable;
 import solidarityhub.backend.repository.ResourceRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ResourceService {
@@ -164,5 +167,9 @@ public class ResourceService {
 
     public Double getTotalQuantityByType(ResourceType resourceType, Integer catastropheId) {
         return resourceRepository.getTotalQuantityByType(resourceType, catastropheId);
+    }
+
+    public List<ResourceQuantityDTO> getResourceAndAvailableQuantities(Integer catastropheId) {
+        return resourceRepository.getResourcesAndAvailableQuantity(catastropheId);
     }
 }

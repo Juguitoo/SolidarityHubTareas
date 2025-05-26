@@ -1,15 +1,19 @@
 package solidarityhub.frontend.service;
 
 import org.pingu.domain.enums.ResourceType;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import solidarityhub.frontend.dto.ResourceDTO;
+import solidarityhub.frontend.dto.ResourceQuantityDTO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class ResourceService {
@@ -98,5 +102,15 @@ public class ResourceService {
             }
         }
         return filteredResources;
+    }
+
+    public List<ResourceQuantityDTO> getResourcesAndAvailableQuantities(Integer id) {
+        String url = baseUrl + "/availableQuantities/" + id;
+        try {
+            ResponseEntity<ResourceQuantityDTO[]> response = restTemplate.exchange(url, HttpMethod.GET, null, ResourceQuantityDTO[].class);
+            return List.of(Objects.requireNonNull(response.getBody()));
+        } catch (RestClientException e) {
+            throw new RuntimeException("Error fetching resources and available quantities", e);
+        }
     }
 }
