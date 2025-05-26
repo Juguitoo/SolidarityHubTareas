@@ -2,12 +2,14 @@ package solidarityhub.backend.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.enums.EmergencyLevel;
 
 import java.time.LocalDate;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class CatastropheDTO {
     private Integer id;
@@ -29,4 +31,19 @@ public class CatastropheDTO {
         this.emergencyLevel = catastrophe.getEmergencyLevel();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CatastropheDTO)) return false;
+
+        CatastropheDTO that = (CatastropheDTO) o;
+
+        if (Double.compare(that.locationX, locationX) != 0) return false;
+        if (Double.compare(that.locationY, locationY) != 0) return false;
+        if (!id.equals(that.id)) return false;
+        if (!name.equals(that.name)) return false;
+        if (!description.equals(that.description)) return false;
+        if (!startDate.equals(that.startDate)) return false;
+        return emergencyLevel == that.emergencyLevel;
+    }
 }

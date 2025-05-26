@@ -41,12 +41,12 @@ public class CatastropheController {
     public ResponseEntity<?> addCatastrophe(@RequestBody CatastropheDTO catastropheDTO) {
         String name = catastropheDTO.getName();
         String description = catastropheDTO.getDescription();
-        double locationX = catastropheDTO.getLocationX();
-        double locationY = catastropheDTO.getLocationY();
+        double longitude = catastropheDTO.getLocationX();
+        double latitude = catastropheDTO.getLocationY();
         LocalDate startDate = catastropheDTO.getStartDate();
         EmergencyLevel emergencyLevel = catastropheDTO.getEmergencyLevel();
 
-        Catastrophe catastrophe = new Catastrophe(name, description, new GPSCoordinates(locationX, locationY), startDate, emergencyLevel);
+        Catastrophe catastrophe = new Catastrophe(name, description, new GPSCoordinates(latitude, longitude), startDate, emergencyLevel);
 
         return ResponseEntity.ok(catastropheService.save(catastrophe));
     }
