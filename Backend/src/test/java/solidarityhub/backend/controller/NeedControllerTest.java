@@ -1,166 +1,133 @@
 package solidarityhub.backend.controller;
 
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import solidarityhub.backend.BackendApplication;
+import solidarityhub.backend.config.TestConfig;
 import solidarityhub.backend.dto.NeedDTO;
-import solidarityhub.backend.model.Affected;
-import solidarityhub.backend.model.Catastrophe;
-import solidarityhub.backend.model.GPSCoordinates;
-import solidarityhub.backend.model.Need;
+import solidarityhub.backend.model.*;
 import solidarityhub.backend.model.enums.EmergencyLevel;
 import solidarityhub.backend.model.enums.TaskType;
 import solidarityhub.backend.model.enums.UrgencyLevel;
-import solidarityhub.backend.service.NeedService;
+import solidarityhub.backend.repository.AffectedRepository;
+import solidarityhub.backend.repository.CatastropheRepository;
+import solidarityhub.backend.repository.NeedRepository;
+import solidarityhub.backend.repository.TaskRepository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-class NeedControllerTest {
-
-    @Mock
-    private NeedService needService;
-
-    @InjectMocks
+@DataJpaTest
+@ComponentScan(basePackages = "solidarityhub.backend")
+@ContextConfiguration(classes = BackendApplication.class)
+@Import(TestConfig.class)
+public class NeedControllerTest {
+    @Autowired
     private NeedController needController;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+    @Autowired
+    private NeedRepository needRepository;
+    @Autowired
+    private EntityManager entityManager;
+    @Autowired
+    private CatastropheRepository catastropheRepository;
+    @Autowired
+    private AffectedRepository affectedRepository;
+    @Autowired
+    private TaskRepository taskRepository;
 
     @Test
-    void testGetAllNeeds() {
-        // Arrange
-        Integer catastropheId = 1;
-        List<Need> needs = new ArrayList<>();
-        needs.add(createTestNeed(1, catastropheId));
-        needs.add(createTestNeed(2, catastropheId));
-        when(needService.getAllNeeds(catastropheId)).thenReturn(needs);
+    public void testGetAllNeeds() {
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        // Act
-        ResponseEntity<?> response = needController.getAllNeeds(catastropheId);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.save(catastrophe);
+        entityManager.flush();
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        Need need2 = new Need(affected, "Test Need 2", UrgencyLevel.MODERATE, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        Need need3 = new Need(affected, "Test Need 3", UrgencyLevel.URGENT, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        List<Need> needs = List.of(need1, need2, need3);
+        List<Need> savedNeeds = needRepository.saveAll(needs);
+        entityManager.flush();
 
-        // Assert
+        List<NeedDTO> needDTOs = savedNeeds.stream().map(NeedDTO::new).toList();
+
+        ResponseEntity<?> response = needController.getAllNeeds(catastrophe.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof NeedDTO);
-        verify(needService, times(1)).getAllNeeds(catastropheId);
+        List<NeedDTO> responseBody = (List<NeedDTO>) response.getBody();
+        assertTrue(responseBody.containsAll(needDTOs));
     }
 
     @Test
     void testGetNeedsWithoutTask() {
-        // Arrange
-        Integer catastropheId = 1;
-        List<Need> needsWithoutTask = new ArrayList<>();
-        needsWithoutTask.add(createTestNeed(1, catastropheId));
-        needsWithoutTask.add(createTestNeed(2, catastropheId));
-        when(needService.getNeedsWithoutTask(catastropheId)).thenReturn(needsWithoutTask);
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        // Act
-        ResponseEntity<?> response = needController.getNeedsWithoutTask(catastropheId);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.save(catastrophe);
 
-        // Assert
+        Task task1 = new Task();
+        taskRepository.save(task1);
+
+        entityManager.flush();
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        need1.setTask(task1);
+        Need need2 = new Need(affected, "Test Need 2", UrgencyLevel.MODERATE, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        Need need3 = new Need(affected, "Test Need 3", UrgencyLevel.URGENT, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        List<Need> needsWithoutTask = List.of(need2, need3);
+        Need withTask = needRepository.save(need1);
+        List<Need> savedNeedsWithoutTask = needRepository.saveAll(needsWithoutTask);
+        entityManager.flush();
+
+        List<NeedDTO> needDTOs = savedNeedsWithoutTask.stream().map(NeedDTO::new).toList();
+        NeedDTO withTaskDTO = new NeedDTO(withTask);
+
+        ResponseEntity<?> response = needController.getNeedsWithoutTask(catastrophe.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof NeedDTO);
-        verify(needService, times(1)).getNeedsWithoutTask(catastropheId);
+        List<NeedDTO> responseBody = (List<NeedDTO>) response.getBody();
+        assertTrue(responseBody.containsAll(needDTOs));
+        assertFalse(responseBody.contains(withTaskDTO));
     }
 
     @Test
-    void testGetNeedWithoutTaskCount() {
-        // Arrange
-        Integer catastropheId = 1;
-        int count = 5;
-        when(needService.getNeedWithoutTaskCount(catastropheId)).thenReturn(count);
+    void testGetNeedsWithoutTaskCount() {
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        // Act
-        ResponseEntity<?> response = needController.getNeedWithoutTaskCount(catastropheId);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.save(catastrophe);
 
-        // Assert
+        Task task1 = new Task();
+        taskRepository.save(task1);
+
+        entityManager.flush();
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        need1.setTask(task1);
+        Need need2 = new Need(affected, "Test Need 2", UrgencyLevel.MODERATE, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        Need need3 = new Need(affected, "Test Need 3", UrgencyLevel.URGENT, TaskType.PSYCHOLOGICAL, null, catastrophe);
+        List<Need> needsWithoutTask = List.of(need2, need3);
+        Need withTask = needRepository.save(need1);
+        List<Need> savedNeedsWithoutTask = needRepository.saveAll(needsWithoutTask);
+        entityManager.flush();
+
+        ResponseEntity<?> response = needController.getNeedWithoutTaskCount(catastrophe.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(count, response.getBody());
-        verify(needService, times(1)).getNeedWithoutTaskCount(catastropheId);
-    }
-
-    // Helper methods
-    private Need createTestNeed(int id, int catastropheId) {
-        Affected affected = createTestAffected("A-" + id);
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = createTestCatastrophe(catastropheId);
-
-        Need need = new Need(
-                affected,
-                "Test Need " + id,
-                UrgencyLevel.MODERATE,
-                TaskType.LOGISTICS,
-                coordinates,
-                catastrophe
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Need.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(need, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Set task to null to simulate a need without task
-        need.setTask(null);
-        need.setStartTimeDate(LocalDateTime.now());
-
-        return need;
-    }
-
-    private Affected createTestAffected(String dni) {
-        Affected affected = new Affected(
-                dni,
-                "John",
-                "Doe",
-                "john.doe@example.com",
-                123456789,
-                "123 Main St",
-                "password",
-                false
-        );
-
-        return affected;
-    }
-
-    private Catastrophe createTestCatastrophe(int id) {
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = new Catastrophe(
-                "Test Catastrophe " + id,
-                "Test Description " + id,
-                coordinates,
-                LocalDate.now(),
-                EmergencyLevel.MEDIUM
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Catastrophe.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(catastrophe, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return catastrophe;
+        assertTrue(response.getBody() instanceof Integer);
+        Integer responseBody = (Integer) response.getBody();
+        assertEquals(savedNeedsWithoutTask.size(), responseBody.intValue());
     }
 }
