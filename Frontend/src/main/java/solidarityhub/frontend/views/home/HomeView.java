@@ -139,23 +139,12 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         welcomeText.setSpacing(false);
 
         H2 welcomeTitle = new H2(translator.get("welcome_back"));
-        Span adminName = new Span("Perro Sanchez");
+        Span adminName = new Span("Pedro Sanchez");
         adminName.addClassName("admin-name-large");
         Span adminRole = new Span("Presidente del Gobierno");
         adminRole.addClassName("admin-role");
 
         welcomeText.add(welcomeTitle, adminName, adminRole);
-
-//        HorizontalLayout statusLayout = new HorizontalLayout();
-//        statusLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-//        statusLayout.setSpacing(true);
-//
-//        Span statusIndicator = new Span("●");
-//        statusIndicator.addClassName("status-online");
-//        Span statusText = new Span(translator.get("online_now"));
-//        statusText.addClassName("status-text");
-//
-//        statusLayout.add(statusIndicator, statusText);
 
         welcomeHeader.add(adminIcon, welcomeText);
         welcomeCard.add(welcomeHeader);
