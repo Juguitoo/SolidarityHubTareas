@@ -82,6 +82,8 @@ public class TaskController {
             if (catastrophe == null) {
                 return ResponseEntity.badRequest().body("La catástrofe especificada no existe");
             }
+        }else{
+            return ResponseEntity.badRequest().body("La catástrofe especificada no existe");
         }
 
         List<Integer> needIds = taskDTO.getNeeds().stream().map(NeedDTO::getId).toList();
@@ -277,7 +279,7 @@ public class TaskController {
 
         Task updatedTask = taskService.save(task);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new TaskDTO(updatedTask));
     }
 
     @PutMapping("/{id}/status")
