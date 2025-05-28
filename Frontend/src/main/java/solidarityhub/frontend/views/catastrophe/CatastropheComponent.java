@@ -29,7 +29,7 @@ public class CatastropheComponent extends VerticalLayout {
     private String description;
     private String date;
     private final EmergencyLevel emergencyLevel;
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -42,19 +42,8 @@ public class CatastropheComponent extends VerticalLayout {
         this.date = catastropheDTO.getStartDate() != null ? catastropheDTO.getStartDate().format(DATE_FORMATTER) : "Fecha no disponible";
         this.emergencyLevel = catastropheDTO.getEmergencyLevel();
 
-        initializeTranslator();
+        translator.initializeTranslator();
         creatComponent();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void creatComponent() {

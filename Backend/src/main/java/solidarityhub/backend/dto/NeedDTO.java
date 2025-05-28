@@ -42,4 +42,20 @@ public class NeedDTO {
             this.catastropheId = -1;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof NeedDTO)) return false;
+
+        NeedDTO needDTO = (NeedDTO) o;
+
+        if (id != needDTO.id) return false;
+        if (taskId != needDTO.taskId) return false;
+        if (catastropheId != needDTO.catastropheId) return false;
+        if (!description.equals(needDTO.description)) return false;
+        if (urgency != needDTO.urgency) return false;
+        if (taskType != needDTO.taskType) return false;
+        return true;
+    }
 }

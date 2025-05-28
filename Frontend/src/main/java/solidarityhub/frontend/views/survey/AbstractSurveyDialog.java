@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 public abstract class AbstractSurveyDialog extends Dialog {
     
-    protected final Translator translator;
+    protected final Translator translator = new Translator();
     protected final SurveyService surveyService;
     
     protected TextField surveyNameField;
@@ -39,8 +39,8 @@ public abstract class AbstractSurveyDialog extends Dialog {
     
     private final List<Consumer<SurveyDTO>> saveListeners = new ArrayList<>();
     
-    public AbstractSurveyDialog(Translator translator) {
-        this.translator = translator;
+    public AbstractSurveyDialog() {
+        this.translator.initializeTranslator();
         this.surveyService = new SurveyService();
         
         setWidth("650px");

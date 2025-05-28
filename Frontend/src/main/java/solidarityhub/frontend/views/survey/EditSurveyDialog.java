@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class EditSurveyDialog extends AbstractSurveyDialog {
     
-    public EditSurveyDialog(Translator translator, SurveyDTO survey) {
-        super(translator);
+    public EditSurveyDialog(SurveyDTO survey) {
+        super();
         this.survey = survey;
         initializeDialog();
     }

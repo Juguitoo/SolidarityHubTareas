@@ -39,7 +39,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private final NeedService needService;
     private final FormatService formatService;
     private CatastropheDTO selectedCatastrophe;
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -50,18 +50,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.formatService = FormatService.getInstance();
 
-        initializeTranslator();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
     }
 
     @Override
@@ -139,23 +128,12 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         welcomeText.setSpacing(false);
 
         H2 welcomeTitle = new H2(translator.get("welcome_back"));
-        Span adminName = new Span("Perro Sanchez");
+        Span adminName = new Span("Pedro Sanchez");
         adminName.addClassName("admin-name-large");
         Span adminRole = new Span("Presidente del Gobierno");
         adminRole.addClassName("admin-role");
 
         welcomeText.add(welcomeTitle, adminName, adminRole);
-
-//        HorizontalLayout statusLayout = new HorizontalLayout();
-//        statusLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-//        statusLayout.setSpacing(true);
-//
-//        Span statusIndicator = new Span("●");
-//        statusIndicator.addClassName("status-online");
-//        Span statusText = new Span(translator.get("online_now"));
-//        statusText.addClassName("status-text");
-//
-//        statusLayout.add(statusIndicator, statusText);
 
         welcomeHeader.add(adminIcon, welcomeText);
         welcomeCard.add(welcomeHeader);

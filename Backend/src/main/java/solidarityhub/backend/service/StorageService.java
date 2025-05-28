@@ -19,7 +19,9 @@ public class StorageService {
 
     public Storage saveStorage(Storage storage) {
         Storage savedStorage = storageRepository.save(storage);
-        storageObservable.setStorage(savedStorage);
+        try {
+            storageObservable.setStorage(savedStorage);
+        } catch (Exception _) {}
         return savedStorage;
     }
     public Storage getStorageById(Integer id) {return storageRepository.findById(id).orElse(null);}

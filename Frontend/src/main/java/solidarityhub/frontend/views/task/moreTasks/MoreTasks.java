@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 @PageTitle("Ver más tareas")
 @Route("tasks/moretasks")
 public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
-    private static Translator translator;
+    private static Translator translator = new Translator();
     private final FormatService formatService;
 
     private final TaskService taskService;
@@ -42,7 +42,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     private String emergencyFilterValue = "";
 
     public MoreTasks() {
-        initializeTranslator();
+        translator.initializeTranslator();
 
         this.taskService = new TaskService();
         this.formatService = FormatService.getInstance();
@@ -121,18 +121,6 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
     private void refreshTasks() {
         taskGrid.setItems(getTasksList());
         taskGrid.getDataProvider().refreshAll();
-    }
-
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     // ===============================Get Grid Items=========================================

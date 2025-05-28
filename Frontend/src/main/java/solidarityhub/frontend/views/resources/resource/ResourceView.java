@@ -51,7 +51,7 @@ public class ResourceView extends VerticalLayout{
 
     private final HashMap<Integer, StorageDTO> storageDTOMap = new HashMap<>();
     private final List<String> storageNames = new ArrayList<>();
-    private final Translator translator;
+    private final Translator translator = new Translator();
 
 
     public ResourceView(CatastropheDTO catastrophe) {
@@ -68,14 +68,7 @@ public class ResourceView extends VerticalLayout{
             storageNames.add(s.getName());
         }
 
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
 
         buildView();
     }

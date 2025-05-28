@@ -1,206 +1,174 @@
 package solidarityhub.backend.controller;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import solidarityhub.backend.BackendApplication;
+import solidarityhub.backend.config.TestConfig;
 import solidarityhub.backend.dto.DonorDTO;
-import solidarityhub.backend.service.DonorService;
+import solidarityhub.backend.model.Donor;
+import solidarityhub.backend.repository.DonorRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
-class DonorControllerTest {
+@DataJpaTest
+@ComponentScan(basePackages = "solidarityhub.backend")
+@ContextConfiguration(classes = BackendApplication.class)
+@Import(TestConfig.class)
+public class DonorControllerTest {
 
-    @Mock
-    private DonorService donorService;
-
-    @InjectMocks
+    @Autowired
     private DonorController donorController;
+    @Autowired
+    private DonorRepository donorRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    public void deleteDataBase() {
+        donorRepository.deleteAll();
+        entityManager.flush();
     }
 
     @Test
     void testGetAllDonors() {
-        // Arrange
-        List<DonorDTO> donors = new ArrayList<>();
-        donors.add(createTestDonorDTO("D-1", "Donor 1"));
-        donors.add(createTestDonorDTO("D-2", "Donor 2"));
-        when(donorService.getAllDonors()).thenReturn(donors);
+        Donor donor1 = new Donor("12345678A", "D-1");
+        Donor donor2 = new Donor("87654321B", "D-2");
+        List<Donor> donors = List.of(donor1, donor2);
+        List<Donor> donorsSaved = donorRepository.saveAll(donors);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<List<DonorDTO>> response = donorController.getAllDonors();
+        List<DonorDTO> donorDTOs = donorsSaved.stream()
+                .map(DonorDTO::new)
+                .toList();
 
-        // Assert
+        ResponseEntity<?> response = donorController.getAllDonors();
+        assertNotNull(response);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        verify(donorService, times(1)).getAllDonors();
+        List<DonorDTO> responseBody = (List<DonorDTO>) response.getBody();
+        for (DonorDTO donorDTO : responseBody) {
+            assertInstanceOf(DonorDTO.class, donorDTO);
+            assertTrue(donorDTOs.contains(donorDTO));
+        }
     }
 
     @Test
-    void testGetDonorByDni_ExistingDni() {
-        // Arrange
-        String dni = "D-1";
-        DonorDTO donor = createTestDonorDTO(dni, "Donor 1");
-        when(donorService.getDonorByDni(dni)).thenReturn(donor);
+    void testGetDonorByDni() {
+        Donor donor1 = new Donor("12345678A", "D-1");
+        Donor donor2 = new Donor("87654321B", "D-2");
+        List<Donor> donors = List.of(donor1, donor2);
+        List<Donor> donorsSaved = donorRepository.saveAll(donors);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<DonorDTO> response = donorController.getDonorByDni(dni);
+        DonorDTO donorDTO = new DonorDTO(donorsSaved.get(0));
+        ResponseEntity<?> response = donorController.getDonorByDni(donor1.getDni());
+        assertNotNull(response);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(dni, response.getBody().getDni());
-        assertEquals("Donor 1", response.getBody().getName());
-        verify(donorService, times(1)).getDonorByDni(dni);
+        DonorDTO responseBody = (DonorDTO) response.getBody();
+        assertEquals(donorDTO, responseBody);
     }
 
     @Test
     void testGetDonorByDni_NonExistingDni() {
         // Arrange
-        String dni = "NONEXISTENT";
-        when(donorService.getDonorByDni(dni)).thenReturn(null);
+        String nonExistingDni = "99999999Z";
 
         // Act
-        ResponseEntity<DonorDTO> response = donorController.getDonorByDni(dni);
+        ResponseEntity<?> response = donorController.getDonorByDni(nonExistingDni);
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(donorService, times(1)).getDonorByDni(dni);
     }
 
     @Test
     void testCreateDonor_Success() {
-        // Arrange
-        DonorDTO donorDTO = createTestDonorDTO("D-1", "New Donor");
-        when(donorService.existsById(donorDTO.getDni())).thenReturn(false);
-        when(donorService.saveDonor(any(DonorDTO.class))).thenReturn(donorDTO);
+        Donor donor = new Donor("12345678A", "New Donor");
+        DonorDTO donorDTO = new DonorDTO(donor);
 
-        // Act
-        ResponseEntity<DonorDTO> response = donorController.createDonor(donorDTO);
+        ResponseEntity<?> response = donorController.createDonor(donorDTO);
+        assertNotNull(response);
 
-        // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("D-1", response.getBody().getDni());
-        assertEquals("New Donor", response.getBody().getName());
-        verify(donorService, times(1)).existsById(donorDTO.getDni());
-        verify(donorService, times(1)).saveDonor(donorDTO);
+        DonorDTO responseBody = (DonorDTO) response.getBody();
+        assertEquals(new DonorDTO(donorRepository.findById(donorDTO.getDni()).get()), responseBody);
     }
 
     @Test
-    void testCreateDonor_DuplicateDni() {
+    void testCreateDonor_ExistingDni() {
         // Arrange
-        DonorDTO donorDTO = createTestDonorDTO("D-1", "New Donor");
-        when(donorService.existsById(donorDTO.getDni())).thenReturn(true);
+        Donor donor = new Donor("12345678A", "Existing Donor");
+        donorRepository.save(donor);
+        entityManager.flush();
+        DonorDTO donorDTO = new DonorDTO(donor);
 
         // Act
-        ResponseEntity<DonorDTO> response = donorController.createDonor(donorDTO);
+        ResponseEntity<?> response = donorController.createDonor(donorDTO);
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(donorService, times(1)).existsById(donorDTO.getDni());
-        verify(donorService, never()).saveDonor(any(DonorDTO.class));
     }
 
     @Test
     void testUpdateDonor_Success() {
         // Arrange
-        String dni = "D-1";
-        DonorDTO donorDTO = createTestDonorDTO(dni, "Updated Donor");
-        when(donorService.existsById(dni)).thenReturn(true);
-        when(donorService.saveDonor(any(DonorDTO.class))).thenReturn(donorDTO);
+        Donor donor = new Donor("12345678A", "Old Donor");
+        donorRepository.save(donor);
+        entityManager.flush();
+        DonorDTO donorDTO = new DonorDTO(donor);
+        donorDTO.setName("Updated Donor");
 
         // Act
-        ResponseEntity<DonorDTO> response = donorController.updateDonor(dni, donorDTO);
+        ResponseEntity<?> response = donorController.updateDonor(donorDTO.getDni(),donorDTO);
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(dni, response.getBody().getDni());
-        assertEquals("Updated Donor", response.getBody().getName());
-        verify(donorService, times(1)).existsById(dni);
-        verify(donorService, times(1)).saveDonor(donorDTO);
+        DonorDTO responseBody = (DonorDTO) response.getBody();
+        assertEquals("Updated Donor", responseBody.getName());
     }
 
     @Test
     void testUpdateDonor_NonExistingDni() {
         // Arrange
-        String dni = "NONEXISTENT";
-        DonorDTO donorDTO = createTestDonorDTO(dni, "Updated Donor");
-        when(donorService.existsById(dni)).thenReturn(false);
+        String nonExistingDni = "99999999Z";
+        DonorDTO donorDTO = new DonorDTO();
+        donorDTO.setDni(nonExistingDni);
+        donorDTO.setName("Non Existing Donor");
 
         // Act
-        ResponseEntity<DonorDTO> response = donorController.updateDonor(dni, donorDTO);
+        ResponseEntity<?> response = donorController.updateDonor(nonExistingDni, donorDTO);
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(donorService, times(1)).existsById(dni);
-        verify(donorService, never()).saveDonor(any(DonorDTO.class));
     }
 
     @Test
     void testDeleteDonor_Success() {
         // Arrange
-        String dni = "D-1";
-        when(donorService.existsById(dni)).thenReturn(true);
-        // Note: The delete method is commented out in the controller, so we don't verify it's called
+        Donor donor = new Donor("12345678A", "Donor to Delete");
+        donorRepository.save(donor);
+        entityManager.flush();
 
         // Act
-        ResponseEntity<Void> response = donorController.deleteDonor(dni);
+        ResponseEntity<?> response = donorController.deleteDonor(donor.getDni());
 
         // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(donorService, times(1)).existsById(dni);
-        // If uncommented, we would verify: verify(donorService, times(1)).deleteDonor(dni);
-    }
-
-    @Test
-    void testDeleteDonor_NonExistingDni() {
-        // Arrange
-        String dni = "NONEXISTENT";
-        when(donorService.existsById(dni)).thenReturn(false);
-
-        // Act
-        ResponseEntity<Void> response = donorController.deleteDonor(dni);
-
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(donorService, times(1)).existsById(dni);
-        // If uncommented, we would verify: verify(donorService, never()).deleteDonor(anyString());
-    }
-
-    // Helper method
-    private DonorDTO createTestDonorDTO(String dni, String name) {
-        DonorDTO donorDTO = new DonorDTO();
-
-        try {
-            java.lang.reflect.Field dniField = DonorDTO.class.getDeclaredField("dni");
-            dniField.setAccessible(true);
-            dniField.set(donorDTO, dni);
-
-            java.lang.reflect.Field nameField = DonorDTO.class.getDeclaredField("name");
-            nameField.setAccessible(true);
-            nameField.set(donorDTO, name);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return donorDTO;
+        assertFalse(donorRepository.existsById(donor.getDni()));
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import solidarityhub.backend.dto.ResourceDTO;
+import solidarityhub.backend.dto.ResourceQuantityDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
@@ -122,38 +123,31 @@ public class ResourceController {
 
     @GetMapping("/summary")
     public ResponseEntity<?> getResourceSummary(@RequestParam Integer catastropheId) {
-        List<Resource> resources = resourceService.getResourcesByCatastrophe(catastropheId);
-
-        // Group by type
-        Map<ResourceType, List<Resource>> resourcesByType = resources.stream()
-                .collect(Collectors.groupingBy(Resource::getType));
-
         List<Map<String, Object>> summaries = new ArrayList<>();
+        List<Map <String, Object>> assignedQuantitySummary = resourceAssignmentService.getAssignedResourcesSummary(catastropheId);
 
-        resourcesByType.forEach((type, typeResources) -> {
-            int count = typeResources.size();
-            double totalQuantity = typeResources.stream().mapToDouble(Resource::getQuantity).sum();
-
-            // Calculate assigned quantity
-            double assignedQuantity = 0.0;
-            for (Resource resource : typeResources) {
-                Double assigned = resourceAssignmentService.getTotalAssignedQuantity(resource.getId());
-                if (assigned != null) {
-                    assignedQuantity += assigned;
-                }
-            }
+        assignedQuantitySummary.forEach(r -> {
+            String type = r.get("resourceType").toString();
+            double totalAssigned = (Double) r.get("totalAssigned");
 
             Map<String, Object> summary = new HashMap<>();
             summary.put("type", type);
-            summary.put("count", count);
+            summary.put("count", resourceService.getCountByType(ResourceType.valueOf(type), catastropheId));
+            Double totalQuantity = resourceService.getTotalQuantityByType(ResourceType.valueOf(type), catastropheId);
             summary.put("totalQuantity", totalQuantity);
-            summary.put("assignedQuantity", assignedQuantity);
-            summary.put("availableQuantity", totalQuantity - assignedQuantity);
-
+            summary.put("assignedQuantity", totalAssigned);
+            summary.put("availableQuantity", totalQuantity - totalAssigned);
             summaries.add(summary);
         });
 
         return ResponseEntity.ok(summaries);
+    }
+
+    @GetMapping("/availableQuantities/{catastropheId}")
+    public ResponseEntity<List<ResourceQuantityDTO>> getAvailableQuantities(@PathVariable Integer catastropheId) {
+        List<ResourceQuantityDTO> availableQuantities = resourceService.getResourceAndAvailableQuantities(catastropheId);
+
+        return ResponseEntity.ok(availableQuantities);
     }
 
 

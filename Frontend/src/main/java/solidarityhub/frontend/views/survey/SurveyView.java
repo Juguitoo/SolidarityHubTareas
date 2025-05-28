@@ -30,7 +30,7 @@ import java.util.Locale;
 @Route(value = "surveys", layout = MainLayout.class)
 public class SurveyView extends VerticalLayout {
     
-    private Translator translator;
+    private Translator translator = new Translator();
     
     private final SurveyService surveyService;
     private Grid<SurveyDTO> grid;
@@ -38,16 +38,8 @@ public class SurveyView extends VerticalLayout {
     @Autowired
     public SurveyView(SurveyService surveyService) {
         this.surveyService = surveyService;
-        
-        // Configuración del idioma
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        this.translator = new Translator(UI.getCurrent().getLocale());
+
+        this.translator.initializeTranslator();
         
         // Inicializar el grid primero
         grid = new Grid<>(SurveyDTO.class, false);
@@ -217,13 +209,13 @@ public class SurveyView extends VerticalLayout {
     }
     
     private void openCreateSurveyDialog() {
-        CreateSurveyDialog dialog = new CreateSurveyDialog(translator);
+        CreateSurveyDialog dialog = new CreateSurveyDialog();
         dialog.addSaveListener(survey -> refreshGrid());
         dialog.open();
     }
     
     private void editSurvey(SurveyDTO survey) {
-        EditSurveyDialog dialog = new EditSurveyDialog(translator, survey);
+        EditSurveyDialog dialog = new EditSurveyDialog(survey);
         dialog.addSaveListener(s -> refreshGrid());
         dialog.open();
     }

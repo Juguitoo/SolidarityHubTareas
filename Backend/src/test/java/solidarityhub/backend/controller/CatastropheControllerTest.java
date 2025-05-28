@@ -1,228 +1,155 @@
 package solidarityhub.backend.controller;
 
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import solidarityhub.backend.BackendApplication;
+import solidarityhub.backend.config.TestConfig;
 import solidarityhub.backend.dto.CatastropheDTO;
 import solidarityhub.backend.model.Catastrophe;
 import solidarityhub.backend.model.GPSCoordinates;
 import solidarityhub.backend.model.enums.EmergencyLevel;
-import solidarityhub.backend.service.CatastropheService;
+import solidarityhub.backend.repository.CatastropheRepository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-class CatastropheControllerTest {
+@DataJpaTest
+@ComponentScan(basePackages = "solidarityhub.backend")
+@ContextConfiguration(classes = BackendApplication.class)
+@Import(TestConfig.class)
+public class CatastropheControllerTest {
 
-    @Mock
-    private CatastropheService catastropheService;
-
-    @InjectMocks
+    @Autowired
     private CatastropheController catastropheController;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+    @Autowired
+    private CatastropheRepository catastropheRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
-    void testGetCatastrophes() {
-        // Arrange
-        List<Catastrophe> catastrophes = new ArrayList<>();
-        catastrophes.add(createTestCatastrophe(1));
-        catastrophes.add(createTestCatastrophe(2));
-        when(catastropheService.getAllCatastrophes()).thenReturn(catastrophes);
+    public void testGetCatastrophes() {
+        Catastrophe catastrophe1 = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe catastrophe2 = new Catastrophe("catastrophe2", "description2", new GPSCoordinates(23.45, 67.89), LocalDate.now(), EmergencyLevel.HIGH);
+        List<Catastrophe> catastropheList = List.of(catastrophe1, catastrophe2);
+        List<Catastrophe> savedCatastrophes = catastropheRepository.saveAll(catastropheList);
+        entityManager.flush();
 
-        // Act
+        List<CatastropheDTO> savedDTOs = savedCatastrophes.stream().map(CatastropheDTO::new).toList();
+
         ResponseEntity<?> response = catastropheController.getCatastrophes();
+        assertNotNull(response);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof CatastropheDTO);
-        verify(catastropheService, times(1)).getAllCatastrophes();
+        List<CatastropheDTO> responseBody = (List<CatastropheDTO>) response.getBody();
+        for( CatastropheDTO catastropheDTO : responseBody) {
+            assertInstanceOf(CatastropheDTO.class, catastropheDTO);
+            assertTrue(savedDTOs.contains(catastropheDTO));
+        }
     }
 
     @Test
-    void testGetCatastrophe_ExistingId() {
-        // Arrange
-        int catastropheId = 1;
-        Catastrophe catastrophe = createTestCatastrophe(catastropheId);
-        when(catastropheService.getCatastrophe(catastropheId)).thenReturn(catastrophe);
+    public void testGetCatastrophe_ExistingId() {
+        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe savedCatastrophe = catastropheRepository.save(catastrophe);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = catastropheController.getCatastrophe(catastropheId);
-
-        // Assert
+        ResponseEntity<?> response = catastropheController.getCatastrophe(savedCatastrophe.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof Catastrophe);
         Catastrophe responseBody = (Catastrophe) response.getBody();
-        assertEquals(catastropheId, responseBody.getId());
-        assertEquals("Test Catastrophe 1", responseBody.getName());
-        verify(catastropheService, times(1)).getCatastrophe(catastropheId);
+        assertEquals(savedCatastrophe, responseBody);
     }
 
     @Test
     void testGetCatastrophe_NonExistingId() {
-        // Arrange
         int nonExistingId = 999;
-        when(catastropheService.getCatastrophe(nonExistingId)).thenReturn(null);
-
-        // Act
         ResponseEntity<?> response = catastropheController.getCatastrophe(nonExistingId);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(catastropheService, times(1)).getCatastrophe(nonExistingId);
     }
 
     @Test
-    void testAddCatastrophe() {
-        // Arrange
-        CatastropheDTO catastropheDTO = createTestCatastropheDTO();
-        Catastrophe savedCatastrophe = createTestCatastrophe(1);
-        when(catastropheService.save(any(Catastrophe.class))).thenReturn(savedCatastrophe);
+    public void testAddCatastrophe() {
+        Catastrophe catastrophe = new Catastrophe("New Catastrophe", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        CatastropheDTO catastropheDTO = new CatastropheDTO(catastrophe);
 
-        // Act
         ResponseEntity<?> response = catastropheController.addCatastrophe(catastropheDTO);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(catastropheService, times(1)).save(any(Catastrophe.class));
+        assertTrue(response.getBody() instanceof Catastrophe);
+
+        Catastrophe savedCatastrophe = (Catastrophe) response.getBody();
+        assertEquals(catastrophe.getName(), savedCatastrophe.getName());
+        assertEquals(catastrophe.getDescription(), savedCatastrophe.getDescription());
+        assertEquals(catastrophe.getLocation().getLongitude(), savedCatastrophe.getLocation().getLongitude());
+        assertEquals(catastrophe.getLocation().getLatitude(), savedCatastrophe.getLocation().getLatitude());
+        assertEquals(catastrophe.getStartDate(), savedCatastrophe.getStartDate());
+        assertEquals(catastrophe.getEmergencyLevel(), savedCatastrophe.getEmergencyLevel());
     }
 
     @Test
-    void testUpdateCatastrophe_ExistingId() {
-        // Arrange
-        int catastropheId = 1;
-        CatastropheDTO catastropheDTO = createTestCatastropheDTO();
-        Catastrophe existingCatastrophe = createTestCatastrophe(catastropheId);
-        when(catastropheService.getCatastrophe(catastropheId)).thenReturn(existingCatastrophe);
-        when(catastropheService.save(any(Catastrophe.class))).thenReturn(existingCatastrophe);
+    void testUpdateCatastrophe_Success() {
+        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe savedCatastrophe = catastropheRepository.save(catastrophe);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = catastropheController.updateCatastrophe(catastropheId, catastropheDTO);
+        CatastropheDTO updatedCatastropheDTO = new CatastropheDTO(savedCatastrophe);
+        updatedCatastropheDTO.setName("Updated Catastrophe");
+        updatedCatastropheDTO.setDescription("Updated Description");
 
-        // Assert
+        ResponseEntity<?> response = catastropheController.updateCatastrophe(savedCatastrophe.getId(), updatedCatastropheDTO);
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(catastropheService, times(1)).getCatastrophe(catastropheId);
-        verify(catastropheService, times(1)).save(any(Catastrophe.class));
+        assertTrue(response.getBody() instanceof Catastrophe);
+
+        Catastrophe updatedCatastrophe = (Catastrophe) response.getBody();
+        assertEquals(savedCatastrophe.getId(), updatedCatastrophe.getId());
+        assertEquals("Updated Catastrophe", updatedCatastrophe.getName());
+        assertEquals("Updated Description", updatedCatastrophe.getDescription());
     }
 
     @Test
     void testUpdateCatastrophe_NonExistingId() {
-        // Arrange
         int nonExistingId = 999;
-        CatastropheDTO catastropheDTO = createTestCatastropheDTO();
-        when(catastropheService.getCatastrophe(nonExistingId)).thenReturn(null);
+        CatastropheDTO catastropheDTO = new CatastropheDTO();
+        catastropheDTO.setName("Updated Catastrophe");
+        catastropheDTO.setDescription("Updated Description");
 
-        // Act
         ResponseEntity<?> response = catastropheController.updateCatastrophe(nonExistingId, catastropheDTO);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(catastropheService, times(1)).getCatastrophe(nonExistingId);
-        verify(catastropheService, never()).save(any(Catastrophe.class));
     }
 
     @Test
     void testDeleteCatastrophe_ExistingId() {
-        // Arrange
-        int catastropheId = 1;
-        Catastrophe existingCatastrophe = createTestCatastrophe(catastropheId);
-        when(catastropheService.getCatastrophe(catastropheId)).thenReturn(existingCatastrophe);
-        doNothing().when(catastropheService).deleteCatastrophe(catastropheId);
+        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe savedCatastrophe = catastropheRepository.save(catastrophe);
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = catastropheController.deleteCatastrophe(catastropheId);
-
-        // Assert
+        ResponseEntity<?> response = catastropheController.deleteCatastrophe(savedCatastrophe.getId());
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(catastropheService, times(1)).getCatastrophe(catastropheId);
-        verify(catastropheService, times(1)).deleteCatastrophe(catastropheId);
+
+        // Verify that the catastrophe was deleted
+        assertFalse(catastropheRepository.existsById(savedCatastrophe.getId()));
     }
 
     @Test
     void testDeleteCatastrophe_NonExistingId() {
-        // Arrange
         int nonExistingId = 999;
-        when(catastropheService.getCatastrophe(nonExistingId)).thenReturn(null);
-
-        // Act
         ResponseEntity<?> response = catastropheController.deleteCatastrophe(nonExistingId);
-
-        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(catastropheService, times(1)).getCatastrophe(nonExistingId);
-        verify(catastropheService, never()).deleteCatastrophe(nonExistingId);
-    }
-
-    // Helper methods
-    private Catastrophe createTestCatastrophe(int id) {
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = new Catastrophe(
-                "Test Catastrophe " + id,
-                "Test Description " + id,
-                coordinates,
-                LocalDate.now(),
-                EmergencyLevel.MEDIUM
-        );
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Catastrophe.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(catastrophe, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return catastrophe;
-    }
-
-    private CatastropheDTO createTestCatastropheDTO() {
-        CatastropheDTO dto = new CatastropheDTO();
-        // Set properties using reflection since there are no setters
-        try {
-            java.lang.reflect.Field nameField = CatastropheDTO.class.getDeclaredField("name");
-            nameField.setAccessible(true);
-            nameField.set(dto, "Test Catastrophe");
-
-            java.lang.reflect.Field descriptionField = CatastropheDTO.class.getDeclaredField("description");
-            descriptionField.setAccessible(true);
-            descriptionField.set(dto, "Test Description");
-
-            java.lang.reflect.Field locationXField = CatastropheDTO.class.getDeclaredField("locationX");
-            locationXField.setAccessible(true);
-            locationXField.set(dto, 40.416775);
-
-            java.lang.reflect.Field locationYField = CatastropheDTO.class.getDeclaredField("locationY");
-            locationYField.setAccessible(true);
-            locationYField.set(dto, -3.703790);
-
-            java.lang.reflect.Field startDateField = CatastropheDTO.class.getDeclaredField("startDate");
-            startDateField.setAccessible(true);
-            startDateField.set(dto, LocalDate.now());
-
-            java.lang.reflect.Field emergencyLevelField = CatastropheDTO.class.getDeclaredField("emergencyLevel");
-            emergencyLevelField.setAccessible(true);
-            emergencyLevelField.set(dto, EmergencyLevel.MEDIUM);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return dto;
     }
 }

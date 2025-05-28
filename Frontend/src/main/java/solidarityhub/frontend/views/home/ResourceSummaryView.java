@@ -21,25 +21,14 @@ import java.util.Locale;
 public class ResourceSummaryView extends VerticalLayout {
     private final ResourceSummaryService resourceSummaryService;
     private final CatastropheDTO catastrophe;
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     public ResourceSummaryView(CatastropheDTO catastrophe) {
         this.resourceSummaryService = new ResourceSummaryService();
         this.catastrophe = catastrophe;
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void buildView() {
@@ -54,15 +43,11 @@ public class ResourceSummaryView extends VerticalLayout {
 
         List<ResourceSummaryDTO> summaries = resourceSummaryService.getResourceSummary(catastrophe.getId());
 
-        List<ResourceSummaryDTO> filteredSummaries = summaries.stream()
-                .filter(summary -> summary.getUsagePercentage() > 0.0)
-                .toList();
 
-
-        if (filteredSummaries.isEmpty()) {
+        if (summaries.isEmpty()) {
             add(new Span(translator.get("no_resources")));
         } else {
-            for (ResourceSummaryDTO summary : filteredSummaries) {
+            for (ResourceSummaryDTO summary : summaries) {
                 add(createResourceSummaryCard(summary));
             }
         }

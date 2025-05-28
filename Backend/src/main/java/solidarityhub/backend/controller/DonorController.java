@@ -58,8 +58,9 @@ public class DonorController {
         if (!donorService.existsById(dni)) {
             return ResponseEntity.notFound().build();
         }
-        // Nota: Necesitarías añadir el método delete en DonorService
-        // donorService.deleteDonor(dni);
+        donorService.deleteDonor(dni);
         return ResponseEntity.noContent().build();
     }
+
+
 }

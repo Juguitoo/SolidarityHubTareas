@@ -9,6 +9,7 @@ import solidarityhub.backend.repository.ResourceRepository;
 import solidarityhub.backend.repository.TaskRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ResourceAssignmentService {
@@ -77,5 +78,10 @@ public class ResourceAssignmentService {
 
     public void deleteAssignment(int assignmentId) {
         assignmentRepository.deleteById(assignmentId);
+    }
+
+    public List<Map<String, Object>> getAssignedResourcesSummary(Integer catastropheId) {
+        List<Map<String, Object>> summary = assignmentRepository.getAssignedResourcesSummary(catastropheId);
+        return summary;
     }
 }

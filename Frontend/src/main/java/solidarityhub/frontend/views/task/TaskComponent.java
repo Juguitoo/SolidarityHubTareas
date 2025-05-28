@@ -23,7 +23,7 @@ import java.util.Locale;
 
 @Getter
 public class TaskComponent extends VerticalLayout {
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     private final int taskId;
     private String taskName;
@@ -35,7 +35,7 @@ public class TaskComponent extends VerticalLayout {
     private TaskType taskType;
 
     public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel, TaskType taskType) {
-        initializeTranslator();
+        translator.initializeTranslator();
 
         this.taskId = taskId;
         this.taskName = name;
@@ -49,7 +49,7 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public TaskComponent(TaskDTO taskDTO) {
-        initializeTranslator();
+        translator.initializeTranslator();
 
         this.taskId = taskDTO.getId();
         this.taskName = taskDTO.getName();
@@ -60,17 +60,6 @@ public class TaskComponent extends VerticalLayout {
         this.taskType = taskDTO.getType();
 
         creatComponent();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void creatComponent() {

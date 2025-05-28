@@ -15,6 +15,9 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.i18n.Translator;
+
+import java.util.Locale;
 
 @Layout
 public class MainLayout extends AppLayout {
@@ -29,7 +32,11 @@ public class MainLayout extends AppLayout {
     private Button minimizeButton;
     private Button logOutButton;
 
+    private Translator translator = new Translator();
+
     public MainLayout() {
+        translator.initializeTranslator();
+
         setPrimarySection(Section.DRAWER);
         addClassName("main-layout");
         addDrawerContent();
@@ -44,6 +51,17 @@ public class MainLayout extends AppLayout {
         });
 
         UI.getCurrent().addAfterNavigationListener(e -> updateSelectedCatastropheInfo());
+    }
+
+    private void initializeTranslator() {
+        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        } else {
+            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
+            UI.getCurrent().setLocale(new Locale("es"));
+        }
+        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     //===============================Menu=========================================
@@ -62,7 +80,7 @@ public class MainLayout extends AppLayout {
         logoImage.addClassName("logo-principal");
         Button logoButton = new Button(logoImage);
         logoButton.addClassName("logo-button");
-        logoButton.addClickListener(e -> toggleDrawerMinimized());
+        logoButton.addClickListener(e -> UI.getCurrent().navigate("http://localhost:8083/home"));
 
         appName = new Span("SolidarityHub");
         appName.addClassName("app-name");
@@ -100,8 +118,8 @@ public class MainLayout extends AppLayout {
     }
 
     private void updateNavigationTexts() {
-        String[] labels = {"Inicio", "Tareas", "Mapa", "Dashboard", "Recursos",
-                "Encuestas", "Contacto", "Sobre nosotros"
+        String[] labels = {translator.get("label_home"), translator.get("label_tasks"), translator.get("label_map"), translator.get("label_dashboard"), translator.get("label_resources"),
+                translator.get("label_surveys"), translator.get("label_contact"), translator.get("label_aboutus")
         };
         int i = 0;
         for (SideNavItem item : sideNav.getItems()) {
@@ -113,14 +131,14 @@ public class MainLayout extends AppLayout {
         SideNav nav = new SideNav();
         nav.addClassName("side-nav");
         nav.addItem(
-                createNavItem("Inicio", VaadinIcon.HOME, "http://localhost:8083/home"),
-                createNavItem("Tareas", VaadinIcon.TASKS, "http://localhost:8083/tasks"),
-                createNavItem("Mapa", VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
-                createNavItem("Dashboard", VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
-                createNavItem("Recursos", VaadinIcon.TOOLBOX, "http://localhost:8083/resources"),
-                createNavItem("Encuestas", VaadinIcon.CLIPBOARD_CHECK, "http://localhost:8083/surveys"),
-                createNavItem("Contacto", VaadinIcon.PHONE, "http://localhost:8080/contact"),
-                createNavItem("Sobre nosotros", VaadinIcon.INFO_CIRCLE, "http://localhost:8080/about-us")
+                createNavItem(translator.get("label_home"), VaadinIcon.HOME, "http://localhost:8083/home"),
+                createNavItem(translator.get("label_tasks"), VaadinIcon.TASKS, "http://localhost:8083/tasks"),
+                createNavItem(translator.get("label_map"), VaadinIcon.MAP_MARKER, "http://localhost:8080/map"),
+                createNavItem(translator.get("label_dashboard"), VaadinIcon.DASHBOARD, "http://localhost:8080/dashboard"),
+                createNavItem(translator.get("label_resources"), VaadinIcon.TOOLBOX, "http://localhost:8083/resources"),
+                createNavItem(translator.get("label_surveys"), VaadinIcon.CLIPBOARD_CHECK, "http://localhost:8083/surveys"),
+                createNavItem(translator.get("label_contact"), VaadinIcon.PHONE, "http://localhost:8080/contact"),
+                createNavItem(translator.get("label_aboutus"), VaadinIcon.INFO_CIRCLE, "http://localhost:8080/about-us")
         );
         return nav;
     }
@@ -153,13 +171,13 @@ public class MainLayout extends AppLayout {
             infoLayout.setSpacing(false);
             infoLayout.setPadding(false);
 
-            H4 title = new H4("Catástrofe seleccionada:");
+            H4 title = new H4(translator.get("selected_catastrophe") + " ");
             title.addClassName("selected-catastrophe-title");
 
             Paragraph catastropheName = new Paragraph(selectedCatastrophe.getName());
             catastropheName.addClassName("selected-catastrophe-name");
 
-            Button changeButton = new Button("Cambiar", VaadinIcon.EXCHANGE.create());
+            Button changeButton = new Button(translator.get("change_catastrophe"), VaadinIcon.EXCHANGE.create());
             changeButton.addClassName("change-catastrophe-button");
             changeButton.addClickListener(e -> UI.getCurrent().getPage().setLocation("http://localhost:8083/"));
 
@@ -167,7 +185,7 @@ public class MainLayout extends AppLayout {
             selectedCatastropheInfo.add(infoLayout);
             selectedCatastropheInfo.setVisible(true);
         } else {
-            Button selectButton = new Button("Seleccionar catástrofe", VaadinIcon.PLUS.create());
+            Button selectButton = new Button(translator.get("select_catastrophe_button"), VaadinIcon.PLUS.create());
             selectButton.addClassName("change-catastrophe-button");
             selectButton.addClickListener(e -> UI.getCurrent().getPage().setLocation("http://localhost:8083/"));
             selectedCatastropheInfo.add(new H4("No hay catástrofe seleccionada"), selectButton);

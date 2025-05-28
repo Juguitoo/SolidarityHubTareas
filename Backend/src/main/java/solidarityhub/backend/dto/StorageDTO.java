@@ -1,14 +1,9 @@
 package solidarityhub.backend.dto;
 
-import jakarta.websocket.server.ServerEndpoint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import solidarityhub.backend.model.GPSCoordinates;
-import solidarityhub.backend.model.Resource;
 import solidarityhub.backend.model.Storage;
-
-import java.util.List;
 
 @NoArgsConstructor
 @Setter
@@ -31,5 +26,17 @@ public class StorageDTO {
         this.id = id;
         this.name = name;
         this.isFull = isFull;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StorageDTO)) return false;
+
+        StorageDTO that = (StorageDTO) o;
+
+        if (id != that.id) return false;
+        if (isFull != that.isFull) return false;
+        return name != null ? name.equals(that.name) : that.name == null;
     }
 }

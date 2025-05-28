@@ -53,7 +53,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
     private final ResourceAssignmentService resourceAssignmentService;
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     protected CatastropheDTO selectedCatastrophe;
     protected TaskComponent taskPreview;
@@ -92,7 +92,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.formatService = FormatService.getInstance();
         this.resourceAssignmentService = new ResourceAssignmentService();
 
-        initializeTranslator();
+        translator.initializeTranslator();
 
         taskName = new TextField(translator.get("preview_task_name"));
         taskDescription = new TextArea(translator.get("preview_task_description"));
@@ -103,17 +103,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation = new TextField(translator.get("preview_meeting_point"));
         volunteerMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_volunteers"));
         needsMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_needs"));
-    }
-
-    protected void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     @Override
@@ -418,68 +407,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         //More volunteers info
-        ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
-            HorizontalLayout layout = new HorizontalLayout();
-            layout.setWidthFull();
-            layout.setAlignItems(Alignment.CENTER);
-
-            VerticalLayout infoLayout = new VerticalLayout();
-            infoLayout.setPadding(false);
-            infoLayout.setSpacing(false);
-
-            Span nameSpan = new Span(volunteer.getFirstName() + " " + volunteer.getLastName());
-            nameSpan.getStyle().set("font-weight", "bold");
-
-            Span emailSpan = new Span(volunteer.getEmail());
-            emailSpan.getStyle().set("font-size", "0.9em");
-            emailSpan.getStyle().set("color", "var(--placeholder-color)");
-
-            infoLayout.add(nameSpan, emailSpan);
-
-            Span availabilityBadge;
-            if(volunteer.getAvailabilityStatus() > 0){
-                availabilityBadge = new Span("Disponible");
-                availabilityBadge.getStyle()
-                        .set("background-color", "var(--lumo-success-color)")
-                        .set("padding", "4px 8px")
-                        .set("border-radius", "4px")
-                        .set("font-size", "0.8em")
-                        .set("font-weight", "bold")
-                        .set("margin-left", "auto")
-                        .set("color", "#F0F6FC");
-
-                layout.add(infoLayout, availabilityBadge);
-
-                layout.getStyle()
-                        .set("border-left", "4px solid var(--lumo-success-color)")
-                        .set("padding", "8px")
-                        .set("border-radius", "4px")
-                        .set("background-color", "rgba(76, 175, 80, 0.1)");
-
-                return layout;
-            }else{
-                availabilityBadge = new Span("No disponible");
-                availabilityBadge.getStyle()
-                        .set("background-color", "var(--lumo-error-color)")
-                        .set("padding", "4px 8px")
-                        .set("border-radius", "4px")
-                        .set("font-size", "0.8em")
-                        .set("font-weight", "bold")
-                        .set("margin-left", "auto")
-                        .set("color", "#F0F6FC");
-
-                layout.add(infoLayout, availabilityBadge);
-
-                layout.getStyle()
-                        .set("border-left", "4px solid var(--lumo-error-color)")
-                        .set("padding", "8px")
-                        .set("border-radius", "4px")
-                        .set("background-color", "rgba(244, 67, 54, 0.1)");
-
-            }
-            return layout;
-        });
-        volunteersListBox.setRenderer(renderer);
+        volunteersListBox.setRenderer(getComponentVolunteerDTOComponentRenderer());
         volunteersListBox.setItems(allVolunteersList);
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
@@ -603,6 +531,70 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         volunteerDialog.add(dialogContent);
 
         return volunteerDialog;
+    }
+
+    private static ComponentRenderer<Component, VolunteerDTO> getComponentVolunteerDTOComponentRenderer() {
+        return new ComponentRenderer<>(volunteer -> {
+            HorizontalLayout layout = new HorizontalLayout();
+            layout.setWidthFull();
+            layout.setAlignItems(Alignment.CENTER);
+
+            VerticalLayout infoLayout = new VerticalLayout();
+            infoLayout.setPadding(false);
+            infoLayout.setSpacing(false);
+
+            Span nameSpan = new Span(volunteer.getFirstName() + " " + volunteer.getLastName());
+            nameSpan.getStyle().set("font-weight", "bold");
+
+            Span emailSpan = new Span(volunteer.getEmail());
+            emailSpan.getStyle().set("font-size", "0.9em");
+            emailSpan.getStyle().set("color", "var(--placeholder-color)");
+
+            infoLayout.add(nameSpan, emailSpan);
+
+            Span availabilityBadge;
+            if(volunteer.getAvailabilityStatus() > 0){
+                availabilityBadge = new Span("Disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-success-color)")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto")
+                        .set("color", "#F0F6FC");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-success-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(76, 175, 80, 0.1)");
+
+                return layout;
+            }else{
+                availabilityBadge = new Span("No disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-error-color)")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto")
+                        .set("color", "#F0F6FC");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-error-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(244, 67, 54, 0.1)");
+
+            }
+            return layout;
+        });
     }
 
     protected Dialog getNeedsDialogContent() {

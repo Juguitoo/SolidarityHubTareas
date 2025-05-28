@@ -16,10 +16,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.server.VaadinSession;
-import solidarityhub.frontend.dto.CatastropheDTO;
-import solidarityhub.frontend.dto.ResourceAssignmentDTO;
-import solidarityhub.frontend.dto.ResourceDTO;
-import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.dto.*;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.ResourceAssignmentService;
@@ -33,12 +30,12 @@ public class AssignResourceDialog extends Dialog {
     private final ResourceAssignmentService assignmentService;
     private final TaskDTO selectedTask;
     private final CatastropheDTO selectedCatastrophe;
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     private List<ResourceAssignmentDTO> resourcesToAssign = new ArrayList<>();
     private Grid<ResourceAssignmentDTO> resourcesGrid;
 
-    private ComboBox<ResourceDTO> resourceComboBox;
+    private ComboBox<ResourceQuantityDTO> resourceComboBox;
     private NumberField quantityField;
 
     public AssignResourceDialog(CatastropheDTO selectedCatastrophe) {
@@ -51,7 +48,7 @@ public class AssignResourceDialog extends Dialog {
 
         resourcesToAssign.addAll(getAssignedResourcesFromSession());
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
     }
 
@@ -69,19 +66,8 @@ public class AssignResourceDialog extends Dialog {
 
         this.resourcesToAssign = new ArrayList<>(uniqueResources);
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void buildView() {
@@ -97,11 +83,11 @@ public class AssignResourceDialog extends Dialog {
     private Component createForm() {
         FormLayout formLayout = new FormLayout();
 
-        List<ResourceDTO> resources = resourceService.getResourcesByCatastropheId(selectedCatastrophe.getId());
 
+        List<ResourceQuantityDTO> availableResources = resourceService.getResourcesAndAvailableQuantities(selectedCatastrophe.getId());
         resourceComboBox = new ComboBox<>(translator.get("select_resource"));
-        resourceComboBox.setItems(resources);
-        resourceComboBox.setItemLabelGenerator(resource -> resource.getName() + " (" + assignmentService.getAvailableQuantity(resource.getId()) + " " + resource.getUnit() + ")");
+        resourceComboBox.setItems(availableResources);
+        resourceComboBox.setItemLabelGenerator(r -> r.getResource().getName() + " (" + r.getAvailableQuantity() + " " + r.getResource().getUnit() + ")");
         resourceComboBox.setRequired(true);
         resourceComboBox.setWidthFull();
 
@@ -109,7 +95,7 @@ public class AssignResourceDialog extends Dialog {
 
         resourceComboBox.addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                ResourceDTO selectedResource = event.getValue();
+                ResourceDTO selectedResource = event.getValue().getResource();
                 unitSpan.setText(selectedResource.getUnit());
 
                 Double available = assignmentService.getAvailableQuantity(selectedResource.getId());
@@ -200,7 +186,7 @@ public class AssignResourceDialog extends Dialog {
 
     //===============================Save Assigned Resources=========================================
     private void addResourceToGrid() {
-        ResourceDTO selectedResource = resourceComboBox.getValue();
+        ResourceDTO selectedResource = resourceComboBox.getValue().getResource();
         double quantity = quantityField.getValue();
 
         if (selectedResource == null || quantity <= 0) {

@@ -27,17 +27,10 @@ public class FilterDonationsDialog extends Dialog {
     private NumberField quantityFilter = new NumberField();
     private IntegerField yearFilter = new IntegerField();
 
-    private final Translator translator;
+    private final Translator translator = new Translator();
 
     public FilterDonationsDialog() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
 
         buildView();
         loadFiltersData();

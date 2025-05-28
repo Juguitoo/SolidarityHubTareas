@@ -81,4 +81,26 @@ public class TaskDTO {
         this.meetingDirection = meetingDirection;
         this.catastropheId = catastropheId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TaskDTO)) return false;
+
+        TaskDTO taskDTO = (TaskDTO) o;
+
+        if (id != taskDTO.id) return false;
+        if (!name.equals(taskDTO.name)) return false;
+        if (!description.equals(taskDTO.description)) return false;
+        if (!startTimeDate.equals(taskDTO.startTimeDate)) return false;
+        if (!estimatedEndTimeDate.equals(taskDTO.estimatedEndTimeDate)) return false;
+        if (type != taskDTO.type) return false;
+        if (priority != taskDTO.priority) return false;
+        if (emergencyLevel != taskDTO.emergencyLevel) return false;
+        if (status != taskDTO.status) return false;
+        if (!needs.equals(taskDTO.needs)) return false;
+        if (!volunteers.equals(taskDTO.volunteers)) return false;
+        if (!meetingDirection.equals(taskDTO.meetingDirection)) return false;
+        return catastropheId != null ? catastropheId.equals(taskDTO.catastropheId) : taskDTO.catastropheId == null;
+    }
 }

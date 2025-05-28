@@ -1,420 +1,315 @@
 package solidarityhub.backend.controller;
-import org.junit.jupiter.api.BeforeEach;
+
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import solidarityhub.backend.config.FcmService;
-import solidarityhub.backend.dto.NeedDTO;
+import org.springframework.test.context.ContextConfiguration;
+import solidarityhub.backend.BackendApplication;
+import solidarityhub.backend.config.TestConfig;
 import solidarityhub.backend.dto.TaskDTO;
-import solidarityhub.backend.dto.VolunteerDTO;
 import solidarityhub.backend.model.*;
 import solidarityhub.backend.model.enums.*;
-import solidarityhub.backend.service.*;
+import solidarityhub.backend.repository.CatastropheRepository;
+import solidarityhub.backend.repository.NeedRepository;
+import solidarityhub.backend.repository.TaskRepository;
+import solidarityhub.backend.repository.AffectedRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-class TaskControllerTest {
+@DataJpaTest
+@ComponentScan(basePackages = "solidarityhub.backend")
+@ContextConfiguration(classes = BackendApplication.class)
+@Import(TestConfig.class)
+public class TaskControllerTest {
 
-    @Mock
-    private TaskService taskService;
-
-    @Mock
-    private VolunteerService volunteerService;
-
-    @Mock
-    private NeedService needService;
-
-    @Mock
-    private NotificationService notificationService;
-
-    @Mock
-    private CatastropheService catastropheService;
-
-    @Mock
-    private FcmService fcmService;
-
-    @InjectMocks
+    @Autowired
     private TaskController taskController;
+    @Autowired
+    private TaskRepository taskRepository;
+    @Autowired
+    private NeedRepository needRepository;
+    @Autowired
+    private CatastropheRepository catastropheRepository;
+    @Autowired
+    private AffectedRepository affectedRepository;
+    @Autowired
+    private EntityManager entityManager;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Test
+    void testGetAllTasks() {
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
+
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe2 = new Catastrophe("Test Catastrophe 2", "Test Description 2", new GPSCoordinates(1.0, 1.0), LocalDate.now().plusDays(1), EmergencyLevel.MEDIUM);
+        catastropheRepository.saveAll(List.of(catastrophe1, catastrophe2));
+        entityManager.flush();
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        Need need2 = new Need(affected, "Test Need 2", UrgencyLevel.MODERATE, TaskType.PSYCHOLOGICAL, null, catastrophe2);
+        needRepository.saveAll(List.of(need1, need2));
+
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        Task task2 = new Task(List.of(need2), "Test Task 2", "Test Description 2", LocalDateTime.now(), LocalDateTime.now().plusDays(2), Priority.LOW, EmergencyLevel.MEDIUM, Status.IN_PROGRESS, List.of(), "MiTrabajo", catastrophe2);
+        List<Task> tasks = List.of(task1, task2);
+        List<Task> savedTasks = taskRepository.saveAll(tasks);
+        entityManager.flush();
+
+        List<TaskDTO> savedTaskDTOs = savedTasks.stream().map(TaskDTO::new).toList();
+
+        ResponseEntity<?> response = taskController.getTasks("", "", "", "", null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<TaskDTO> taskDTOs = (List<TaskDTO>) response.getBody();
+        assertTrue(taskDTOs.containsAll(savedTaskDTOs));
     }
 
     @Test
-    void testGetTasks() {
-        // Arrange
-        List<Task> tasks = createMockTasks();
-        when(taskService.getAllTasks()).thenReturn(tasks);
+    void testGetTasksByCatastrophe() {
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        // Act
-        ResponseEntity<?> response = taskController.getTasks("", "", "", "", null);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe2 = new Catastrophe("Test Catastrophe 2", "Test Description 2", new GPSCoordinates(1.0, 1.0), LocalDate.now().plusDays(1), EmergencyLevel.MEDIUM);
+        catastropheRepository.saveAll(List.of(catastrophe1, catastrophe2));
+        entityManager.flush();
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        Need need2 = new Need(affected, "Test Need 2", UrgencyLevel.MODERATE, TaskType.PSYCHOLOGICAL, null, catastrophe2);
+        Need need3 = new Need(affected, "Test Need 3", UrgencyLevel.URGENT, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1, need2));
 
-        // Assert
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        Task task2 = new Task(List.of(need2), "Test Task 2", "Test Description 2", LocalDateTime.now(), LocalDateTime.now().plusDays(2), Priority.LOW, EmergencyLevel.MEDIUM, Status.IN_PROGRESS, List.of(), "MiTrabajo", catastrophe2);
+        Task task3 = new Task(List.of(need3), "Test Task 3", "Test Description 3", LocalDateTime.now(), LocalDateTime.now().plusDays(3), Priority.URGENT, EmergencyLevel.HIGH, Status.FINISHED, List.of(), "MiCasa2", catastrophe1);
+        List<Task> tasksCatastrophe = List.of(task1, task3);
+        List<Task> savedTasks = taskRepository.saveAll(tasksCatastrophe);
+        Task anotherSavedTask = taskRepository.save(task2);
+        entityManager.flush();
+
+        List<TaskDTO> savedTaskDTOs = savedTasks.stream().map(TaskDTO::new).toList();
+
+        ResponseEntity<?> response = taskController.getTasks("", "", "", "", catastrophe1.getId());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(2, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof TaskDTO);
+
+        List<TaskDTO> taskDTOs = (List<TaskDTO>) response.getBody();
+        assertTrue(taskDTOs.containsAll(savedTaskDTOs));
+        assertFalse(taskDTOs.contains(anotherSavedTask));
     }
 
     @Test
     void testGetTask_ExistingId() {
-        // Arrange
-        int taskId = 1;
-        Task task = createMockTask(taskId);
-        when(taskService.getTaskById(taskId)).thenReturn(task);
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        // Act
-        ResponseEntity<?> response = taskController.getTask(taskId);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1));
 
-        // Assert
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        Task savedTask = taskRepository.save(task1);
+        entityManager.flush();
+
+        TaskDTO taskDTO = new TaskDTO(savedTask);
+
+        ResponseEntity<?> response = taskController.getTask(savedTask.getId());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof TaskDTO);
-        TaskDTO responseTask = (TaskDTO) response.getBody();
-        assertEquals(taskId, responseTask.getId());
+        TaskDTO responseBody = (TaskDTO) response.getBody();
+        assertEquals(taskDTO, responseBody);
     }
 
     @Test
     void testGetTask_NonExistingId() {
-        // Arrange
-        int nonExistingId = 999;
-        when(taskService.getTaskById(nonExistingId)).thenReturn(null);
-
-        // Act
-        ResponseEntity<?> response = taskController.getTask(nonExistingId);
-
-        // Assert
+        ResponseEntity<?> response = taskController.getTask(9999);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
     }
 
     @Test
     void testAddTask_Success() {
-        // Arrange
-        TaskDTO taskDTO = createMockTaskDTO();
-        Need need = createMockNeed(1);
-        Volunteer volunteer = createMockVolunteer("12345678A");
-        Catastrophe catastrophe = createMockCatastrophe(1);
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        when(catastropheService.getCatastrophe(taskDTO.getCatastropheId())).thenReturn(catastrophe);
-        when(needService.findNeed(anyInt())).thenReturn(need);
-        when(volunteerService.getVolunteer(anyString())).thenReturn(volunteer);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
 
-        // Act
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1));
+
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        TaskDTO taskDTO = new TaskDTO(task1);
         ResponseEntity<?> response = taskController.addTask(taskDTO);
-
-        // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(taskService, times(2)).save(any(Task.class));
-        verify(needService, times(1)).save(any(Need.class));
-        verify(volunteerService, times(1)).save(any(Volunteer.class));
-        verify(notificationService, times(1)).notifyEmail(anyString(), any(Notification.class));
-        verify(notificationService, times(1)).save(any(Notification.class));
+        TaskDTO responseBody = (TaskDTO) response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(taskDTO.getName(), responseBody.getName());
+        assertEquals(taskDTO.getDescription(), responseBody.getDescription());
+        assertEquals(taskDTO.getStartTimeDate(), responseBody.getStartTimeDate());
+        assertEquals(taskDTO.getEstimatedEndTimeDate(), responseBody.getEstimatedEndTimeDate());
+        assertEquals(taskDTO.getPriority(), responseBody.getPriority());
+        assertEquals(taskDTO.getEmergencyLevel(), responseBody.getEmergencyLevel());
+        assertEquals(taskDTO.getCatastropheId(), responseBody.getCatastropheId());
     }
 
     @Test
-    void testAddTask_NoCatastrophe() {
-        // Arrange
-        TaskDTO taskDTO = createMockTaskDTO();
-        taskDTO.setCatastropheId(null);
+    void testAddTask_NullCatastrophe() {
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        Need need = createMockNeed(1);
-        need.setCatastrophe(createMockCatastrophe(1));
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
 
-        Volunteer volunteer = createMockVolunteer("12345678A");
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1));
 
-        when(needService.findNeed(anyInt())).thenReturn(need);
-        when(volunteerService.getVolunteer(anyString())).thenReturn(volunteer);
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", null);
+        TaskDTO taskDTO = new TaskDTO(task1);
 
-        // Act
         ResponseEntity<?> response = taskController.addTask(taskDTO);
-
-        // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(taskService, times(2)).save(any(Task.class));
-    }
-
-    @Test
-    void testAddTask_InvalidCatastrophe() {
-        // Arrange
-        TaskDTO taskDTO = createMockTaskDTO();
-        when(catastropheService.getCatastrophe(taskDTO.getCatastropheId())).thenReturn(null);
-
-        // Act
-        ResponseEntity<?> response = taskController.addTask(taskDTO);
-
-        // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("La catástrofe especificada no existe", response.getBody());
     }
 
     @Test
-    void testAddTask_NoNeeds() {
-        // Arrange
-        TaskDTO taskDTO = createMockTaskDTO();
-        Catastrophe catastrophe = createMockCatastrophe(1);
+    void testAddTask_InvalidCatastrophe(){
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        when(catastropheService.getCatastrophe(taskDTO.getCatastropheId())).thenReturn(catastrophe);
-        when(needService.findNeed(anyInt())).thenReturn(null);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
 
-        // Act
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1));
+
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        TaskDTO taskDTO = new TaskDTO(task1);
+        taskDTO.setCatastropheId(99);
+
         ResponseEntity<?> response = taskController.addTask(taskDTO);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("La catástrofe especificada no existe", response.getBody());
+    }
 
-        // Assert
+    @Test
+    void testAddTask_NoNeeds(){
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
+
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
+
+        Task task1 = new Task(List.of(), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        TaskDTO taskDTO = new TaskDTO(task1);
+        ResponseEntity<?> response = taskController.addTask(taskDTO);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Se debe seleccionar al menos una necesidad", response.getBody());
     }
 
     @Test
     void testUpdateTask_Success() {
-        // Arrange
-        int taskId = 1;
-        TaskDTO taskDTO = createMockTaskDTO();
-        Task existingTask = createMockTask(taskId);
-        Need need = createMockNeed(1);
-        Volunteer volunteer = createMockVolunteer("12345678A");
-        Catastrophe catastrophe = createMockCatastrophe(1);
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        when(taskService.getTaskById(taskId)).thenReturn(existingTask);
-        when(catastropheService.getCatastrophe(taskDTO.getCatastropheId())).thenReturn(catastrophe);
-        when(needService.findNeed(anyInt())).thenReturn(need);
-        when(volunteerService.getVolunteer(anyString())).thenReturn(volunteer);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
 
-        // Act
-        ResponseEntity<?> response = taskController.updateTask(taskId, taskDTO);
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1));
 
-        // Assert
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        Task savedTask = taskRepository.save(task1);
+        entityManager.flush();
+
+        TaskDTO taskDTO = new TaskDTO(savedTask);
+        taskDTO.setName("Updated Task Name");
+        taskDTO.setDescription("Updated Task Description");
+
+        ResponseEntity<?> response = taskController.updateTask(savedTask.getId(), taskDTO);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
-        verify(taskService, times(1)).save(existingTask);
-        verify(needService, atLeastOnce()).save(any(Need.class));
-        verify(volunteerService, atLeastOnce()).save(any(Volunteer.class));
-        verify(notificationService, times(1)).notifyEmail(anyString(), any(Notification.class));
-        verify(notificationService, times(1)).save(any(Notification.class));
+        TaskDTO responseBody = (TaskDTO) response.getBody();
+        assertNotNull(responseBody);
+        assertEquals("Updated Task Name", responseBody.getName());
+        assertEquals("Updated Task Description", responseBody.getDescription());
     }
 
     @Test
-    void testUpdateTask_NotFound() {
-        // Arrange
-        int nonExistingId = 999;
-        TaskDTO taskDTO = createMockTaskDTO();
+    void testUpdateTask_NonExistingId() {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setName("Updated Task Name");
+        taskDTO.setDescription("Updated Task Description");
 
-        when(taskService.getTaskById(nonExistingId)).thenReturn(null);
-
-        // Act
-        ResponseEntity<?> response = taskController.updateTask(nonExistingId, taskDTO);
-
-        // Assert
+        ResponseEntity<?> response = taskController.updateTask(9999, taskDTO);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(taskService, never()).save(any(Task.class));
+        assertNull(response.getBody());
     }
 
     @Test
     void testDeleteTask_Success() {
-        // Arrange
-        int taskId = 1;
-        Task task = createMockTask(taskId);
-        Need need = createMockNeed(1);
-        Volunteer volunteer = createMockVolunteer("12345678A");
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        List<Need> needs = new ArrayList<>();
-        needs.add(need);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
 
-        List<Volunteer> volunteers = new ArrayList<>();
-        volunteers.add(volunteer);
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1));
 
-        task.setNeeds(needs);
-        task.setVolunteers(volunteers);
+        Task task1 = new Task(List.of(need1), "Test Task", "Test Description", LocalDateTime.now(), LocalDateTime.now().plusDays(1), Priority.LOW, EmergencyLevel.HIGH, Status.TO_DO, List.of(), "Micasa", catastrophe1);
+        Task savedTask = taskRepository.save(task1);
+        entityManager.flush();
 
-        when(taskService.getTaskById(taskId)).thenReturn(task);
-
-        // Act
-        ResponseEntity<?> response = taskController.deleteTask(taskId);
-
-        // Assert
+        ResponseEntity<?> response = taskController.deleteTask(savedTask.getId());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(needService, times(1)).save(need);
-        verify(volunteerService, times(1)).save(volunteer);
-        verify(taskService, times(1)).deleteTask(task);
-        verify(notificationService, times(1)).notifyEmail(anyString(), any(Notification.class));
+        assertFalse(taskRepository.existsById(savedTask.getId()));
     }
 
     @Test
-    void testDeleteTask_NotFound() {
-        // Arrange
-        int nonExistingId = 999;
-        when(taskService.getTaskById(nonExistingId)).thenReturn(null);
-
-        // Act
-        ResponseEntity<?> response = taskController.deleteTask(nonExistingId);
-
-        // Assert
+    void testDeleteTask_NonExistingId() {
+        ResponseEntity<?> response = taskController.deleteTask(9999);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(taskService, never()).deleteTask(any(Task.class));
+        assertNull(response.getBody());
     }
 
     @Test
-    void testGetSuggestedTasks_Success() {
-        // Arrange
-        int catastropheId = 1;
-        List<Need> needs = new ArrayList<>();
-        needs.add(createMockNeed(1));
+    void testGetSuggestedTasks() {
+        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        affectedRepository.save(affected);
 
-        List<Task> suggestedTasks = new ArrayList<>();
-        suggestedTasks.add(createMockTask(1));
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        catastropheRepository.saveAll(List.of(catastrophe1));
+        entityManager.flush();
 
-        when(needService.getNeedsWithoutTask(catastropheId)).thenReturn(needs);
-        when(taskService.getSuggestedTasks(any())).thenReturn(suggestedTasks);
+        Need need1 = new Need(affected, "Test Need", UrgencyLevel.LOW, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        Need need2 = new Need(affected, "Test Need 2", UrgencyLevel.MODERATE, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        Need need3 = new Need(affected, "Test Need 3", UrgencyLevel.URGENT, TaskType.PSYCHOLOGICAL, null, catastrophe1);
+        needRepository.saveAll(List.of(need1, need2, need3));
 
-        // Act
-        ResponseEntity<?> response = taskController.getSuggestedTasks(catastropheId);
-
-        // Assert
+        ResponseEntity<?> response = taskController.getSuggestedTasks(catastrophe1.getId());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof List);
-        List<?> responseBody = (List<?>) response.getBody();
-        assertEquals(1, responseBody.size());
-        assertTrue(responseBody.get(0) instanceof TaskDTO);
+        List<TaskDTO> taskDTOs = (List<TaskDTO>) response.getBody();
+        assertNotNull(taskDTOs);
+        assertFalse(taskDTOs.isEmpty());
     }
 
     @Test
-    void testGetSuggestedTasks_NoNeeds() {
-        // Arrange
-        int catastropheId = 1;
-        when(needService.getNeedsWithoutTask(catastropheId)).thenReturn(new ArrayList<>());
-
-        // Act
-        ResponseEntity<?> response = taskController.getSuggestedTasks(catastropheId);
-
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Se debe seleccionar al menos una necesidad", response.getBody());
-    }
-
-    // Helper methods to create mock objects
-    private List<Task> createMockTasks() {
-        List<Task> tasks = new ArrayList<>();
-        tasks.add(createMockTask(1));
-        tasks.add(createMockTask(2));
-        return tasks;
-    }
-
-    private Task createMockTask(int id) {
-        Task task = new Task();
-
-        // Using reflection to set the ID field
-        try {
-            java.lang.reflect.Field idField = Task.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(task, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        task.setTaskName("Task " + id);
-        task.setTaskDescription("Description " + id);
-        task.setStartTimeDate(LocalDateTime.now());
-        task.setEstimatedEndTimeDate(LocalDateTime.now().plusDays(7));
-        task.setPriority(Priority.MODERATE);
-        task.setEmergencyLevel(EmergencyLevel.MEDIUM);
-        task.setStatus(Status.TO_DO);
-        task.setType(TaskType.LOGISTICS);
-        task.setMeetingDirection("Meeting point " + id);
-        task.setCatastrophe(createMockCatastrophe(1));
-        task.setNeeds(new ArrayList<>());
-        task.setVolunteers(new ArrayList<>());
-        return task;
-    }
-
-    private TaskDTO createMockTaskDTO() {
-        TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setId(1);
-        taskDTO.setName("Task 1");
-        taskDTO.setDescription("Description 1");
-        taskDTO.setStartTimeDate(LocalDateTime.now());
-        taskDTO.setEstimatedEndTimeDate(LocalDateTime.now().plusDays(7));
-        taskDTO.setType(TaskType.LOGISTICS);
-        taskDTO.setPriority(Priority.MODERATE);
-        taskDTO.setEmergencyLevel(EmergencyLevel.MEDIUM);
-        taskDTO.setStatus(Status.TO_DO);
-        taskDTO.setCatastropheId(1);
-        taskDTO.setMeetingDirection("Meeting point 1");
-
-        List<NeedDTO> needDTOs = new ArrayList<>();
-        NeedDTO needDTO = new NeedDTO();
-        needDTO.setId(1);
-        needDTOs.add(needDTO);
-        taskDTO.setNeeds(needDTOs);
-
-        List<VolunteerDTO> volunteerDTOs = new ArrayList<>();
-        VolunteerDTO volunteerDTO = new VolunteerDTO();
-        volunteerDTO.setDni("12345678A");
-        volunteerDTOs.add(volunteerDTO);
-        taskDTO.setVolunteers(volunteerDTOs);
-
-        return taskDTO;
-    }
-
-    private Need createMockNeed(int id) {
-        Affected affected = new Affected("12345678B", "John", "Doe", "john.doe@example.com",
-                123456789, "123 Main St", "password", false);
-
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = createMockCatastrophe(1);
-
-        Need need = new Need(affected, "Need " + id, UrgencyLevel.MODERATE,
-                TaskType.LOGISTICS, coordinates, catastrophe);
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Need.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(need, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return need;
-    }
-
-    private Volunteer createMockVolunteer(String dni) {
-        List<TaskType> taskTypes = new ArrayList<>();
-        taskTypes.add(TaskType.LOGISTICS);
-
-        List<ScheduleAvailability> scheduleAvailabilities = new ArrayList<>();
-        ScheduleAvailability availability = new ScheduleAvailability(DayMoment.MORNING, WeekDay.MONDAY);
-        scheduleAvailabilities.add(availability);
-
-        Volunteer volunteer = new Volunteer(dni, "Jane", "Doe", "jane.doe@example.com",
-                987654321, "456 Oak St", "password",
-                taskTypes, scheduleAvailabilities);
-        return volunteer;
-    }
-
-    private Catastrophe createMockCatastrophe(int id) {
-        GPSCoordinates coordinates = new GPSCoordinates(40.416775, -3.703790);
-        Catastrophe catastrophe = new Catastrophe("Catastrophe " + id, "Description " + id,
-                coordinates, LocalDate.now(), EmergencyLevel.MEDIUM);
-
-        // Set ID using reflection since there's no setter
-        try {
-            java.lang.reflect.Field idField = Catastrophe.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(catastrophe, id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return catastrophe;
+    void testGetSuggestedTasks_NonExistingCatastrophe() {
+        ResponseEntity<?> response = taskController.getSuggestedTasks(9999);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
     }
 }

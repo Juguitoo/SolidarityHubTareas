@@ -12,11 +12,11 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class HeaderComponent extends Div {
-    private static Translator translator;
+    private static Translator translator = new Translator();
     public Button backButton;
 
     public HeaderComponent(String titleText, String navigateUrl) {
-        initializeTranslator();
+        translator.initializeTranslator();
         addClassName("header");
 
         backButton = new Button(new Icon("vaadin", "arrow-left"));

@@ -31,7 +31,7 @@ import java.util.Locale;
 @Route("add-catastrophe")
 @PageTitle("Añadir Catástrofe")
 public class AddCatastropheView extends VerticalLayout {
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     private TextField nameField;
     private TextArea descriptionField;
@@ -45,20 +45,9 @@ public class AddCatastropheView extends VerticalLayout {
     public AddCatastropheView() {
         this.catastropheService = new CatastropheService();
 
-        initializeTranslator();
+        translator.initializeTranslator();
 
         buildView();
-    }
-
-    protected void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     protected void buildView() {
