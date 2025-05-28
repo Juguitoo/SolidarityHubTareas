@@ -418,8 +418,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         //More volunteers info
-        ComponentRenderer<Component, VolunteerDTO> renderer = getComponentVolunteerDTOComponentRenderer();
-        volunteersListBox.setRenderer(renderer);
+        volunteersListBox.setRenderer(getComponentVolunteerDTOComponentRenderer());
         volunteersListBox.setItems(allVolunteersList);
         tabs.addSelectedChangeListener(event -> {
             String selectedTabName = tabs.getSelectedTab().getLabel();
