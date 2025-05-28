@@ -418,67 +418,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         }
 
         //More volunteers info
-        ComponentRenderer<Component, VolunteerDTO> renderer = new ComponentRenderer<>(volunteer -> {
-            HorizontalLayout layout = new HorizontalLayout();
-            layout.setWidthFull();
-            layout.setAlignItems(Alignment.CENTER);
-
-            VerticalLayout infoLayout = new VerticalLayout();
-            infoLayout.setPadding(false);
-            infoLayout.setSpacing(false);
-
-            Span nameSpan = new Span(volunteer.getFirstName() + " " + volunteer.getLastName());
-            nameSpan.getStyle().set("font-weight", "bold");
-
-            Span emailSpan = new Span(volunteer.getEmail());
-            emailSpan.getStyle().set("font-size", "0.9em");
-            emailSpan.getStyle().set("color", "var(--placeholder-color)");
-
-            infoLayout.add(nameSpan, emailSpan);
-
-            Span availabilityBadge;
-            if(volunteer.getAvailabilityStatus() > 0){
-                availabilityBadge = new Span("Disponible");
-                availabilityBadge.getStyle()
-                        .set("background-color", "var(--lumo-success-color)")
-                        .set("padding", "4px 8px")
-                        .set("border-radius", "4px")
-                        .set("font-size", "0.8em")
-                        .set("font-weight", "bold")
-                        .set("margin-left", "auto")
-                        .set("color", "#F0F6FC");
-
-                layout.add(infoLayout, availabilityBadge);
-
-                layout.getStyle()
-                        .set("border-left", "4px solid var(--lumo-success-color)")
-                        .set("padding", "8px")
-                        .set("border-radius", "4px")
-                        .set("background-color", "rgba(76, 175, 80, 0.1)");
-
-                return layout;
-            }else{
-                availabilityBadge = new Span("No disponible");
-                availabilityBadge.getStyle()
-                        .set("background-color", "var(--lumo-error-color)")
-                        .set("padding", "4px 8px")
-                        .set("border-radius", "4px")
-                        .set("font-size", "0.8em")
-                        .set("font-weight", "bold")
-                        .set("margin-left", "auto")
-                        .set("color", "#F0F6FC");
-
-                layout.add(infoLayout, availabilityBadge);
-
-                layout.getStyle()
-                        .set("border-left", "4px solid var(--lumo-error-color)")
-                        .set("padding", "8px")
-                        .set("border-radius", "4px")
-                        .set("background-color", "rgba(244, 67, 54, 0.1)");
-
-            }
-            return layout;
-        });
+        ComponentRenderer<Component, VolunteerDTO> renderer = getComponentVolunteerDTOComponentRenderer();
         volunteersListBox.setRenderer(renderer);
         volunteersListBox.setItems(allVolunteersList);
         tabs.addSelectedChangeListener(event -> {
@@ -603,6 +543,70 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         volunteerDialog.add(dialogContent);
 
         return volunteerDialog;
+    }
+
+    private static ComponentRenderer<Component, VolunteerDTO> getComponentVolunteerDTOComponentRenderer() {
+        return new ComponentRenderer<>(volunteer -> {
+            HorizontalLayout layout = new HorizontalLayout();
+            layout.setWidthFull();
+            layout.setAlignItems(Alignment.CENTER);
+
+            VerticalLayout infoLayout = new VerticalLayout();
+            infoLayout.setPadding(false);
+            infoLayout.setSpacing(false);
+
+            Span nameSpan = new Span(volunteer.getFirstName() + " " + volunteer.getLastName());
+            nameSpan.getStyle().set("font-weight", "bold");
+
+            Span emailSpan = new Span(volunteer.getEmail());
+            emailSpan.getStyle().set("font-size", "0.9em");
+            emailSpan.getStyle().set("color", "var(--placeholder-color)");
+
+            infoLayout.add(nameSpan, emailSpan);
+
+            Span availabilityBadge;
+            if(volunteer.getAvailabilityStatus() > 0){
+                availabilityBadge = new Span("Disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-success-color)")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto")
+                        .set("color", "#F0F6FC");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-success-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(76, 175, 80, 0.1)");
+
+                return layout;
+            }else{
+                availabilityBadge = new Span("No disponible");
+                availabilityBadge.getStyle()
+                        .set("background-color", "var(--lumo-error-color)")
+                        .set("padding", "4px 8px")
+                        .set("border-radius", "4px")
+                        .set("font-size", "0.8em")
+                        .set("font-weight", "bold")
+                        .set("margin-left", "auto")
+                        .set("color", "#F0F6FC");
+
+                layout.add(infoLayout, availabilityBadge);
+
+                layout.getStyle()
+                        .set("border-left", "4px solid var(--lumo-error-color)")
+                        .set("padding", "8px")
+                        .set("border-radius", "4px")
+                        .set("background-color", "rgba(244, 67, 54, 0.1)");
+
+            }
+            return layout;
+        });
     }
 
     protected Dialog getNeedsDialogContent() {
