@@ -44,7 +44,7 @@ public class SuggestedTasks extends VerticalLayout {
     private void buildView() {
         addClassName("suggested-tasks-view");
 
-        HeaderComponent header = new HeaderComponent(translator.get("suggested_tasks_button"), "tasks");
+        HeaderComponent header = new HeaderComponent(translator.get("suggested_tasks_button"), "window.history.back()");
 
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);

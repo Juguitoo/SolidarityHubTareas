@@ -129,7 +129,7 @@ vaadin-app-layout::part(content) {
 
 /* ============================== NAVEGACIÓN ============================== */
 .nav-scroller {
-  width: 80%;
+  width: 90%;
   margin-top: 1rem;
   padding: var(--lumo-space-s);
   flex: 1;
@@ -145,7 +145,7 @@ vaadin-side-nav-item {
   display: flex;
   align-items: center;
   height: var(--nav-item-height);
-  padding: 0 var(--lumo-space-m);
+  padding-left: var(--lumo-space-m);
   color: var(--text-color);
   margin-bottom: var(--lumo-space-xs);
   border-radius: var(--lumo-border-radius-m);
@@ -171,6 +171,7 @@ vaadin-side-nav-item::part(link),
 vaadin-side-nav-item[current]::part(link) {
   background-color: transparent;
   color: var(--text-color);
+  width: 100%;
 }
 
 .nav-item__icon {
@@ -316,12 +317,126 @@ vaadin-side-nav-item[current]::part(link) {
 
 /* ============================== RESPONSIVE ============================== */
 @media (max-width: 800px) {
-  .drawer-content:not(.drawer-minimized) {
-    width: 100vw !important;
-    max-width: 100vw !important;
+  /* Forzar que el drawer esté siempre cerrado en móvil */
+  vaadin-app-layout[drawer-opened] {
+    --_vaadin-app-layout-drawer-width: 0px !important;
   }
 
-  .drawer-minimized {
-    overflow-x: hidden !important;
+  /* El contenido principal siempre ocupa todo el ancho */
+  vaadin-app-layout::part(content) {
+    margin-left: 0 !important;
+    transition: none !important;
+  }
+
+  /* Hacer que el drawer sea un overlay */
+  vaadin-app-layout::part(drawer) {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: 1000;
+    transition: left var(--transition-duration) var(--transition-easing);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Drawer visible cuando AppLayout tiene drawer-opened */
+  vaadin-app-layout[drawer-opened]::part(drawer) {
+    left: 0 !important;
+  }
+
+  /* Botón hamburger personalizado */
+  .mobile-menu-button {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    color: white;
+    display: none;
+  }
+
+  .mobile-menu-button vaadin-icon {
+    --vaadin-icon-width: 20px;
+    --vaadin-icon-height: 20px;
+  }
+
+  /* Mostrar botón hamburger solo en móvil */
+  .mobile-menu-button {
+    display: flex;
+  }
+
+  /* Overlay de fondo */
+  .mobile-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .mobile-drawer-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Asegurar que el drawer no esté minimizado en móvil */
+  .drawer-content.drawer-minimized {
+    width: 280px;
+    --_vaadin-app-layout-drawer-width: 0px;
+  }
+
+  .drawer-minimized .selected-catastrophe-info {
+    max-height: none;
+    padding: var(--lumo-space-m);
+    opacity: 1;
+    overflow: visible;
+  }
+
+  .drawer-minimized .side-nav span {
+    display: block;
+  }
+
+  .drawer-minimized .side-nav .nav-item {
+    justify-content: flex-start;
+    padding: 0 var(--lumo-space-m);
+  }
+
+  .drawer-minimized .side-nav .nav-item [slot="prefix"],
+  .drawer-minimized .side-nav .nav-item .nav-icon {
+    margin-right: var(--lumo-space-s);
+  }
+
+  .drawer-minimized .app-name {
+    display: block;
+  }
+
+  .drawer-minimized .drawer-header {
+    padding: var(--lumo-space-m);
+    justify-content: flex-start;
+  }
+
+  .drawer-minimized .logo-button {
+    margin-left: 0;
+  }
+
+  /* Ocultar botón de minimizar en móvil */
+  .minimize-button {
+    display: none !important;
+  }
+
+  /* Ajustar footer para móvil */
+  .drawer-footer {
+    justify-content: center;
   }
 }

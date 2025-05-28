@@ -231,7 +231,7 @@ public class NotificationView extends VerticalLayout {
         helpText.addClassName("help-text");
 
         Button suggestedTasksButton = new Button(translator.get("go_to_suggested_tasks"), new Icon(VaadinIcon.ARROW_RIGHT));
-        suggestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("suggested-tasks"));
+        suggestedTasksButton.addClickListener(e -> UI.getCurrent().navigate("tasks/suggested-tasks"));
 
         emptyState.add(infoIcon, noNotificationsTitle, helpText, suggestedTasksButton);
         return emptyState;
