@@ -35,7 +35,7 @@ public class CatastropheView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final Logger LOGGER = Logger.getLogger(CatastropheView.class.getName());
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     private final CatastropheService catastropheService;
     private final TaskService taskService;
@@ -45,14 +45,8 @@ public class CatastropheView extends VerticalLayout {
         this.taskService = new TaskService();
 
         VaadinSession.getCurrent().setAttribute("cache", true);
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+
+        translator.initializeTranslator();
 
         buildView();
     }

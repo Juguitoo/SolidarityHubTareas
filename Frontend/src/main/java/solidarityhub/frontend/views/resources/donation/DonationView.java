@@ -49,7 +49,7 @@ public class DonationView extends VerticalLayout {
     public static String quantityFilterValue = "";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private final Translator translator;
+    private final Translator translator = new Translator();
 
     public DonationView(CatastropheDTO catastrophe) {
         this.donationService = new DonationService();
@@ -58,14 +58,7 @@ public class DonationView extends VerticalLayout {
 
         this.donationGrid = new Grid<>(DonationDTO.class, false);
 
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
 
         buildView();
     }

@@ -31,7 +31,7 @@ public class StorageView extends VerticalLayout {
     private Grid.Column<StorageDTO> nameColumn;
     private Grid.Column<StorageDTO> statusColumn;
 
-    private final Translator translator;
+    private final Translator translator = new Translator();
 
     public StorageView(CatastropheDTO catastrophe) {
         this.storageService = new StorageService();
@@ -41,14 +41,7 @@ public class StorageView extends VerticalLayout {
 
         this.storageGrid = new Grid<>(StorageDTO.class, false);
 
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
 
         buildView();
     }

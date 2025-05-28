@@ -39,7 +39,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
     private final NeedService needService;
     private final FormatService formatService;
     private CatastropheDTO selectedCatastrophe;
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -50,18 +50,7 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
         this.needService = new NeedService();
         this.formatService = FormatService.getInstance();
 
-        initializeTranslator();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
     }
 
     @Override

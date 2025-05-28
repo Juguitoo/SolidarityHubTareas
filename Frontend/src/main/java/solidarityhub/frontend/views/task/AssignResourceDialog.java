@@ -30,7 +30,7 @@ public class AssignResourceDialog extends Dialog {
     private final ResourceAssignmentService assignmentService;
     private final TaskDTO selectedTask;
     private final CatastropheDTO selectedCatastrophe;
-    private static Translator translator;
+    private static Translator translator = new Translator();
 
     private List<ResourceAssignmentDTO> resourcesToAssign = new ArrayList<>();
     private Grid<ResourceAssignmentDTO> resourcesGrid;
@@ -48,7 +48,7 @@ public class AssignResourceDialog extends Dialog {
 
         resourcesToAssign.addAll(getAssignedResourcesFromSession());
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
     }
 
@@ -66,19 +66,8 @@ public class AssignResourceDialog extends Dialog {
 
         this.resourcesToAssign = new ArrayList<>(uniqueResources);
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void buildView() {

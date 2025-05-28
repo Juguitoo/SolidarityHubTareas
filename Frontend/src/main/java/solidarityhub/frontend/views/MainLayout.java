@@ -32,10 +32,10 @@ public class MainLayout extends AppLayout {
     private Button minimizeButton;
     private Button logOutButton;
 
-    private Translator translator;
+    private Translator translator = new Translator();
 
     public MainLayout() {
-        initializeTranslator();
+        translator.initializeTranslator();
 
         setPrimarySection(Section.DRAWER);
         addClassName("main-layout");

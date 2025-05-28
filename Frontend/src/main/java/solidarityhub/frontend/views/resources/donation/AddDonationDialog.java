@@ -32,7 +32,7 @@ public class AddDonationDialog extends Dialog {
 
     protected final DonationService donationService;
     protected final DonorService donorService;
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     protected final CatastropheDTO selectedCatastrophe;
     protected DonationDTO donation;
@@ -57,19 +57,8 @@ public class AddDonationDialog extends Dialog {
         this.selectedCatastrophe = selectedCatastrophe;
         this.donation = donation;
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     protected void buildView() {

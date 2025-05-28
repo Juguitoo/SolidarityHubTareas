@@ -53,7 +53,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
     private final ResourceAssignmentService resourceAssignmentService;
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     protected CatastropheDTO selectedCatastrophe;
     protected TaskComponent taskPreview;
@@ -92,7 +92,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         this.formatService = FormatService.getInstance();
         this.resourceAssignmentService = new ResourceAssignmentService();
 
-        initializeTranslator();
+        translator.initializeTranslator();
 
         taskName = new TextField(translator.get("preview_task_name"));
         taskDescription = new TextArea(translator.get("preview_task_description"));
@@ -103,17 +103,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation = new TextField(translator.get("preview_meeting_point"));
         volunteerMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_volunteers"));
         needsMultiSelectComboBox = new MultiSelectComboBox<>(translator.get("preview_needs"));
-    }
-
-    protected void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     @Override

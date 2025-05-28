@@ -24,7 +24,7 @@ import java.util.Objects;
 @PageTitle("Suggested Tasks")
 @Route("tasks/suggested-tasks")
 public class SuggestedTasks extends VerticalLayout {
-    private static Translator translator;
+    private static Translator translator = new Translator();
     private final TaskService taskService;
     private final NeedService needService;
     private final CatastropheDTO selectedCatastrophe;
@@ -32,7 +32,7 @@ public class SuggestedTasks extends VerticalLayout {
 
     @Autowired
     public SuggestedTasks(TaskService taskService, NeedService needService) {
-        initializeTranslator();
+        translator.initializeTranslator();
 
         this.taskService = taskService;
         this.needService = needService;
@@ -49,17 +49,6 @@ public class SuggestedTasks extends VerticalLayout {
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
         add(header, getSuggestedTasks());
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private VerticalLayout getSuggestedTasks() {

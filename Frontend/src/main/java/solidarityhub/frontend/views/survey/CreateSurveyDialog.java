@@ -5,8 +5,8 @@ import solidarityhub.frontend.i18n.Translator;
 
 public class CreateSurveyDialog extends AbstractSurveyDialog {
     
-    public CreateSurveyDialog(Translator translator) {
-        super(translator);
+    public CreateSurveyDialog() {
+        super();
         initializeDialog();
     }
     

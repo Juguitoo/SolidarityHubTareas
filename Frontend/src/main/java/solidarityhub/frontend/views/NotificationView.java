@@ -32,7 +32,7 @@ import java.util.Locale;
 @Route("notifications")
 @PageTitle("Notificaciones")
 public class NotificationView extends VerticalLayout {
-    private static Translator translator;
+    private static Translator translator = new Translator();
     private final NotificationService notificationService;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private VerticalLayout notificationsContainer;
@@ -40,7 +40,7 @@ public class NotificationView extends VerticalLayout {
 
     public NotificationView(NotificationService notificationService) {
         this.notificationService = notificationService;
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
     }
 

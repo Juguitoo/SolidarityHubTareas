@@ -29,7 +29,7 @@ public class AddResourceDialog extends Dialog {
     protected final ResourceService resourceService;
     protected final StorageService storageService;
     protected final CatastropheDTO selectedCatastrophe;
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     protected TextField nameField;
     protected Select<ResourceType> typeField;
@@ -49,19 +49,8 @@ public class AddResourceDialog extends Dialog {
         this.selectedCatastrophe = selectedCatastrophe;
         this.resource = resource;
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildView();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     public void buildView() {

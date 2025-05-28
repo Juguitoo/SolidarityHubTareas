@@ -41,7 +41,7 @@ import java.util.Optional;
 @PageTitle("Tareas")
 @Route("tasks")
 public class TaskView extends VerticalLayout implements BeforeEnterObserver {
-    protected static Translator translator;
+    protected static Translator translator = new Translator();
 
     private final TaskService taskService;
     private final FormatService formatService;
@@ -49,16 +49,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private CatastropheDTO selectedCatastrophe;
 
     public TaskView() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
-
-        //BackendDTOObservableService.GetInstancia().getTaskList().getValues().attach(this, ObserverChange.ADD_ALL);
+        translator.initializeTranslator();
 
         this.taskService = new TaskService();
         this.formatService = FormatService.getInstance();

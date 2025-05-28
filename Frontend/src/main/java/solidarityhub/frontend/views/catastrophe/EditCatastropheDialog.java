@@ -27,7 +27,7 @@ import java.util.Locale;
 
 public class EditCatastropheDialog extends Dialog {
 
-    private static Translator translator;
+    private static Translator translator = new Translator();
     private final CatastropheService catastropheService;
     private final CatastropheDTO catastrophe;
 
@@ -45,19 +45,8 @@ public class EditCatastropheDialog extends Dialog {
         this.catastrophe = catastrophe;
         this.catastropheService = new CatastropheService();
 
-        initializeTranslator();
+        translator.initializeTranslator();
         buildDialog();
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private void buildDialog() {

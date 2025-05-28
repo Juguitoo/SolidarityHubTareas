@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class FilterMoreTasksDialog extends Dialog {
-    private final Translator translator;
+    private final Translator translator = new Translator();
     private final FormatService formatService;
 
     private final Select<Status> statusFilter = new Select<>();
@@ -33,14 +33,7 @@ public class FilterMoreTasksDialog extends Dialog {
 
 
     public FilterMoreTasksDialog() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        }else{
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
+        translator.initializeTranslator();
         this.formatService = FormatService.getInstance();
 
         buildView();
