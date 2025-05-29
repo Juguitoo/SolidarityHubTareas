@@ -13,6 +13,7 @@ import solidarityhub.backend.repository.DonorRepository;
 import solidarityhub.backend.repository.PersonRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,24 +80,33 @@ public class DonationService {
 
     public List<Donation> filter(String type, String status, String minQuantity, String year, Integer catastropheId) {
         List<Donation> donations = donationRepository.findByCatastropheId(catastropheId);
-        DonationFilter filter = null;
 
-        if (type != null)
-            filter = new TypeFilter(DonationType.valueOf(type));
-        if (minQuantity != null)
-            if (filter != null) filter = new AndFilter(filter, new MinQuantityFilter(Double.parseDouble(minQuantity)));
-            else filter = new MinQuantityFilter(Double.parseDouble(minQuantity));
-        if (year != null)
-            if (filter != null) filter = new AndFilter(filter, new DateFilter(Integer.parseInt(year)));
-            else filter = new DateFilter(Integer.parseInt(year));
-        if (status != null)
-            if (filter != null) filter = new AndFilter(filter, new StatusFilter(DonationStatus.valueOf(status)));
-            else filter = new StatusFilter(DonationStatus.valueOf(status));
+        List<DonationFilter> filters = new ArrayList<>();
 
-        if (filter != null) {
-            donations = filter.filter(donations);
+        if (type != null) {
+            filters.add(new TypeFilter(DonationType.valueOf(type)));
+        }
+        if (minQuantity != null) {
+            filters.add(new MinQuantityFilter(Double.parseDouble(minQuantity)));
+        }
+        if (year != null) {
+            filters.add(new DateFilter(Integer.parseInt(year)));
+        }
+        if (status != null) {
+            filters.add(new StatusFilter(DonationStatus.valueOf(status)));
         }
 
-        return donations;
+        DonationFilter composedFilter = composeFilters(filters);
+        return composedFilter != null ? composedFilter.filter(donations) : donations;
     }
+
+    private DonationFilter composeFilters(List<DonationFilter> filters) {
+        if (filters.isEmpty()) return null;
+        DonationFilter result = filters.get(0);
+        for (int i = 1; i < filters.size(); i++) {
+            result = new AndFilter(result, filters.get(i));
+        }
+        return result;
+    }
+
 }
