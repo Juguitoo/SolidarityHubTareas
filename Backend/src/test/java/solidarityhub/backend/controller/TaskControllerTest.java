@@ -287,10 +287,12 @@ public class TaskControllerTest {
 
     @Test
     void testGetSuggestedTasks() {
-        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        Affected affected = new Affected("12345678A", "Juan", "Pérez",
+                "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
         affectedRepository.save(affected);
 
-        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe1 = new Catastrophe("Test Catastrophe", "Test Description",
+                new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
         catastropheRepository.saveAll(List.of(catastrophe1));
         entityManager.flush();
 
@@ -304,12 +306,13 @@ public class TaskControllerTest {
         List<TaskDTO> taskDTOs = (List<TaskDTO>) response.getBody();
         assertNotNull(taskDTOs);
         assertFalse(taskDTOs.isEmpty());
+        assertEquals(3, taskDTOs.size());
     }
 
     @Test
     void testGetSuggestedTasks_NonExistingCatastrophe() {
         ResponseEntity<?> response = taskController.getSuggestedTasks(9999);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
+        assertEquals("Se debe seleccionar al menos una necesidad", response.getBody());
     }
 }

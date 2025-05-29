@@ -104,10 +104,12 @@ public class NeedControllerTest {
 
     @Test
     void testGetNeedsWithoutTaskCount() {
-        Affected affected = new Affected("12345678A", "Juan", "Pérez", "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
+        Affected affected = new Affected("12345678A", "Juan", "Pérez",
+                "juan.perez@example.com", 987654321, "Calle Falsa 123", "password123", false);
         affectedRepository.save(affected);
 
-        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Test Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Test Description",
+                new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
         catastropheRepository.save(catastrophe);
 
         Task task1 = new Task();

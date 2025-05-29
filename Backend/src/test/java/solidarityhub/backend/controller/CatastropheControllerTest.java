@@ -37,8 +37,10 @@ public class CatastropheControllerTest {
 
     @Test
     public void testGetCatastrophes() {
-        Catastrophe catastrophe1 = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
-        Catastrophe catastrophe2 = new Catastrophe("catastrophe2", "description2", new GPSCoordinates(23.45, 67.89), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe1 = new Catastrophe("catastrophe1", "description1",
+                new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe catastrophe2 = new Catastrophe("catastrophe2", "description2",
+                new GPSCoordinates(23.45, 67.89), LocalDate.now(), EmergencyLevel.HIGH);
         List<Catastrophe> catastropheList = List.of(catastrophe1, catastrophe2);
         List<Catastrophe> savedCatastrophes = catastropheRepository.saveAll(catastropheList);
         entityManager.flush();
@@ -51,10 +53,7 @@ public class CatastropheControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody() instanceof List);
         List<CatastropheDTO> responseBody = (List<CatastropheDTO>) response.getBody();
-        for( CatastropheDTO catastropheDTO : responseBody) {
-            assertInstanceOf(CatastropheDTO.class, catastropheDTO);
-            assertTrue(savedDTOs.contains(catastropheDTO));
-        }
+        assertTrue(savedDTOs.containsAll(responseBody));
     }
 
     @Test
@@ -81,7 +80,8 @@ public class CatastropheControllerTest {
 
     @Test
     public void testAddCatastrophe() {
-        Catastrophe catastrophe = new Catastrophe("New Catastrophe", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe catastrophe = new Catastrophe("New Catastrophe", "description1",
+                new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
         CatastropheDTO catastropheDTO = new CatastropheDTO(catastrophe);
 
         ResponseEntity<?> response = catastropheController.addCatastrophe(catastropheDTO);
@@ -100,7 +100,8 @@ public class CatastropheControllerTest {
 
     @Test
     void testUpdateCatastrophe_Success() {
-        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1",
+                new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
         Catastrophe savedCatastrophe = catastropheRepository.save(catastrophe);
         entityManager.flush();
 
@@ -133,7 +134,8 @@ public class CatastropheControllerTest {
 
     @Test
     void testDeleteCatastrophe_ExistingId() {
-        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1", new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
+        Catastrophe catastrophe = new Catastrophe("catastrophe1", "description1",
+                new GPSCoordinates(12.34, 56.78), LocalDate.now(), EmergencyLevel.MEDIUM);
         Catastrophe savedCatastrophe = catastropheRepository.save(catastrophe);
         entityManager.flush();
 

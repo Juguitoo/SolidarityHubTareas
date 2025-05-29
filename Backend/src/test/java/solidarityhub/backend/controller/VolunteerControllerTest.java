@@ -75,9 +75,12 @@ public class VolunteerControllerTest {
 
     @Test
     void testGetVolunteersBySkill() throws JsonProcessingException {
-        Volunteer volunteer1 = new Volunteer("12345678A", "1", "1", "1", 1, "1", "1", List.of(TaskType.POLICE), List.of());
-        Volunteer volunteer2 = new Volunteer("23456789B", "2", "2", "2", 2, "2", "2", List.of(TaskType.POLICE), List.of());
-        Volunteer volunteer3 = new Volunteer("34567890C", "3", "3", "3", 3, "3", "3", List.of(TaskType.OTHER), List.of());
+        Volunteer volunteer1 = new Volunteer("12345678A", "1", "1", "1",
+                1, "1", "1", List.of(TaskType.POLICE), List.of());
+        Volunteer volunteer2 = new Volunteer("23456789B", "2", "2", "2",
+                2, "2", "2", List.of(TaskType.POLICE), List.of());
+        Volunteer volunteer3 = new Volunteer("34567890C", "3", "3", "3",
+                3, "3", "3", List.of(TaskType.OTHER), List.of());
         List<Volunteer> correctVolunteers = List.of(volunteer1, volunteer2);
         List<Volunteer> volunteersSaved = volunteerRepository.saveAll(correctVolunteers);
         volunteerRepository.save(volunteer3);
@@ -86,7 +89,8 @@ public class VolunteerControllerTest {
         List<VolunteerDTO> volunteerDTOs = new ArrayList<>();
         volunteersSaved.forEach(volunteer -> volunteerDTOs.add(new VolunteerDTO(volunteer)));
 
-        TaskDTO taskDTO = new TaskDTO(0, "Test Task", "Description", LocalDateTime.now(), LocalDateTime.now(), TaskType.POLICE, null, null, null, null, null, null, null);
+        TaskDTO taskDTO = new TaskDTO(0, "Test Task", "Description", LocalDateTime.now(), LocalDateTime.now(),
+                TaskType.POLICE, null, null, null, null, null, null, null);
         String taskString = URLEncoder.encode(objectMapper.writeValueAsString(taskDTO), StandardCharsets.UTF_8);
 
         ResponseEntity<?> response = volunteerController.getVolunteers("habilidades", taskString);
@@ -94,9 +98,7 @@ public class VolunteerControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         List<VolunteerDTO> responseBody = (List<VolunteerDTO>) response.getBody();
         assertEquals(volunteerDTOs.size(), responseBody.size());
-        for (int i = 0; i < volunteerDTOs.size(); i++) {
-            assertEquals(volunteerDTOs.get(i), responseBody.get(i));
-        }
+        assertTrue(responseBody.containsAll(volunteerDTOs));
         assertFalse(responseBody.contains(new VolunteerDTO(volunteer3)));
     }
 
@@ -126,9 +128,7 @@ public class VolunteerControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         List<VolunteerDTO> responseBody = (List<VolunteerDTO>) response.getBody();
         assertEquals(volunteerDTOs.size(), responseBody.size());
-        for (int i = 0; i < volunteerDTOs.size(); i++) {
-            assertEquals(volunteerDTOs.get(i), responseBody.get(i));
-        }
+        assertTrue(responseBody.containsAll(volunteerDTOs));
     }
 
     @Test

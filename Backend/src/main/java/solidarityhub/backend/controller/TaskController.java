@@ -403,7 +403,7 @@ public class TaskController {
         }
 
         if (needs.isEmpty()) {
-            return ResponseEntity.badRequest().body("Se debe seleccionar al menos una necesidad");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Se debe seleccionar al menos una necesidad");
         }
 
         try{

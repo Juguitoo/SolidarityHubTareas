@@ -73,13 +73,18 @@ public class DonationControllerTest {
     void testGetDonationWithFilters() {
         Donor donor = new Donor("12345678A", "Donor 1");
         donorRepository.save(donor);
-        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Description",
+                new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
         catastropheRepository.save(catastrophe);
 
-        Donation donation1 = new Donation(DonationType.SERVICE, "Test Donation 1", LocalDate.now(), DonationStatus.SCHEDULED, donor, catastrophe, 5.0, "kg");
-        Donation donation2 = new Donation(DonationType.MATERIAL, "Test Donation 2", LocalDate.now(), DonationStatus.IN_PROGRESS, donor, null, 1.0, "kg");
-        Donation donation3 = new Donation(DonationType.MATERIAL, "Test Donation 3", LocalDate.now(), DonationStatus.COMPLETED, donor, catastrophe, 10.0, "kg");
-        Donation donation4 = new Donation(DonationType.MATERIAL, "Test Donation 4", LocalDate.now(), DonationStatus.COMPLETED, donor, catastrophe, 2.0, "kg");
+        Donation donation1 = new Donation(DonationType.SERVICE, "Test Donation 1", LocalDate.now(),
+                DonationStatus.SCHEDULED, donor, catastrophe, 5.0, "kg");
+        Donation donation2 = new Donation(DonationType.MATERIAL, "Test Donation 2", LocalDate.now(),
+                DonationStatus.IN_PROGRESS, donor, null, 1.0, "kg");
+        Donation donation3 = new Donation(DonationType.MATERIAL, "Test Donation 3", LocalDate.now(),
+                DonationStatus.COMPLETED, donor, catastrophe, 10.0, "kg");
+        Donation donation4 = new Donation(DonationType.MATERIAL, "Test Donation 4", LocalDate.now(),
+                DonationStatus.COMPLETED, donor, catastrophe, 2.0, "kg");
 
         List<Donation> savedDonations = donationRepository.saveAll(List.of(donation1, donation2, donation3, donation4));
         entityManager.flush();
@@ -155,10 +160,12 @@ public class DonationControllerTest {
     void testCreateDonation_Success() {
         Donor donor = new Donor("12345678A", "Donor 1");
         donorRepository.save(donor);
-        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Description", new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
+        Catastrophe catastrophe = new Catastrophe("Test Catastrophe", "Description",
+                new GPSCoordinates(0.0, 0.0), LocalDate.now(), EmergencyLevel.HIGH);
         catastropheRepository.save(catastrophe);
 
-        Donation donation1 = new Donation(DonationType.MATERIAL, "Test Donation 1", LocalDate.now(), DonationStatus.COMPLETED, donor, catastrophe, 5.0, "kg");
+        Donation donation1 = new Donation(DonationType.MATERIAL, "Test Donation 1", LocalDate.now(),
+                DonationStatus.COMPLETED, donor, catastrophe, 5.0, "kg");
         DonationDTO donationDTO = new DonationDTO(donation1);
 
         ResponseEntity<?> response = donationController.createDonation(donationDTO);
@@ -193,7 +200,8 @@ public class DonationControllerTest {
     void testUpdateDonation_Success() {
         Donor donor = new Donor("12345678A", "Donor 1");
         donorRepository.save(donor);
-        Donation donation = new Donation(DonationType.MATERIAL, "Test Donation", LocalDate.now(), DonationStatus.COMPLETED, donor, null, 0.0, "kg");
+        Donation donation = new Donation(DonationType.MATERIAL, "Test Donation", LocalDate.now(),
+                DonationStatus.COMPLETED, donor, null, 0.0, "kg");
         Donation savedDonation = donationRepository.save(donation);
         entityManager.flush();
 
