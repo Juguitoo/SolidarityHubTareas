@@ -27,9 +27,12 @@ public class ResourceAssignmentService {
 
     public ResourceAssignment assignResourceToTask(int resourceId, int taskId, double quantity, String units) {
         Resource resource = resourceRepository.findById(resourceId).orElse(null);
-        Task task = taskRepository.findById(taskId).orElse(null);
+        if (resource == null) {
+            return null;
+        }
 
-        if (resource == null || task == null) {
+        Task task = taskRepository.findById(taskId).orElse(null);
+        if (task == null) {
             return null;
         }
 
@@ -49,6 +52,7 @@ public class ResourceAssignmentService {
 
         return assignmentRepository.save(assignment);
     }
+
 
     public List<ResourceAssignment> getAssignmentsByTask(int taskId) {
         return assignmentRepository.findByTaskId(taskId);

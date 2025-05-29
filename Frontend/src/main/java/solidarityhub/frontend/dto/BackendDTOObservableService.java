@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.pingu.web.BackendObservableService.BackendObservableService;
 import org.pingu.web.BackendObservableService.Singleton;
-import org.pingu.web.BackendObservableService.observableList.concrete.DTOObservableList;
+import org.pingu.web.BackendObservableService.observableList.DTOObservableList;
 import org.springframework.core.ParameterizedTypeReference;
 
 @Getter
