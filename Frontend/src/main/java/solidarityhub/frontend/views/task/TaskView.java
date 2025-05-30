@@ -50,9 +50,9 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     public TaskView() {
         translator.initializeTranslator();
+        this.formatService = FormatService.getInstance();
 
         this.taskService = new TaskService();
-        this.formatService = FormatService.getInstance();
         this.catastropheService = new CatastropheService();
     }
 
@@ -254,7 +254,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                         updateTaskContainers(taskId, oldStatus, newStatus);
 
                         // Mostrar notificación de éxito
-                        Notification.show("Tarea movida a " + formatStatus(newStatus),
+                        Notification.show("Tarea movida a " + formatService.formatTaskStatus(newStatus),
                                         2000, Notification.Position.BOTTOM_START)
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     });
@@ -344,14 +344,6 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                 container.remove(comp);
             }
         }
-    }
-
-    private String formatStatus(Status status) {
-        return switch (status) {
-            case TO_DO -> translator.get("todo_tasks");
-            case IN_PROGRESS -> translator.get("in_progress_tasks");
-            case FINISHED -> translator.get("terminated_tasks");
-        };
     }
 
     private Optional<VerticalLayout> findTaskContainerByStatus(Status status) {

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.pingu.domain.enums.TaskType;
 import solidarityhub.frontend.dto.VolunteerDTO;
+import solidarityhub.frontend.service.FormatService;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ public class VolunteerInfo extends HorizontalLayout {
     private final LocalDateTime startDateTime;
     private final LocalDateTime endDateTime;
     private final boolean checkAvailability;
+    private final FormatService formatService;
 
     public VolunteerInfo(VolunteerDTO volunteer, String activeTab) {
         this(volunteer, activeTab, null, null, false);
@@ -27,6 +29,7 @@ public class VolunteerInfo extends HorizontalLayout {
     private VolunteerInfo(VolunteerDTO volunteer, String activeTab,
                           LocalDateTime startDateTime, LocalDateTime endDateTime,
                           boolean checkAvailability) {
+        this.formatService = FormatService.getInstance();
         this.volunteer = volunteer;
         this.activeTab = activeTab;
         this.startDateTime = startDateTime;
@@ -75,7 +78,7 @@ public class VolunteerInfo extends HorizontalLayout {
             skillsLayout.setMargin(false);
 
             for (TaskType taskType : volunteer.getTaskTypes()) {
-                Span skillSpan = new Span(formatTaskType(taskType));
+                Span skillSpan = new Span(formatService.formatTaskType(taskType));
                 skillSpan.addClassName("listBox__item-detail");
                 skillsLayout.add(skillSpan);
             }
@@ -97,30 +100,5 @@ public class VolunteerInfo extends HorizontalLayout {
         } else {
             add(infoLayout);
         }
-    }
-
-    private String formatTaskType(TaskType taskType) {
-        if (taskType == null) {
-            return "No especificado";
-        }
-
-        return switch (taskType) {
-            case MEDICAL -> "Médica";
-            case POLICE -> "Policía";
-            case FIREFIGHTERS -> "Bomberos";
-            case CLEANING -> "Limpieza";
-            case FEED -> "Alimentación";
-            case PSYCHOLOGICAL -> "Psicológica";
-            case BUILDING -> "Construcción";
-            case CLOTHING -> "Ropa";
-            case REFUGE -> "Refugio";
-            case OTHER -> "Otra";
-            case SEARCH -> "Búsqueda";
-            case LOGISTICS -> "Logística";
-            case COMMUNICATION -> "Comunicación";
-            case MOBILITY -> "Movilidad";
-            case PEOPLEMANAGEMENT -> "Gestión de personas";
-            case SAFETY -> "Seguridad";
-        };
     }
 }

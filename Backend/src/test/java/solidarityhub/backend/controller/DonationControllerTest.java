@@ -107,7 +107,8 @@ public class DonationControllerTest {
         List<DonationDTO> donationsWithStatusCompletedDTOs = donationsWithStatusCompleted.stream().map(DonationDTO::new).toList();
         DonationDTO donationWithStatusInProgressDTO = new DonationDTO(donationWithStatusInProgress);
 
-        ResponseEntity<?> responseCatastrophe = donationController.getDonations(null, null, null, null, catastrophe.getId());
+        ResponseEntity<?> responseCatastrophe = donationController.getDonations(null, null,
+                null, null, catastrophe.getId());
         assertNotNull(responseCatastrophe);
         assertEquals(HttpStatus.OK, responseCatastrophe.getStatusCode());
         List<DonationDTO> donationCatastropheDTOs = (List<DonationDTO>) responseCatastrophe.getBody();
@@ -115,7 +116,8 @@ public class DonationControllerTest {
         assertTrue(donationCatastropheDTOs.containsAll(donationsWithCatastropheDTOs));
         assertFalse(donationCatastropheDTOs.contains(donationDTOWithoutCatastrophe));
 
-        ResponseEntity<?> responseType = donationController.getDonations(DonationType.MATERIAL.toString(), null, null, null, catastrophe.getId());
+        ResponseEntity<?> responseType = donationController.getDonations(DonationType.MATERIAL.toString(), null,
+                null, null, catastrophe.getId());
         assertNotNull(responseType);
         assertEquals(HttpStatus.OK, responseType.getStatusCode());
         List<DonationDTO> donationTypeDTOs = (List<DonationDTO>) responseType.getBody();
@@ -123,7 +125,8 @@ public class DonationControllerTest {
         assertTrue(donationTypeDTOs.containsAll(donationsWithTypeMDTOs));
         assertFalse(donationTypeDTOs.contains(donationWithTypeSDTO));
 
-        ResponseEntity<?> responseStatus = donationController.getDonations(null, DonationStatus.COMPLETED.toString(), null, null, catastrophe.getId());
+        ResponseEntity<?> responseStatus = donationController.getDonations(null, DonationStatus.COMPLETED.toString(),
+                null, null, catastrophe.getId());
         assertNotNull(responseStatus);
         assertEquals(HttpStatus.OK, responseStatus.getStatusCode());
         List<DonationDTO> donationStatusDTOs = (List<DonationDTO>) responseStatus.getBody();

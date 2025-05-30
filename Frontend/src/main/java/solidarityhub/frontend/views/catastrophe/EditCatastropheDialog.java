@@ -10,24 +10,21 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.server.VaadinSession;
+import org.pingu.domain.enums.EmergencyLevel;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
-import org.pingu.domain.enums.EmergencyLevel;
 import solidarityhub.frontend.model.Catastrophe;
 import solidarityhub.frontend.model.GPSCoordinates;
 import solidarityhub.frontend.service.CatastropheService;
-
-import java.time.LocalDate;
-import java.util.Locale;
+import solidarityhub.frontend.service.FormatService;
 
 public class EditCatastropheDialog extends Dialog {
 
     private static Translator translator = new Translator();
+    private final FormatService formatService;
     private final CatastropheService catastropheService;
     private final CatastropheDTO catastrophe;
 
@@ -44,6 +41,7 @@ public class EditCatastropheDialog extends Dialog {
     public EditCatastropheDialog(CatastropheDTO catastrophe) {
         this.catastrophe = catastrophe;
         this.catastropheService = new CatastropheService();
+        this.formatService = FormatService.getInstance();
 
         translator.initializeTranslator();
         buildDialog();
@@ -100,7 +98,7 @@ public class EditCatastropheDialog extends Dialog {
         emergencyLevelComboBox.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
         emergencyLevelComboBox.setValue(catastrophe.getEmergencyLevel());
         emergencyLevelComboBox.setRequired(true);
-        emergencyLevelComboBox.setItemLabelGenerator(this::formatEmergencyLevel);
+        emergencyLevelComboBox.setItemLabelGenerator(formatService::formatEmergencyLevel);
 
         formLayout.add(
                 nameField, descriptionField, dateField,
@@ -171,14 +169,5 @@ public class EditCatastropheDialog extends Dialog {
         return !nameField.isEmpty() &&
                 !emergencyLevelComboBox.isEmpty() &&
                 !dateField.isEmpty();
-    }
-
-    private String formatEmergencyLevel(EmergencyLevel level) {
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
     }
 }

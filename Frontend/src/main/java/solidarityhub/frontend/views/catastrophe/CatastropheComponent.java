@@ -2,7 +2,6 @@ package solidarityhub.frontend.views.catastrophe;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
@@ -11,15 +10,14 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.server.VaadinSession;
 import lombok.Getter;
 import lombok.Setter;
 import org.pingu.domain.enums.EmergencyLevel;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.service.FormatService;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.function.Consumer;
 
 @Getter
@@ -30,6 +28,7 @@ public class CatastropheComponent extends VerticalLayout {
     private String date;
     private final EmergencyLevel emergencyLevel;
     private static Translator translator = new Translator();
+    private final FormatService formatService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -42,6 +41,7 @@ public class CatastropheComponent extends VerticalLayout {
         this.date = catastropheDTO.getStartDate() != null ? catastropheDTO.getStartDate().format(DATE_FORMATTER) : "Fecha no disponible";
         this.emergencyLevel = catastropheDTO.getEmergencyLevel();
 
+        this.formatService = FormatService.getInstance();
         translator.initializeTranslator();
         creatComponent();
     }
@@ -122,7 +122,7 @@ public class CatastropheComponent extends VerticalLayout {
     private Component getCatastropheEmergencyLevelComponent() {
         Span levelSpan = new Span("Sin definir");
         if (emergencyLevel != null) {
-            levelSpan = new Span(translator.get("emergency_level") + formatEmergencyLevel(emergencyLevel));
+            levelSpan = new Span(translator.get("emergency_level") + formatService.formatEmergencyLevel(emergencyLevel));
             levelSpan.addClassName(getEmergencyLevelClass(emergencyLevel) + "-text");
         }
         return levelSpan;
@@ -141,17 +141,6 @@ public class CatastropheComponent extends VerticalLayout {
     }
 
     //===============================Set Methods=========================================
-    private static String formatEmergencyLevel(EmergencyLevel level) {
-        if (level == null) return translator.get("unknown_emergency_level");
-
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
-    }
-
     private static String getEmergencyLevelClass(EmergencyLevel level) {
         if (level == null) return "emergency-unknown";
 

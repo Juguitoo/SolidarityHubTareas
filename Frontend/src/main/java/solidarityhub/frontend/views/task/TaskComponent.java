@@ -17,6 +17,7 @@ import lombok.Getter;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.i18n.Translator;
 import org.pingu.domain.enums.TaskType;
+import solidarityhub.frontend.service.FormatService;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -24,6 +25,7 @@ import java.util.Locale;
 @Getter
 public class TaskComponent extends VerticalLayout {
     private static Translator translator = new Translator();
+    private FormatService formatService;
 
     private final int taskId;
     private String taskName;
@@ -36,6 +38,7 @@ public class TaskComponent extends VerticalLayout {
 
     public TaskComponent(int taskId, String name, String description, String startTimeDate, String priority, String emergencyLevel, TaskType taskType) {
         translator.initializeTranslator();
+        this.formatService = FormatService.getInstance();
 
         this.taskId = taskId;
         this.taskName = name;
@@ -50,6 +53,7 @@ public class TaskComponent extends VerticalLayout {
 
     public TaskComponent(TaskDTO taskDTO) {
         translator.initializeTranslator();
+        formatService = FormatService.getInstance();
 
         this.taskId = taskDTO.getId();
         this.taskName = taskDTO.getName();
@@ -160,7 +164,7 @@ public class TaskComponent extends VerticalLayout {
     }
 
     public Component getNeedTypeComponent() {
-        Span needTypeSpan = new Span(formatTaskType(taskType));
+        Span needTypeSpan = new Span(formatService.formatTaskType(taskType));
         needTypeSpan.addClassName("need-type");
         return needTypeSpan;
     }
@@ -221,32 +225,6 @@ public class TaskComponent extends VerticalLayout {
 
     public void enabledEditButton(Boolean enabled) {
         editButton.setEnabled(enabled);
-    }
-
-    //===============================Format Methods=========================================
-    private String formatTaskType(TaskType taskType) {
-        if (taskType == null) {
-            return translator.get("task_type_not_specified");
-        }
-
-        return switch (taskType) {
-            case MEDICAL -> translator.get("task_type_medical");
-            case POLICE -> translator.get("task_type_police");
-            case FIREFIGHTERS -> translator.get("task_type_firefighters");
-            case CLEANING -> translator.get("task_type_cleaning");
-            case FEED -> translator.get("task_type_feed");
-            case PSYCHOLOGICAL -> translator.get("task_type_psychological");
-            case BUILDING -> translator.get("task_type_building");
-            case CLOTHING -> translator.get("task_type_clothing");
-            case REFUGE -> translator.get("task_type_refuge");
-            case OTHER -> translator.get("task_type_other");
-            case SEARCH -> translator.get("task_type_search");
-            case LOGISTICS -> translator.get("task_type_logistics");
-            case COMMUNICATION -> translator.get("task_type_communication");
-            case MOBILITY -> translator.get("task_type_mobility");
-            case PEOPLEMANAGEMENT -> translator.get("task_type_people_management");
-            case SAFETY -> translator.get("task_type_safety");
-        };
     }
 
 }

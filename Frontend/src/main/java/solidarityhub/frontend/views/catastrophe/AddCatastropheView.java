@@ -22,6 +22,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.LocalDate;
@@ -32,6 +33,7 @@ import java.util.Locale;
 @PageTitle("Añadir Catástrofe")
 public class AddCatastropheView extends VerticalLayout {
     private static Translator translator = new Translator();
+    private final FormatService formatService;
 
     private TextField nameField;
     private TextArea descriptionField;
@@ -44,6 +46,7 @@ public class AddCatastropheView extends VerticalLayout {
 
     public AddCatastropheView() {
         this.catastropheService = new CatastropheService();
+        this.formatService = FormatService.getInstance();
 
         translator.initializeTranslator();
 
@@ -126,7 +129,7 @@ public class AddCatastropheView extends VerticalLayout {
         emergencyLevelComboBox = new ComboBox<>(translator.get("add_catastrophe_emergency_level"));
         emergencyLevelComboBox.setItems(EmergencyLevel.LOW, EmergencyLevel.MEDIUM, EmergencyLevel.HIGH, EmergencyLevel.VERYHIGH);
         emergencyLevelComboBox.setRequired(true);
-        emergencyLevelComboBox.setItemLabelGenerator(this::formatEmergencyLevel);
+        emergencyLevelComboBox.setItemLabelGenerator(formatService::formatEmergencyLevel);
 
         locationXField = new NumberField(translator.get("add_catastrophe_coordX"));
         locationXField.setValue(0.0);
@@ -172,16 +175,6 @@ public class AddCatastropheView extends VerticalLayout {
         buttonLayout.add(cancelButton, saveButton);
 
         return buttonLayout;
-    }
-
-    //===============================Other methods=========================================
-    private String formatEmergencyLevel(EmergencyLevel level) {
-        return switch (level) {
-            case LOW -> translator.get("low_emergency_level");
-            case MEDIUM -> translator.get("medium_emergency_level");
-            case HIGH -> translator.get("high_emergency_level");
-            case VERYHIGH -> translator.get("very_high_emergency_level");
-        };
     }
 
     private void goBack() {

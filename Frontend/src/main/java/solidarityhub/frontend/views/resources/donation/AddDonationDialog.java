@@ -25,6 +25,8 @@ import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.service.DonationService;
 import solidarityhub.frontend.service.DonorService;
+import solidarityhub.frontend.service.FormatService;
+
 import java.time.LocalDate;
 import java.util.Locale;
 
@@ -33,6 +35,7 @@ public class AddDonationDialog extends Dialog {
     protected final DonationService donationService;
     protected final DonorService donorService;
     protected static Translator translator = new Translator();
+    protected FormatService formatService;
 
     protected final CatastropheDTO selectedCatastrophe;
     protected DonationDTO donation;
@@ -49,6 +52,7 @@ public class AddDonationDialog extends Dialog {
 
     public AddDonationDialog(CatastropheDTO selectedCatastrophe) {
         this(selectedCatastrophe, null);
+        this.formatService = FormatService.getInstance();
     }
 
     protected AddDonationDialog(CatastropheDTO selectedCatastrophe, DonationDTO donation) {
@@ -56,6 +60,7 @@ public class AddDonationDialog extends Dialog {
         this.donorService = new DonorService();
         this.selectedCatastrophe = selectedCatastrophe;
         this.donation = donation;
+        this.formatService = FormatService.getInstance();
 
         translator.initializeTranslator();
         buildView();
@@ -110,7 +115,7 @@ public class AddDonationDialog extends Dialog {
 
         typeField = new ComboBox<>(translator.get("donation_type"));
         typeField.setItems(DonationType.values());
-        typeField.setItemLabelGenerator(this::formatDonationType);
+        typeField.setItemLabelGenerator(formatService::formatDonationType);
         typeField.setRequiredIndicatorVisible(true);
         typeField.setRequired(true);
 
@@ -143,7 +148,7 @@ public class AddDonationDialog extends Dialog {
 
         statusField = new ComboBox<>(translator.get("donation_status"));
         statusField.setItems(DonationStatus.values());
-        statusField.setItemLabelGenerator(this::formatDonationStatus);
+        statusField.setItemLabelGenerator(formatService::formatDonationStatus);
         statusField.setValue(donation == null ? DonationStatus.COMPLETED : donation.getStatus());
         statusField.setRequiredIndicatorVisible(true);
         statusField.setRequired(true);
@@ -322,33 +327,6 @@ public class AddDonationDialog extends Dialog {
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
-
-    //=============================== Format Methods =========================================
-    private String formatDonationType(DonationType type) {
-        if (type == null) {
-            return "";
-        }
-
-        return switch (type) {
-            case FINANCIAL -> translator.get("donation_type_financial");
-            case MATERIAL -> translator.get("donation_type_material");
-            case SERVICE -> translator.get("donation_type_service");
-        };
-    }
-
-    private String formatDonationStatus(DonationStatus status) {
-        if (status == null) {
-            return "";
-        }
-
-        return switch (status) {
-            case COMPLETED -> translator.get("donation_status_completed");
-            case IN_PROGRESS -> translator.get("donation_status_in_progress");
-            case SCHEDULED -> translator.get("donation_status_scheduled");
-            case CANCELLED -> translator.get("donation_status_cancelled");
-        };
-    }
-
     //===============================Validate Form=========================================
     private boolean validateForms() {
         return !dateField.isEmpty() &&

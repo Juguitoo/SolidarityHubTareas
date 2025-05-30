@@ -15,6 +15,7 @@ import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.DonationStatus;
 import org.pingu.domain.enums.DonationType;
 import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.service.FormatService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,10 @@ public class FilterDonationsDialog extends Dialog {
     private IntegerField yearFilter = new IntegerField();
 
     private final Translator translator = new Translator();
+    private final FormatService formatService;
 
     public FilterDonationsDialog() {
+        this.formatService = FormatService.getInstance();
         translator.initializeTranslator();
 
         buildView();
@@ -62,7 +65,7 @@ public class FilterDonationsDialog extends Dialog {
         VerticalLayout filters = new VerticalLayout();
 
         donationTypeFilter.setItems(DonationType.values());
-        donationTypeFilter.setItemLabelGenerator(this::formatDonationType);
+        donationTypeFilter.setItemLabelGenerator(formatService::formatDonationType);
         donationTypeFilter.setWidthFull();
         donationTypeFilter.setLabel(translator.get("filter_donation_type_title") + ":");
         donationTypeFilter.setHelperText(translator.get("filter_donation_type_helper"));
@@ -73,7 +76,7 @@ public class FilterDonationsDialog extends Dialog {
         typeFilterLayout.add(donationTypeFilter, getClearFilter(donationTypeFilter));
 
         statusFilter.setItems(DonationStatus.values());
-        statusFilter.setItemLabelGenerator(this::formatDonationStatus);
+        statusFilter.setItemLabelGenerator(formatService::formatDonationStatus);
         statusFilter.setWidthFull();
         statusFilter.setLabel(translator.get("filter_donation_status_title") + ":");
         statusFilter.setHelperText(translator.get("filter_donation_status_helper"));
@@ -172,30 +175,5 @@ public class FilterDonationsDialog extends Dialog {
         });
         clearButton.getStyle().set("margin-top", "15px");
         return clearButton;
-    }
-
-    private String formatDonationType(DonationType type) {
-        if (type == null) {
-            return "";
-        }
-
-        return switch (type) {
-            case FINANCIAL -> translator.get("donation_type_financial");
-            case MATERIAL -> translator.get("donation_type_material");
-            case SERVICE -> translator.get("donation_type_service");
-        };
-    }
-
-    private String formatDonationStatus(DonationStatus status) {
-        if (status == null) {
-            return "";
-        }
-
-        return switch (status) {
-            case COMPLETED -> translator.get("donation_status_completed");
-            case IN_PROGRESS -> translator.get("donation_status_in_progress");
-            case SCHEDULED -> translator.get("donation_status_scheduled");
-            case CANCELLED -> translator.get("donation_status_cancelled");
-        };
     }
 }

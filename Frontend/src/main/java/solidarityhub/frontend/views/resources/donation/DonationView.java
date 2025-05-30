@@ -21,6 +21,7 @@ import solidarityhub.frontend.dto.DonationDTO;
 import solidarityhub.frontend.dto.ResourceDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.DonationService;
+import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.ResourceService;
 
 import java.time.format.DateTimeFormatter;
@@ -50,11 +51,13 @@ public class DonationView extends VerticalLayout {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final Translator translator = new Translator();
+    private final FormatService formatService;
 
     public DonationView(CatastropheDTO catastrophe) {
         this.donationService = new DonationService();
         this.selectedCatastrophe = catastrophe;
         this.resourceService = new ResourceService();
+        this.formatService = FormatService.getInstance();
 
         this.donationGrid = new Grid<>(DonationDTO.class, false);
 
@@ -171,13 +174,13 @@ public class DonationView extends VerticalLayout {
     private void getGridColumns() {
         donationGrid.addColumn(DonationDTO::getDescription).setHeader(translator.get("donation_description")).setAutoWidth(true).setSortable(true);
 
-        typeColumn = donationGrid.addColumn(donation -> formatDonationType(donation.getType())).setAutoWidth(true).setHeader(translator.get("donation_type")).setSortable(true);
+        typeColumn = donationGrid.addColumn(donation -> formatService.formatDonationType(donation.getType())).setAutoWidth(true).setHeader(translator.get("donation_type")).setSortable(true);
 
         donationGrid.addColumn(donation ->
                         donation.getDate() != null ? donation.getDate().format(DATE_FORMATTER) : "").setHeader(translator.get("donation_date"))
                 .setSortable(true).setAutoWidth(true);
 
-        statusColumn = donationGrid.addColumn(donation -> formatDonationStatus(donation.getStatus()))
+        statusColumn = donationGrid.addColumn(donation -> formatService.formatDonationStatus(donation.getStatus()))
                 .setAutoWidth(true).setHeader(translator.get("donation_status")).setSortable(true);
 
         donorColumn = donationGrid.addColumn(donation -> donation.getDonorName() != null ? donation.getDonorName() : "Anonimo")
@@ -248,32 +251,6 @@ public class DonationView extends VerticalLayout {
         card.add(title, summaryLayout);
 
         return card;
-    }
-
-    //===============================Format Methods=========================================
-    private String formatDonationType(DonationType type) {
-        if (type == null) {
-            return "";
-        }
-
-        return switch (type) {
-            case FINANCIAL -> translator.get("donation_type_financial");
-            case MATERIAL -> translator.get("donation_type_material");
-            case SERVICE -> translator.get("donation_type_service");
-        };
-    }
-
-    private String formatDonationStatus(DonationStatus status) {
-        if (status == null) {
-            return "";
-        }
-
-        return switch (status) {
-            case COMPLETED -> translator.get("donation_status_completed");
-            case IN_PROGRESS -> translator.get("donation_status_in_progress");
-            case SCHEDULED -> translator.get("donation_status_scheduled");
-            case CANCELLED -> translator.get("donation_status_cancelled");
-        };
     }
 
     private CompletableFuture<List<String>> openFilterDialog() {

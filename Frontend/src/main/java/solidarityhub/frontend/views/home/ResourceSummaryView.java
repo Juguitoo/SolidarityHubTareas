@@ -13,6 +13,7 @@ import org.pingu.domain.enums.ResourceType;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.ResourceSummaryDTO;
 import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.ResourceSummaryService;
 
 import java.util.List;
@@ -22,10 +23,12 @@ public class ResourceSummaryView extends VerticalLayout {
     private final ResourceSummaryService resourceSummaryService;
     private final CatastropheDTO catastrophe;
     private static Translator translator = new Translator();
+    private final FormatService formatService;
 
     public ResourceSummaryView(CatastropheDTO catastrophe) {
         this.resourceSummaryService = new ResourceSummaryService();
         this.catastrophe = catastrophe;
+        this.formatService = FormatService.getInstance();
 
         translator.initializeTranslator();
         buildView();
@@ -64,7 +67,7 @@ public class ResourceSummaryView extends VerticalLayout {
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        Span typeName = new Span(formatResourceType(summary.getType()));
+        Span typeName = new Span(formatService.formatResourceType(summary.getType()));
         typeName.addClassName("resource-type-name");
 
         Span count = new Span(summary.getCount() + " " + translator.get("items"));
@@ -109,23 +112,5 @@ public class ResourceSummaryView extends VerticalLayout {
         return card;
     }
 
-    private String formatResourceType(ResourceType type) {
-        if (type == null) return "";
-        return switch (type) {
-            case FOOD -> translator.get("resource_type_food");
-            case MEDICINE -> translator.get("resource_type_medicine");
-            case CLOTHING -> translator.get("resource_type_clothing");
-            case SHELTER -> translator.get("resource_type_shelter");
-            case TOOLS -> translator.get("resource_type_tools");
-            case FUEL -> translator.get("resource_type_fuel");
-            case SANITATION -> translator.get("resource_type_sanitation");
-            case COMMUNICATION -> translator.get("resource_type_communication");
-            case TRANSPORTATION -> translator.get("resource_type_transportation");
-            case BUILDING -> translator.get("resource_type_building");
-            case MONETARY -> translator.get("resource_type_monetary");
-            case STATIONERY -> translator.get("resource_type_stationery");
-            case LOGISTICS -> translator.get("resource_type_logistics");
-            case OTHER -> translator.get("resource_type_other");
-        };
-    }
+
 }

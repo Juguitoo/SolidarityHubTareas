@@ -119,4 +119,49 @@ public class FormatService {
     public String formatDate(LocalDate taskDate){
         return taskDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     }
+
+    public String formatResourceType(ResourceType type) {
+        if (type == null) return "";
+        return switch (type) {
+            case FOOD -> translator.get("resource_type_food");
+            case MEDICINE -> translator.get("resource_type_medicine");
+            case CLOTHING -> translator.get("resource_type_clothing");
+            case SHELTER -> translator.get("resource_type_shelter");
+            case TOOLS -> translator.get("resource_type_tools");
+            case FUEL -> translator.get("resource_type_fuel");
+            case SANITATION -> translator.get("resource_type_sanitation");
+            case COMMUNICATION -> translator.get("resource_type_communication");
+            case TRANSPORTATION -> translator.get("resource_type_transportation");
+            case BUILDING -> translator.get("resource_type_building");
+            case MONETARY -> translator.get("resource_type_monetary");
+            case STATIONERY -> translator.get("resource_type_stationery");
+            case LOGISTICS -> translator.get("resource_type_logistics");
+            case OTHER -> translator.get("resource_type_other");
+        };
+    }
+
+    public String formatDonationStatus(DonationStatus status) {
+        if (status == null) {
+            return "";
+        }
+
+        return switch (status) {
+            case COMPLETED -> translator.get("donation_status_completed");
+            case IN_PROGRESS -> translator.get("donation_status_in_progress");
+            case SCHEDULED -> translator.get("donation_status_scheduled");
+            case CANCELLED -> translator.get("donation_status_cancelled");
+        };
+    }
+
+    public String formatDonationType(DonationType type) {
+        if (type == null) {
+            return "";
+        }
+
+        return switch (type) {
+            case FINANCIAL -> translator.get("donation_type_financial");
+            case MATERIAL -> translator.get("donation_type_material");
+            case SERVICE -> translator.get("donation_type_service");
+        };
+    }
 }
