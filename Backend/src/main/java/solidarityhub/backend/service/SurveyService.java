@@ -2,6 +2,7 @@ package solidarityhub.backend.service;
 
 import org.springframework.stereotype.Service;
 import solidarityhub.backend.model.Survey;
+import solidarityhub.backend.model.Volunteer;
 import solidarityhub.backend.repository.SurveyRepository;
 
 import java.util.List;
@@ -24,6 +25,10 @@ public class SurveyService {
         return this.surveyRepository.findById(id).orElse(null);
     }
     public void deleteSurvey(Survey survey) {
+        for (Volunteer volunteer : survey.getCompleters()) {
+            volunteer.getCompletedSurveys().remove(survey);
+        }
+        survey.getCompleters().clear();
         this.surveyRepository.delete(survey);
     }
 }
