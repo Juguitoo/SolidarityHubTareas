@@ -78,7 +78,8 @@
 }
 
 .suggested-task{
-    max-width: 550px;
+    min-width: 750px;
+    max-width: 750px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
