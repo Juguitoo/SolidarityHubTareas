@@ -20,9 +20,12 @@ import solidarityhub.frontend.dto.NotificationDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.NotificationService;
 import java.time.format.DateTimeFormatter;
+import solidarityhub.frontend.utils.NotificationManager;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static solidarityhub.frontend.utils.NotificationManager.updateNotificationIndicator;
 
 @Route("notifications")
 @PageTitle("Notificaciones")
@@ -40,6 +43,7 @@ public class NotificationView extends VerticalLayout {
         this.notificationService = notificationService;
         translator.initializeTranslator();
         buildView();
+        NotificationManager.updateNotificationIndicator();
     }
 
     private void buildView() {
@@ -68,7 +72,7 @@ public class NotificationView extends VerticalLayout {
                 notificationsContainer.add(createNotificationCard(notification));
             }
 
-            updateNotificationIndicator();
+
 
             add(notificationsContainer);
         }
@@ -132,8 +136,8 @@ public class NotificationView extends VerticalLayout {
                     Notification.Position.BOTTOM_START
             ).addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
+        NotificationManager.updateAfterNotificationAction();
 
-        updateNotificationIndicator();
     }
 
     private Component createNotificationCard(NotificationDTO notification) {
@@ -200,6 +204,7 @@ public class NotificationView extends VerticalLayout {
                 add(headerComponent);
                 add(getEmptyState());
             }
+            NotificationManager.updateAfterNotificationAction();
         });
 
         actions.add(markAsReadButton);
@@ -229,8 +234,8 @@ public class NotificationView extends VerticalLayout {
         emptyState.add(infoIcon, noNotificationsTitle, helpText, suggestedTasksButton);
         return emptyState;
     }
-
-    private void updateNotificationIndicator() {
-        HeaderComponent.updateAllNotificationButtons(notificationService.hasUnreadNotifications());
+    public static void updateGlobalNotificationIndicator() {
+        NotificationManager.updateNotificationIndicator();
     }
+
 }

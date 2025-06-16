@@ -30,6 +30,7 @@ import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.utils.NotificationManager;
 import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.LocalDateTime;
@@ -243,6 +244,17 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
                 // PRIMERO: Actualizar en la base de datos
                 taskService.updateTaskStatusOnly(taskId, newStatus);
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                        UI.getCurrent().access(() -> {
+                            NotificationManager.forceRefreshNotificationIndicator();
+                            System.out.println("🔔 Indicador actualizado después de cambio de estado");
+                        });
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }).start();
                 System.out.println("✓ Estado actualizado en la base de datos");
 
                 // SEGUNDO: Verificar que se actualizó correctamente
@@ -289,6 +301,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
             // En caso de error, reconstruir la vista para volver al estado correcto
             UI.getCurrent().access(() -> buildView());
         }
+
     }
 
     private void updateTaskContainers(int taskId, Status oldStatus, Status newStatus) {

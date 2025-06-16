@@ -23,6 +23,7 @@ import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.PDFCertificateService;
+import solidarityhub.frontend.utils.NotificationManager;
 import solidarityhub.frontend.views.HeaderComponent;
 import solidarityhub.frontend.views.task.AssignResourceDialog;
 
@@ -396,6 +397,18 @@ public class EditTaskView extends ManageTaskBaseView implements HasUrlParameter<
 
             taskService.updateTask(taskId, updatedTaskDTO);
 
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1000);
+                    UI.getCurrent().access(() -> {
+                        NotificationManager.forceRefreshNotificationIndicator();
+                        System.out.println("🔔 Indicador actualizado después de editar tarea");
+                    });
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+
             System.out.println("✓ taskService.updateTask completado sin errores");
 
             System.out.println("Guardando recursos asignados...");
@@ -433,6 +446,17 @@ public class EditTaskView extends ManageTaskBaseView implements HasUrlParameter<
             try {
                 taskService.deleteTask(taskId);
                 confirmDialog.close();
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1000);
+                        UI.getCurrent().access(() -> {
+                            NotificationManager.forceRefreshNotificationIndicator();
+                            System.out.println("🔔 Indicador actualizado después de eliminar tarea");
+                        });
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }).start();
                 Notification.show(translator.get("task_deleted_success"));
 
                 VaadinSession.getCurrent().setAttribute("cache", true);
