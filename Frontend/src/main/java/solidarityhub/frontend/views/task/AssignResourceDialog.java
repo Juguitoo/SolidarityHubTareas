@@ -1,7 +1,6 @@
 package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -18,19 +17,17 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.*;
 import solidarityhub.frontend.i18n.Translator;
-import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.ResourceAssignmentService;
 import solidarityhub.frontend.service.ResourceService;
 import java.util.*;
 
 public class AssignResourceDialog extends Dialog {
     private final ResourceService resourceService;
-    private final CatastropheService catastropheService;
 
     private final ResourceAssignmentService assignmentService;
     private final TaskDTO selectedTask;
     private final CatastropheDTO selectedCatastrophe;
-    private static Translator translator = new Translator();
+    private static final Translator translator = new Translator();
 
     private List<ResourceAssignmentDTO> resourcesToAssign = new ArrayList<>();
     private Grid<ResourceAssignmentDTO> resourcesGrid;
@@ -40,7 +37,6 @@ public class AssignResourceDialog extends Dialog {
 
     public AssignResourceDialog(CatastropheDTO selectedCatastrophe) {
         this.resourceService = new ResourceService();
-        this.catastropheService = new CatastropheService();
 
         this.assignmentService = new ResourceAssignmentService();
         this.selectedCatastrophe = selectedCatastrophe;
@@ -53,7 +49,6 @@ public class AssignResourceDialog extends Dialog {
     }
 
     public AssignResourceDialog(TaskDTO selectedTask, CatastropheDTO selectedCatastrophe) {
-        this.catastropheService = new CatastropheService();
         this.assignmentService = new ResourceAssignmentService();
 
         this.selectedCatastrophe = selectedCatastrophe;

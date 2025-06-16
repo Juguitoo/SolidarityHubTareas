@@ -1,50 +1,59 @@
-package solidarityhub.frontend.views.task;
+package solidarityhub.frontend.views.task.manageTasks;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.server.VaadinSession;
-import solidarityhub.frontend.dto.*;
-import solidarityhub.frontend.i18n.Translator;
-import solidarityhub.frontend.service.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.server.VaadinSession;
 import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
 import org.pingu.domain.enums.TaskType;
-import solidarityhub.frontend.views.HeaderComponent;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
+import solidarityhub.frontend.dto.CatastropheDTO;
+import solidarityhub.frontend.dto.NeedDTO;
+import solidarityhub.frontend.dto.TaskDTO;
+import solidarityhub.frontend.dto.VolunteerDTO;
+import solidarityhub.frontend.dto.ResourceAssignmentDTO;
+import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.service.CatastropheService;
+import solidarityhub.frontend.service.CoordinatesService;
+import solidarityhub.frontend.service.FormatService;
+import solidarityhub.frontend.service.NeedService;
+import solidarityhub.frontend.service.ResourceAssignmentService;
+import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.service.VolunteerService;
+import solidarityhub.frontend.views.task.AssignResourceDialog;
+import solidarityhub.frontend.views.task.TaskComponent;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@PageTitle("Añadir tarea")
-@Route("tasks/addtask")
-public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
+public abstract class ManageTaskBaseView extends VerticalLayout implements BeforeEnterObserver {
 
     protected final TaskService taskService;
     protected final VolunteerService volunteerService;
@@ -52,7 +61,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected final FormatService formatService;
     protected final CoordinatesService coordinatesService;
     protected final CatastropheService catastropheService;
-    private final ResourceAssignmentService resourceAssignmentService;
+    protected final ResourceAssignmentService resourceAssignmentService;
     protected static Translator translator = new Translator();
 
     protected CatastropheDTO selectedCatastrophe;
@@ -71,20 +80,19 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected Button resourceAssignmentButton;
 
     //Dialog forms
-    MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
+    protected MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
 
     //Volunteers list
     protected List<VolunteerDTO> allVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> distanceVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> skillsVolunteersList = new ArrayList<>();
     protected List<VolunteerDTO> selectedVolunteersList = new ArrayList<>();
-
     protected List<NeedDTO> allNeedsWithoutTask;
 
     protected TaskType taskType;
     protected int nAutoSelectVolunteers;
 
-    public AddTaskView() {
+    public ManageTaskBaseView() {
         this.taskService = new TaskService();
         this.volunteerService = new VolunteerService();
         this.needService = new NeedService();
@@ -126,31 +134,10 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
             getHeader(),
             getPreview(),
             getForms(),
-            getButtons()
+            getActionButtons()
         );
 
         setAlignItems(Alignment.CENTER);
-        setupPreviewWithTranslations();
-    }
-
-    private void saveNewTask(){
-        if (validateForm()) {
-            try {
-                TaskDTO newTaskDTO = getTaskDTO();
-                TaskDTO SavedTask = taskService.addAndGetNewTask(newTaskDTO);
-
-                saveAssignedResources(SavedTask);
-
-                getConfirmationDialog().open();
-
-            } catch (Exception ex) {
-                Notification.show(translator.get("error_saving_task") + ex.getMessage(),
-                        5000, Notification.Position.MIDDLE);
-            }
-        } else {
-            Notification.show(translator.get("check_fields"),
-                    3000, Notification.Position.MIDDLE);
-        }
     }
 
     protected TaskDTO getTaskDTO() {
@@ -174,15 +161,13 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return needs;
     }
 
-    private TaskType getTaskType(){
+    protected TaskType getTaskType(){
         List<NeedDTO> needs = getNeedsList();
         return needs.isEmpty() ? null : needs.getFirst().getTaskType();
     }
 
     //===============================Get Components=========================================
-    protected Component getHeader(){
-        return new HeaderComponent(translator.get("add_task_title"), "window.history.back()");
-    }
+    protected abstract Component getHeader();
 
     protected Component getPreview(){
         VerticalLayout preview = new VerticalLayout();
@@ -199,7 +184,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 translator.get("preview_task_emergency_level"),
                 TaskType.OTHER
         );
-        taskPreview.enabledEditButton(false);
+        taskPreview.editButton.setVisible(false);
         setAlignSelf(Alignment.CENTER, taskPreview);
 
         setupFormListeners();
@@ -307,7 +292,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
 
         volunteerMultiSelectComboBox.getElement().addEventListener("click", e -> {
             if (startDateTimePicker.isEmpty() || endDatePicker.isEmpty()) {
-                // Si no hay fechas seleccionadas, mostrar notificación
                 Notification notification = Notification.show(
                         translator.get("select_date_to_filter"),
                         3000,
@@ -315,7 +299,6 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
                 );
                 notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
             } else {
-                // Si hay fechas, mostrar el diálogo normal
                 Dialog selectVolunteersDialog = getVolunteersDialogContent();
                 selectVolunteersDialog.open();
             }
@@ -346,20 +329,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         );
     }
 
-    protected Component getButtons(){
-        HorizontalLayout buttons = new HorizontalLayout();
-
-        Button saveTaskButton = new Button(translator.get("add_button"));
-        saveTaskButton.addClickListener(e -> saveNewTask());
-
-        Button cancel = new Button(translator.get("cancel_button"));
-        cancel.addClickListener(e -> exitWithoutSavingDialog());
-
-        buttons.add(cancel, saveTaskButton);
-        setAlignSelf(Alignment.END, buttons);
-
-        return buttons;
-    }
+    protected abstract Component getActionButtons();
 
     //=============================== Dialogs =========================================
     private Dialog getVolunteersDialogContent() {
@@ -664,12 +634,12 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return needsDialog;
     }
 
-    private Dialog getConfirmationDialog() {
+    protected Dialog getConfirmationDialog() {
         Dialog confirmDialog = new Dialog();
         confirmDialog.setHeaderTitle(translator.get("correct_task"));
 
         confirmDialog.add(
-                new Span(translator.get("the_task") + taskName.getValue() + translator.get("successfully_added") +"\n" + translator.get("next_step"))
+                new Span(translator.get("the_task") + " " + taskName.getValue() + " " + translator.get("successfully_added") +"\n" + translator.get("next_step"))
         );
         VaadinSession.getCurrent().setAttribute("cache", true);
         Button addNewTaskButton = new Button(translator.get("create_other_task"), e -> {
@@ -686,113 +656,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         return confirmDialog;
     }
 
-    //===============================Assigned Resources Methods=========================================
-    @SuppressWarnings("unchecked")
-    private List<ResourceAssignmentDTO> getAssignedResourcesFromSession() {
-        List<ResourceAssignmentDTO> resources = (List<ResourceAssignmentDTO>)
-                VaadinSession.getCurrent().getAttribute("assignedResources");
-
-        if (resources == null) {
-            resources = new ArrayList<>();
-        }
-
-        return resources;
-    }
-
-    protected void clearAssignedResourcesFromSession() {
-        VaadinSession.getCurrent().setAttribute("assignedResources", null);
-    }
-
-    protected void saveAssignedResources(int taskId) {
-        List<ResourceAssignmentDTO> resourceAssignments = getAssignedResourcesFromSession();
-        if (!resourceAssignments.isEmpty()) {
-            for (ResourceAssignmentDTO resourceAssignment : resourceAssignments) {
-                try {
-                    resourceAssignmentService.assignResourceToTask(
-                            taskId,
-                            resourceAssignment.getResourceId(),
-                            resourceAssignment.getQuantity(),
-                            resourceAssignment.getUnits());
-                } catch (Exception e) {
-                    System.out.println("Error al asignar recursos al tarea: " + e.getMessage());
-                }
-            }
-        }
-    }
-
-    protected void saveAssignedResources(TaskDTO taskDTO) {
-        if (taskDTO == null || taskDTO.getId() <= 0) {
-            System.err.println("Error: TaskDTO es nulo o no tiene ID");
-            return;
-        }
-
-        saveAssignedResources(taskDTO.getId());
-    }
-
-    private int getResourceIdByName(String resourceName) {
-        return (int) VaadinSession.getCurrent().getAttribute(resourceName);
-    }
-
-    //===============================Validate Form=========================================
-    protected boolean validateForm() {
-        return !taskName.isEmpty() &&
-                !taskDescription.isEmpty() &&
-                startDateTimePicker.getValue() != null &&
-                endDatePicker.getValue() != null &&  // Esto ya está, pero es importante verificarlo
-                taskPriority.getValue() != null &&
-                taskEmergency.getValue() != null &&
-                !needsMultiSelectComboBox.getSelectedItems().isEmpty() &&
-                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() &&
-                !taskLocation.isEmpty();
-    }
-
-    protected boolean isFormFilled() {
-        return !taskName.isEmpty() ||
-                !taskDescription.isEmpty() ||
-                taskPriority.getValue() != null ||
-                taskEmergency.getValue() != null ||
-                needsMultiSelectComboBox.getValue() != null ||
-                startDateTimePicker.getValue() != null ||
-                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
-                !taskLocation.isEmpty();
-    }
-
-    protected void exitWithoutSavingDialog() {
-        if (isFormFilled()) {
-            Dialog confirmDialog = new Dialog();
-            confirmDialog.setHeaderTitle(translator.get("confirm_title"));
-
-            VerticalLayout dialogContent = new VerticalLayout();
-            dialogContent.add(new Span(translator.get("confirm_text")));
-
-            Button confirmButton = new Button(translator.get("confirm_button"), event -> {
-                confirmDialog.close();
-                VaadinSession.getCurrent().setAttribute("cache", true);
-                getUI().ifPresent(ui -> ui.navigate("tasks"));
-            });
-            confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-            Button cancelButton = new Button(translator.get("cancel_button"), event -> confirmDialog.close());
-            cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-
-            confirmDialog.getFooter().add(cancelButton, confirmButton);
-            confirmDialog.add(dialogContent);
-            confirmDialog.open();
-        } else {
-            getUI().ifPresent(ui -> ui.navigate("tasks"));
-        }
-    }
-
     //===============================Modify Preview=========================================
-    protected void setupPreviewWithTranslations() {
-        if (taskPreview != null) {
-            taskPreview.updatePriority(translator.get("preview_task_priority"));
-            taskPreview.updateName(translator.get("preview_task_name"));
-            taskPreview.updateDescription(translator.get("preview_task_description"));
-            taskPreview.updateEmergencyLevel(translator.get("preview_task_emergency_level"));
-        }
-    }
-
     protected void setupFormListeners() {
         taskName.addValueChangeListener(e ->
                 updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, startDateTimePicker.getValue())
@@ -855,5 +719,137 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         if(date != null){
             taskPreview.updateDate(formatService.formatDateTime(date));
         }
+    }
+
+    //===============================Form validation=========================================
+    protected boolean validateForm() {
+        boolean isValid = true;
+
+        if (taskName.isEmpty()) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_task_name"));
+            isValid = false;
+        }
+
+        if (taskDescription.isEmpty()) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_task_description"));
+            isValid = false;
+        }
+
+        if (startDateTimePicker.getValue() == null) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_start_date"));
+            isValid = false;
+        }
+
+        if (endDatePicker.getValue() == null) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_end_date"));
+            isValid = false;
+        }
+
+        if (taskPriority.getValue() == null) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_task_priority"));
+            isValid = false;
+        }
+
+        if (taskEmergency.getValue() == null) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_task_emergency_level"));
+            isValid = false;
+        }
+
+        if (needsMultiSelectComboBox.getSelectedItems().isEmpty()) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_needs"));
+            isValid = false;
+        }
+
+        if (volunteerMultiSelectComboBox.getSelectedItems().isEmpty()) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_volunteers"));
+            isValid = false;
+        }
+
+        if (taskLocation.isEmpty()) {
+            System.out.println("Campo requerido incompleto: " + translator.get("preview_meeting_point"));
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    protected boolean isFormFilled() {
+        return !taskName.isEmpty() ||
+                !taskDescription.isEmpty() ||
+                taskPriority.getValue() != null ||
+                taskEmergency.getValue() != null ||
+                needsMultiSelectComboBox.getValue() != null ||
+                startDateTimePicker.getValue() != null ||
+                !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
+                !taskLocation.isEmpty();
+    }
+
+    protected void exitWithoutSavingDialog(String message) {
+        if (isFormFilled()) {
+            Dialog confirmDialog = new Dialog();
+            confirmDialog.setHeaderTitle(translator.get("confirm_title"));
+
+            VerticalLayout dialogContent = new VerticalLayout();
+            dialogContent.add(new Span(message));
+
+            Button confirmButton = new Button(translator.get("confirm_button"), event -> {
+                confirmDialog.close();
+                VaadinSession.getCurrent().setAttribute("cache", true);
+                getUI().ifPresent(ui -> ui.navigate("tasks"));
+            });
+            confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            Button cancelButton = new Button(translator.get("cancel_button"), event -> confirmDialog.close());
+            cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+            confirmDialog.getFooter().add(cancelButton, confirmButton);
+            confirmDialog.add(dialogContent);
+            confirmDialog.open();
+        } else {
+            getUI().ifPresent(ui -> ui.navigate("tasks"));
+        }
+    }
+
+    //===============================Assigned Resources Methods=========================================
+    @SuppressWarnings("unchecked")
+    private List<ResourceAssignmentDTO> getAssignedResourcesFromSession() {
+        List<ResourceAssignmentDTO> resources = (List<ResourceAssignmentDTO>)
+                VaadinSession.getCurrent().getAttribute("assignedResources");
+
+        if (resources == null) {
+            resources = new ArrayList<>();
+        }
+
+        return resources;
+    }
+
+    protected void clearAssignedResourcesFromSession() {
+        VaadinSession.getCurrent().setAttribute("assignedResources", null);
+    }
+
+    protected void saveAssignedResources(int taskId) {
+        List<ResourceAssignmentDTO> resourceAssignments = getAssignedResourcesFromSession();
+        if (!resourceAssignments.isEmpty()) {
+            for (ResourceAssignmentDTO resourceAssignment : resourceAssignments) {
+                try {
+                    resourceAssignmentService.assignResourceToTask(
+                            taskId,
+                            resourceAssignment.getResourceId(),
+                            resourceAssignment.getQuantity(),
+                            resourceAssignment.getUnits());
+                } catch (Exception e) {
+                    System.out.println("Error al asignar recursos al tarea: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    protected void saveAssignedResources(TaskDTO taskDTO) {
+        if (taskDTO == null || taskDTO.getId() <= 0) {
+            System.err.println("Error: TaskDTO es nulo o no tiene ID");
+            return;
+        }
+
+        saveAssignedResources(taskDTO.getId());
     }
 }
