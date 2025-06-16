@@ -51,6 +51,3 @@ error-screenshots/
 webpack.generated.js
 
 desktop.ini
-
-Backend/src/main/java/solidarityhub/backend/config/key.json
-Backend/src/main/resources/config/key.json

@@ -68,6 +68,7 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
     protected TextField taskLocation;
     protected MultiSelectComboBox<String> volunteerMultiSelectComboBox;
     protected MultiSelectComboBox<String> needsMultiSelectComboBox;
+    protected Button resourceAssignmentButton;
 
     //Dialog forms
     MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
@@ -242,7 +243,9 @@ public class AddTaskView extends VerticalLayout implements BeforeEnterObserver {
         taskLocation.setRequired(true);
         taskLocation.setHelperText(translator.get("meeting_point_helper"));
 
-        addTaskForm.add(taskName, taskDescription, startDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation, getResourceAssignmentsBtn());
+        resourceAssignmentButton = (Button) getResourceAssignmentsBtn();
+
+        addTaskForm.add(taskName, taskDescription, startDateTimePicker, taskPriority, getNeedsForm(), endDatePicker, taskEmergency, getVolunteersForm(), taskLocation, resourceAssignmentButton);
 
         startDateTimePicker.addValueChangeListener(event -> {
             LocalDate startValue;

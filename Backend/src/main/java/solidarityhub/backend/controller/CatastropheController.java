@@ -64,7 +64,7 @@ public class CatastropheController {
         catastrophe.setStartDate(catastropheDTO.getStartDate());
         catastrophe.setEmergencyLevel(catastropheDTO.getEmergencyLevel());
 
-        return ResponseEntity.ok(catastropheService.save(catastrophe));
+        return ResponseEntity.ok(new CatastropheDTO(catastropheService.save(catastrophe)));
     }
 
     @DeleteMapping("/{id}")

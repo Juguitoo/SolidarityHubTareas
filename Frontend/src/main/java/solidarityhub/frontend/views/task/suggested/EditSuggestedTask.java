@@ -86,6 +86,7 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
             taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
             taskPreview.updateTaskType(task.getType());
             taskPreview.enabledEditButton(false);
+            resourceAssignmentButton.setEnabled(false);
         }
     }
 

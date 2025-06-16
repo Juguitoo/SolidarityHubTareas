@@ -210,14 +210,6 @@ public class ResourceView extends VerticalLayout{
             return available + " " + resource.getUnit();
         }).setHeader(translator.get("available_quantity")).setAutoWidth(true);
 
-        storageColumn = resourceGrid.addColumn(resource -> {
-            if (resource.getStorageId() != null) {
-                return storageDTOMap.get(resource.getStorageId()).getName();
-            } else {
-                return translator.get("no_assigned");
-            }
-        }).setHeader(translator.get("resource_storage")).setAutoWidth(true).setSortable(true);
-
         statusColumn = resourceGrid.addColumn(new ComponentRenderer<>(this::getResourceStatus)).setHeader(translator.get("resource_status")).setAutoWidth(true);
     }
 
