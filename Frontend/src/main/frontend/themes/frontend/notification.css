@@ -1,3 +1,40 @@
+.notification__icon{
+    width: 45px;
+    height: 45px;
+    padding: 6px;
+    color: var(--text-color);
+    z-index: -10;
+}
+
+.notification__button{
+    position: relative;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    padding: 6px;
+    align-self: end;
+    margin-left: auto;
+    background: transparent;
+}
+
+.notification__button:hover .notification__icon{
+    color: var(--btn-text-color);
+}
+
+.notification-indicator::after {
+    content: " ";
+    position: absolute;
+    top: 4px;
+    left: 24px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: var(--accent-color);
+    opacity: 1;
+    filter: none;
+}
+
 .notifications-view{
     background-color: var(--background-color);
     height: 100%;

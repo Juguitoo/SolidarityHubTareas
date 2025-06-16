@@ -1,7 +1,5 @@
 package solidarityhub.frontend.views;
 
-
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -18,25 +16,25 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinSession;
 import solidarityhub.frontend.dto.NotificationDTO;
 import solidarityhub.frontend.i18n.Translator;
 import solidarityhub.frontend.service.NotificationService;
-
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 @Route("notifications")
 @PageTitle("Notificaciones")
 public class NotificationView extends VerticalLayout {
-    private static Translator translator = new Translator();
+    private static final Translator translator = new Translator();
     private final NotificationService notificationService;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private VerticalLayout notificationsContainer;
     private List<NotificationDTO> currentNotifications;
+
+    HeaderComponent header;
 
     public NotificationView(NotificationService notificationService) {
         this.notificationService = notificationService;
@@ -46,8 +44,8 @@ public class NotificationView extends VerticalLayout {
 
     private void buildView() {
         addClassName("notifications-view");
-        HeaderComponent header = new HeaderComponent(translator.get("notifications_title"), "window.history.back()");
-
+        header = new HeaderComponent(translator.get("notifications_title"), "window.history.back()");
+        header.notificationButton.setVisible(false);
         add(header);
 
         // Fetch notifications
@@ -69,6 +67,8 @@ public class NotificationView extends VerticalLayout {
             for (NotificationDTO notification : currentNotifications) {
                 notificationsContainer.add(createNotificationCard(notification));
             }
+
+            updateNotificationIndicator();
 
             add(notificationsContainer);
         }
@@ -101,6 +101,8 @@ public class NotificationView extends VerticalLayout {
             boolean success = notificationService.markAllAsRead();
 
             if (success) {
+                currentNotifications.forEach(notification -> notification.setSeen(true));
+
                 // Show success notification
                 Notification.show(
                         translator.get("all_notifications_marked_read"),
@@ -130,6 +132,8 @@ public class NotificationView extends VerticalLayout {
                     Notification.Position.BOTTOM_START
             ).addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
+
+        updateNotificationIndicator();
     }
 
     private Component createNotificationCard(NotificationDTO notification) {
@@ -138,7 +142,6 @@ public class NotificationView extends VerticalLayout {
         card.setPadding(true);
         card.setSpacing(false);
 
-        // Determine icon based on notification type
         Icon icon;
         if (notification.getTitle().contains("recurso")) {
             icon = VaadinIcon.PACKAGE.create();
@@ -187,10 +190,11 @@ public class NotificationView extends VerticalLayout {
         Button markAsReadButton = new Button(translator.get("mark_as_read"));
         markAsReadButton.addClickListener(e -> {
             notificationService.markAsRead(notification.getId());
+            notification.setSeen(true); // Actualizar el estado localmente
             card.removeFromParent();
 
-            // If no more notifications, show empty state
-            if (notificationsContainer.getChildren().count() == 0) {
+            // Si no más notificaciones, mostrar estado vacío
+            if (notificationsContainer.getChildren().findAny().isEmpty()) {
                 removeAll();
                 HeaderComponent headerComponent = new HeaderComponent(translator.get("notifications_title"), "window.history.back()");
                 add(headerComponent);
@@ -202,17 +206,6 @@ public class NotificationView extends VerticalLayout {
 
         card.add(header, body, actions);
         return card;
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     private Component getEmptyState() {
@@ -235,5 +228,9 @@ public class NotificationView extends VerticalLayout {
 
         emptyState.add(infoIcon, noNotificationsTitle, helpText, suggestedTasksButton);
         return emptyState;
+    }
+
+    private void updateNotificationIndicator() {
+        HeaderComponent.updateAllNotificationButtons(notificationService.hasUnreadNotifications());
     }
 }

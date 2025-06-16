@@ -38,11 +38,9 @@ public class CatastropheView extends VerticalLayout {
     private static Translator translator = new Translator();
 
     private final CatastropheService catastropheService;
-    private final TaskService taskService;
 
     public CatastropheView() {
         this.catastropheService = new CatastropheService();
-        this.taskService = new TaskService();
 
         VaadinSession.getCurrent().setAttribute("cache", true);
 
@@ -57,6 +55,7 @@ public class CatastropheView extends VerticalLayout {
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 
         HeaderComponent header = new HeaderComponent(translator.get("select_catastrophe_title"));
+        header.notificationButton.setVisible(false);
 
         Paragraph subtitle = new Paragraph(translator.get("select_catastrophe_subtitle"));
         subtitle.addClassName("selection-subtitle");

@@ -38,6 +38,11 @@ public class NotificationService {
         }
     }
 
+    public boolean hasUnreadNotifications() {
+        List<NotificationDTO> notifications = getAllNotifications();
+        return notifications.stream().anyMatch(notification -> !notification.isSeen());
+    }
+
     public void markAsRead(int notificationId) {
         try {
             restTemplate.put(baseUrl + "/" + notificationId + "/read", null);

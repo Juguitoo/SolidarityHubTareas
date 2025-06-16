@@ -1,5 +1,6 @@
 package solidarityhub.frontend.views;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.VaadinSession;
+import lombok.Getter;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
 
@@ -21,6 +23,9 @@ import java.util.Locale;
 
 @Layout
 public class MainLayout extends AppLayout {
+
+    @Getter
+    private HeaderComponent header;
 
     private boolean minimized = false;
 
@@ -32,7 +37,7 @@ public class MainLayout extends AppLayout {
     private Button minimizeButton;
     private Button logOutButton;
 
-    private Translator translator = new Translator();
+    private final Translator translator = new Translator();
 
     public MainLayout() {
         translator.initializeTranslator();
@@ -51,17 +56,6 @@ public class MainLayout extends AppLayout {
         });
 
         UI.getCurrent().addAfterNavigationListener(e -> updateSelectedCatastropheInfo());
-    }
-
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
-        }
-        translator = new Translator(UI.getCurrent().getLocale());
     }
 
     //===============================Menu=========================================

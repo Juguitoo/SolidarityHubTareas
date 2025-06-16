@@ -71,7 +71,7 @@ public class MoreTasks extends VerticalLayout implements BeforeEnterObserver {
 
         // Header
         HeaderComponent header = new HeaderComponent(
-                translator.get("task_view_title") + selectedCatastrophe.getName(), "tasks"
+                translator.get("task_view_title") + selectedCatastrophe.getName(), "window.history.back()"
         );
 
         taskGrid.addClassName("moreTasks_grid");
