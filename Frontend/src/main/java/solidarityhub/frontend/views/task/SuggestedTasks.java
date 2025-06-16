@@ -1,42 +1,43 @@
-package solidarityhub.frontend.views.task.suggested;
+package solidarityhub.frontend.views.task;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.TaskService;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.views.task.TaskComponent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 @PageTitle("Suggested Tasks")
 @Route("tasks/suggested-tasks")
-public class SuggestedTasks extends VerticalLayout {
-    private static Translator translator = new Translator();
+public class SuggestedTasks extends VerticalLayout implements BeforeEnterObserver {
+    private static final Translator translator = new Translator();
     private final TaskService taskService;
-    private final NeedService needService;
-    private final CatastropheDTO selectedCatastrophe;
+    private final CatastropheService catastropheService;
+    private CatastropheDTO selectedCatastrophe;
     private List<TaskDTO> suggestedTasks;
 
-    @Autowired
-    public SuggestedTasks(TaskService taskService, NeedService needService) {
+    public SuggestedTasks() {
         translator.initializeTranslator();
 
-        this.taskService = taskService;
-        this.needService = needService;
+        this.catastropheService = new CatastropheService();
+        this.taskService = new TaskService();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
         selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
+        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
+            return;
+        }
 
         buildView();
     }
@@ -66,7 +67,7 @@ public class SuggestedTasks extends VerticalLayout {
                 List<TaskComponent> tasks = suggestedTasks.stream()
                         .map(TaskComponent::new).toList();
                 tasks.forEach(task -> {
-                    task.editButton.setEnabled(false);
+                    task.editButton.setVisible(false);
                     Div clickableTask = clickableTaskComponent(task);
                     suggestedTasksDiv.add(clickableTask);
                 });

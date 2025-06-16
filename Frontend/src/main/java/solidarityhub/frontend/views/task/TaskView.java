@@ -7,6 +7,7 @@ import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropEffect;
 import com.vaadin.flow.component.dnd.DropEvent;
 import com.vaadin.flow.component.dnd.DropTarget;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -82,6 +83,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private Component getActionButtons() {
         HorizontalLayout actionButtonsLayout = new HorizontalLayout();
         actionButtonsLayout.addClassName("action-buttons__layout");
+
+        Anchor anchor = new Anchor("tasks/addtask", "");
+        anchor.add(new Icon("vaadin", "plus"));
+        anchor.add(translator.get("add_task_button"));
 
         Button addTaskButton = new Button(translator.get("add_task_button"), new Icon("vaadin", "plus"));
         addTaskButton.addClickListener(e ->UI.getCurrent().navigate("tasks/addtask"));

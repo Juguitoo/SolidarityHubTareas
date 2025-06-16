@@ -369,9 +369,8 @@ public class HomeView extends VerticalLayout implements BeforeEnterObserver {
 
         taskSummary.add(statusIndicator, taskInfo, arrow);
 
-        // Hacer clickeable
         taskSummary.addClickListener(e ->
-                UI.getCurrent().navigate("editTask", QueryParameters.simple(
+                UI.getCurrent().navigate("tasks/editTask", QueryParameters.simple(
                         java.util.Collections.singletonMap("id", String.valueOf(task.getId()))
                 ))
         );

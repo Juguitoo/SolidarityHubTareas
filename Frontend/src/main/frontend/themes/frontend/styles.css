@@ -136,13 +136,24 @@ vaadin-grid-sorter::part(indicators) {
 }
 
 /* Buttons */
-vaadin-button{
+vaadin-button, a{
     cursor: pointer;
     background-color: var(--primary-color);
     color: var(--btn-text-color)
 }
-vaadin-button:hover{
+vaadin-button:hover, a:hover{
     background-color: var(--primary-dark-color);
+}
+
+a{
+    height: var(--_button-size);
+    padding: var(--vaadin-button-padding, 0 calc(var(--_button-size) / 3 + var(--lumo-border-radius-m) / 2));
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+a:hover{
+    text-decoration: none;
 }
 
 /* Tabs */

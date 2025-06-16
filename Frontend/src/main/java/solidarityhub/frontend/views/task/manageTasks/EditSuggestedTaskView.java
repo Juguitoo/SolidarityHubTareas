@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.task.suggested;
+package solidarityhub.frontend.views.task.manageTasks;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -16,75 +16,36 @@ import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.dto.NeedDTO;
 import solidarityhub.frontend.dto.TaskDTO;
 import solidarityhub.frontend.dto.VolunteerDTO;
-import solidarityhub.frontend.service.NeedService;
-import solidarityhub.frontend.views.task.AddTaskView;
+import solidarityhub.frontend.views.HeaderComponent;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Route("tasks/editSuggestedTask")
-@PageTitle("Editar tarea")
-public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<String> {
+@PageTitle("Confirmar tarea sugerida")
+public class EditSuggestedTaskView extends ManageTaskBaseView implements HasUrlParameter<String> {
 
     private TaskDTO selectedTask;
     protected CatastropheDTO selectedCatastrophe;
     private final ComboBox<Status> taskStatusComboBox;
     MultiSelectListBox<NeedDTO> needsListBox = new MultiSelectListBox<>();
-    private List<NeedDTO> allNeeds;
     private List<VolunteerDTO> allVolunteers;
 
 
-    public EditSuggestedTask(NeedService needService) {
+    public EditSuggestedTaskView() {
         super();
         this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
-        this.allNeeds = new ArrayList<>();
         this.allVolunteers = new ArrayList<>();
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
-            return;
-        }
-        allNeeds = needService.getAllNeeds(selectedCatastrophe.getId());
-
-        buildView();
     }
 
     @Override
     protected void buildView() {
         super.buildView();
+
         loadTaskData();
 
-        // Aseguramos que taskPreview no sea null antes de usar enabledEditButton
         if (taskPreview != null) {
-            taskPreview.enabledEditButton(false);
-        }
-    }
-
-    @Override
-    protected Component getForms() {
-        var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
-
-        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
-        taskStatusComboBox.setItemLabelGenerator(formatService::formatTaskStatus);
-        taskStatusComboBox.setRequiredIndicatorVisible(true);
-        taskStatusComboBox.setRequired(true);
-
-        formLayout.add(taskStatusComboBox);
-        return formLayout;
-    }
-
-    private void updateTaskPreview(TaskDTO task) {
-        if (taskPreview != null) {
-            taskPreview.updateName(task.getName());
-            taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatService.formatDateTime(task.getStartTimeDate()));
-            taskPreview.updatePriority(task.getPriority().toString());
-            taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
-            taskPreview.updateTaskType(task.getType());
             taskPreview.enabledEditButton(false);
         }
     }
@@ -149,8 +110,6 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
 
         configureNeeds(task);
         configureVolunteers(task);
-
-        updateTaskPreview(task);
     }
 
     private void configureNeeds(TaskDTO task) {
@@ -205,10 +164,28 @@ public class EditSuggestedTask extends AddTaskView implements HasUrlParameter<St
 
     //===============================Get Components=========================================
     @Override
-    protected Component getButtons() {
+    protected Component getHeader() {
+        return new HeaderComponent(translator.get("confirm_suggested_tasks_title"), "window.history.back()");
+    }
+
+    @Override
+    protected Component getForms() {
+        var formLayout = (com.vaadin.flow.component.formlayout.FormLayout) super.getForms();
+
+        taskStatusComboBox.setItems(Status.TO_DO, Status.IN_PROGRESS, Status.FINISHED);
+        taskStatusComboBox.setItemLabelGenerator(formatService::formatTaskStatus);
+        taskStatusComboBox.setRequiredIndicatorVisible(true);
+        taskStatusComboBox.setRequired(true);
+
+        formLayout.add(taskStatusComboBox);
+        return formLayout;
+    }
+
+    @Override
+    protected Component getActionButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
 
-        Button updateButton = new Button(translator.get("update_button"));
+        Button updateButton = new Button(translator.get("confirm"));
         updateButton.addClickListener(e -> updateTask());
 
         Button cancelButton = new Button(translator.get("cancel_button"));

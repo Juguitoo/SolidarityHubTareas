@@ -1,4 +1,4 @@
-package solidarityhub.frontend.views.task;
+package solidarityhub.frontend.views.task.manageTasks;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -22,10 +22,8 @@ import solidarityhub.frontend.dto.VolunteerDTO;
 import org.pingu.domain.enums.EmergencyLevel;
 import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
-import solidarityhub.frontend.service.NeedService;
 import solidarityhub.frontend.service.PDFCertificateService;
 import solidarityhub.frontend.views.HeaderComponent;
-import solidarityhub.frontend.service.ResourceAssignmentService;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -33,38 +31,21 @@ import java.util.stream.Collectors;
 
 @Route("tasks/editTask")
 @PageTitle("Editar tarea")
-public class EditTaskView extends AddTaskView implements HasUrlParameter<String> {
+public class EditTaskView extends ManageTaskBaseView implements HasUrlParameter<String> {
     private Button generateCertificatesButton;
 
-    private final NeedService needService;
     private final PDFCertificateService pdfCertificateService;
     private int taskId;
     private final ComboBox<Status> taskStatusComboBox;
-    private CatastropheDTO selectedCatastrophe;
     private List<NeedDTO> allNeeds;
     private List<VolunteerDTO> allVolunteers;
 
-    private final ResourceAssignmentService resourceAssignmentService;
-
     public EditTaskView() {
         super();
-        this.resourceAssignmentService = new ResourceAssignmentService();
         this.taskStatusComboBox = new ComboBox<>(translator.get("preview_task_status"));
-        this.needService = new NeedService();
         this.pdfCertificateService = new PDFCertificateService();
         this.allNeeds = new ArrayList<>();
         this.allVolunteers = new ArrayList<>();
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        selectedCatastrophe = (CatastropheDTO) VaadinSession.getCurrent().getAttribute("selectedCatastrophe");
-        if (!catastropheService.isCatastropheSelected(event, selectedCatastrophe)) {
-            return;
-        }
-        allNeeds = needService.getAllNeeds(selectedCatastrophe.getId());
-
-        buildView();
     }
 
     @Override
@@ -74,19 +55,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         loadTaskData();
 
         if (taskPreview != null) {
-            taskPreview.enabledEditButton(false);
-        }
-    }
-
-    private void updateTaskPreview(TaskDTO task) {
-        if (taskPreview != null) {
-            taskPreview.updateName(task.getName());
-            taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatService.formatDateTime(task.getStartTimeDate()));
-            taskPreview.updatePriority(task.getPriority().toString());
-            taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
-            taskPreview.updateTaskType(task.getType());
-            taskPreview.enabledEditButton(false);
+            taskPreview.editButton.setVisible(false);
         }
     }
 
@@ -127,6 +96,8 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private void loadTaskData() {
         try {
+            allNeeds = needService.getAllNeeds(selectedCatastrophe.getId());
+
             TaskDTO originalTask = taskService.getTaskById(taskId);
             if (originalTask == null) {
                 Notification.show(translator.get("task_not_found"));
@@ -173,8 +144,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
         configureNeeds(task);
         configureVolunteers(task);
-
-        updateTaskPreview(task);
     }
 
     private void configureNeeds(TaskDTO task) {
@@ -311,7 +280,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     }
 
     @Override
-    protected Component getButtons() {
+    protected Component getActionButtons() {
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setWidthFull();
 
@@ -319,7 +288,7 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         updateButton.addClickListener(e -> updateTask());
 
         Button cancelButton = new Button(translator.get("cancel_button"));
-        cancelButton.addClickListener(e -> exitWithoutSavingDialog());
+        cancelButton.addClickListener(e -> exitWithoutSavingDialog(translator.get("confirm_cancel_edit_text")));
 
         Button deleteButton = new Button(translator.get("delete_button"));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -341,30 +310,23 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         return buttons;
     }
 
-    @Override
-    protected Component getResourceAssignmentsBtn() {
-        return new Button(translator.get("assign_resource"),
-                e -> {
-                    AssignResourceDialog dialog = new AssignResourceDialog(taskService.getTaskById(taskId), selectedCatastrophe);
-                    dialog.open();
-                }
-        );
-    }
-
     //===============================Task actions=========================================
     private void updateTask() {
+        System.out.println(validateForm());
         if (validateForm()) {
-                Status estado = taskStatusComboBox.getValue();
-                if(estado == Status.FINISHED) {
-                    getCreateCertificatesDialog().thenAccept(result->{
-                        if(result) {
-                            proceedWithUpdateTask();
-                        }
-                    });
-                }else{
-                    proceedWithUpdateTask();
-                }
+            System.out.println(validateForm() + " - Formulario válido, entro al if");
+            Status estado = taskStatusComboBox.getValue();
+            if(estado == Status.FINISHED) {
+                getCreateCertificatesDialog().thenAccept(result->{
+                    if(result) {
+                        proceedWithUpdateTask();
+                    }
+                });
+            }else{
+                proceedWithUpdateTask();
+            }
         } else {
+            System.out.println(validateForm() + " - Formulario NO válido, entro al else");
             Notification.show(translator.get("check_fields"),
                     3000, Notification.Position.MIDDLE);
         }
@@ -372,9 +334,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
 
     private void proceedWithUpdateTask() {
         try{
-            System.out.println("=== FRONTEND: Iniciando actualización de tarea ===");
-            System.out.println("Task ID: " + taskId);
-
             List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
             List<NeedDTO> needs = new ArrayList<>();
             for (String need : selectedNeeds) {
@@ -477,21 +436,20 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
     //===============================Validate Form=========================================
     @Override
     protected boolean validateForm() {
-        return super.validateForm() && !taskStatusComboBox.isEmpty();
+        if (taskStatusComboBox.isEmpty()) {
+            System.out.println("Campo requerido incompleto: taskStatusComboBox");
+            return false;
+        }
+
+        return super.validateForm();
     }
 
     @Override
     protected boolean isFormFilled() {
-        return taskName != null && !taskName.isEmpty() ||
-                taskDescription != null && !taskDescription.isEmpty() ||
-                taskPriority != null && taskPriority.getValue() != null ||
-                taskEmergency != null && taskEmergency.getValue() != null ||
-                needsMultiSelectComboBox != null && !needsMultiSelectComboBox.getSelectedItems().isEmpty() ||
-                startDateTimePicker != null && startDateTimePicker.getValue() != null ||
-                volunteerMultiSelectComboBox != null && !volunteerMultiSelectComboBox.getSelectedItems().isEmpty() ||
-                taskLocation != null && !taskLocation.isEmpty();
+        return super.isFormFilled() && !taskStatusComboBox.isEmpty();
     }
 
+    //===============================Certificates Methods=========================================
     private CompletableFuture<Boolean> getCreateCertificatesDialog() {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         Dialog confirmDialog = new Dialog();
@@ -512,17 +470,6 @@ public class EditTaskView extends AddTaskView implements HasUrlParameter<String>
         confirmDialog.getFooter().add(closeButton, confirmButton);
         confirmDialog.open();
         return future;
-    }
-
-    @Override
-    protected List<NeedDTO> getNeedsList() {
-        List<String> selectedNeeds = needsMultiSelectComboBox.getSelectedItems().stream().toList();
-        List<NeedDTO> needs = new ArrayList<>();
-        for (String need : selectedNeeds) {
-            allNeeds.stream()
-                    .filter(n -> n.getDescription().equals(need)).forEach(needs::add);
-        }
-        return needs;
     }
 
     private void generateCertificates() {
