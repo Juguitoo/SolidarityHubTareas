@@ -1,5 +1,6 @@
 package solidarityhub.backend.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import solidarityhub.backend.dto.TaskDTO;
@@ -19,4 +20,8 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
 
     @Query("SELECT t FROM Task t WHERE t.catastrophe.id = :catastropheId")
     List<Task> getTasksByCatastrophe(@Param("catastropheId") Integer catastropheId);
+
+    @Modifying
+    @Query(value = "UPDATE task SET status = ?2 WHERE id = ?1", nativeQuery = true)
+    int updateTaskStatus(int taskId, String status);
 }

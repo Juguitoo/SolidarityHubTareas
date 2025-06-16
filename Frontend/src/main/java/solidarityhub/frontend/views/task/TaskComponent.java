@@ -132,9 +132,29 @@ public class TaskComponent extends VerticalLayout {
     public Component getTaskNameComponent() {
         H2 taskNameTitle = new H2(taskName);
         taskNameTitle.addClassName("task-title");
+
+        // NUEVO: Detectar si el título es muy largo y ajustar dinámicamente
+        if (isTextTooLong(taskName)) {
+            taskNameTitle.addClassName("task-title-small");
+        }
+
         return taskNameTitle;
     }
 
+    // NUEVO: Método para detectar si el texto es muy largo
+    private boolean isTextTooLong(String text) {
+        // Aproximación: más de 35 caracteres probablemente se cortará
+        return text != null && text.length() > 35;
+    }
+
+    // ALTERNATIVA: Versión más precisa con palabras
+    private boolean isTextTooLongWords(String text) {
+        if (text == null) return false;
+
+        // Si tiene más de 6 palabras O más de 40 caracteres
+        String[] words = text.split("\\s+");
+        return words.length > 6 || text.length() > 40;
+    }
     public Component getStartDateTimeComponent() {
         Span startDateTimeSpan = new Span(startTimeDate.replace('T', ' '));
         startDateTimeSpan.addClassName("task-date");

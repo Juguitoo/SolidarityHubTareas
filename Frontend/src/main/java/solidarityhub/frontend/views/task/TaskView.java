@@ -30,13 +30,15 @@ import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.CatastropheService;
 import solidarityhub.frontend.service.FormatService;
 import solidarityhub.frontend.service.TaskService;
+import solidarityhub.frontend.utils.NotificationManager;
 import solidarityhub.frontend.views.HeaderComponent;
-
+import java.util.Timer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @PageTitle("Tareas")
@@ -241,102 +243,79 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
                 Status oldStatus = originalTask.getStatus();
                 System.out.println("Actualizando tarea " + taskId + " de " + oldStatus + " a " + newStatus);
 
-                // PRIMERO: Actualizar en la base de datos
-                taskService.updateTaskStatusOnly(taskId, newStatus);
-                System.out.println("✓ Estado actualizado en la base de datos");
+                // INMEDIATO: Actualizar UI primero (sin esperar BD)
+                updateTaskContainersOptimistic(taskId, oldStatus, newStatus);
 
-                // SEGUNDO: Verificar que se actualizó correctamente
-                TaskDTO updatedTask = taskService.getTaskByIdWithDebug(taskId);
-                if (updatedTask != null && updatedTask.getStatus() == newStatus) {
-                    System.out.println("✓ Verificación: Estado confirmado en BD como " + updatedTask.getStatus());
+                // Mostrar feedback inmediato al usuario
+                Notification.show("Moviendo tarea...", 1000, Notification.Position.BOTTOM_START);
 
-                    // TERCERO: Actualizar la vista
-                    UI.getCurrent().access(() -> {
-                        // Limpiar caché
-                        taskService.clearCache();
+                // BACKGROUND: Actualizar BD en paralelo
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        taskService.updateTaskStatusOnly(taskId, newStatus);
 
-                        // Actualizar contenedores específicos
-                        updateTaskContainers(taskId, oldStatus, newStatus);
+                        // Actualizar notificaciones SIN bloquear UI
+                        UI.getCurrent().access(() -> {
+                            NotificationManager.forceRefreshNotificationIndicator();
+                            Notification.show("Tarea movida a " + formatService.formatTaskStatus(newStatus),
+                                            2000, Notification.Position.BOTTOM_START)
+                                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        });
 
-                        // Mostrar notificación de éxito
-                        Notification.show("Tarea movida a " + formatService.formatTaskStatus(newStatus),
-                                        2000, Notification.Position.BOTTOM_START)
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    });
-                } else {
-                    System.err.println("✗ Error: La tarea no se actualizó correctamente en la BD");
-                    Notification.show("Error: No se pudo actualizar la tarea en la base de datos",
-                                    3000, Notification.Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-
-            } else if (originalTask == null) {
-                System.err.println("Tarea no encontrada con ID: " + taskId);
-                Notification.show("Error: Tarea no encontrada",
-                                3000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            } else {
-                System.out.println("La tarea " + taskId + " ya está en estado " + newStatus);
+                    } catch (Exception e) {
+                        // Si falla la BD, revertir UI
+                        UI.getCurrent().access(() -> {
+                            System.err.println("Error en BD, revirtiendo UI: " + e.getMessage());
+                            updateTaskContainersOptimistic(taskId, newStatus, oldStatus); // Revertir
+                            Notification.show("Error al mover tarea: " + e.getMessage(),
+                                            3000, Notification.Position.MIDDLE)
+                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        });
+                    }
+                });
             }
         } catch (Exception e) {
             System.err.println("Error actualizando estado: " + e.getMessage());
-            e.printStackTrace();
-
-            Notification.show("Error al actualizar la tarea: " + e.getMessage(),
+            Notification.show("Error al actualizar la tarea",
                             3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-
-            // En caso de error, reconstruir la vista para volver al estado correcto
-            UI.getCurrent().access(() -> buildView());
         }
     }
 
-    private void updateTaskContainers(int taskId, Status oldStatus, Status newStatus) {
+    private void updateTaskContainersOptimistic(int taskId, Status oldStatus, Status newStatus) {
         try {
-            System.out.println("Actualizando contenedores: " + taskId + " de " + oldStatus + " a " + newStatus);
+            System.out.println("Actualizando contenedores optimista: " + taskId + " de " + oldStatus + " a " + newStatus);
 
-            // Encontrar los contenedores
             Optional<VerticalLayout> sourceContainer = findTaskContainerByStatus(oldStatus);
             Optional<VerticalLayout> targetContainer = findTaskContainerByStatus(newStatus);
 
             if (sourceContainer.isPresent() && targetContainer.isPresent()) {
-                System.out.println("✓ Contenedores encontrados");
-
-                // Buscar el componente de tarea específico
                 TaskComponent taskComponent = findTaskComponentById(taskId, sourceContainer.get());
 
                 if (taskComponent != null) {
-                    System.out.println("✓ Componente de tarea encontrado");
+                    System.out.println("✓ Moviendo componente visualmente");
 
-                    // Remover de la fuente
+                    // Mover inmediatamente (sin animaciones complejas)
                     sourceContainer.get().remove(taskComponent);
-                    System.out.println("✓ Tarea removida del contenedor fuente");
-
-                    // Agregar al destino (pero primero remover el mensaje de "no hay tareas" si existe)
                     removeEmptyStateMessage(targetContainer.get());
                     targetContainer.get().add(taskComponent);
-                    System.out.println("✓ Tarea agregada al contenedor destino");
 
                     // Actualizar mensajes de estado vacío
                     updateEmptyStateMessages(sourceContainer.get(), oldStatus);
 
                     System.out.println("✓ Tarea " + taskId + " movida visualmente de " + oldStatus + " a " + newStatus);
                 } else {
-                    System.err.println("✗ No se encontró el componente de tarea " + taskId + " en el contenedor fuente");
-                    System.out.println("Reconstruyendo vista como fallback...");
+                    System.err.println("No se encontró TaskComponent para ID: " + taskId);
+                    // Fallback solo si es necesario
                     buildView();
                 }
             } else {
-                System.err.println("✗ No se encontraron los contenedores para el estado");
-                System.out.println("Source container present: " + sourceContainer.isPresent());
-                System.out.println("Target container present: " + targetContainer.isPresent());
-                System.out.println("Reconstruyendo vista como fallback...");
+                System.err.println("No se encontraron contenedores para los estados");
                 buildView();
             }
         } catch (Exception e) {
-            System.err.println("✗ Error en updateTaskContainers: " + e.getMessage());
+            System.err.println("Error en updateTaskContainersOptimistic: " + e.getMessage());
             e.printStackTrace();
-            System.out.println("Reconstruyendo vista como fallback...");
             buildView();
         }
     }

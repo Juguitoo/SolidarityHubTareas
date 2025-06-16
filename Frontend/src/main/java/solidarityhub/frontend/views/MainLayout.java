@@ -1,5 +1,7 @@
 package solidarityhub.frontend.views;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -14,13 +16,22 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.VaadinSession;
+import lombok.Getter;
 import solidarityhub.frontend.dto.CatastropheDTO;
 import solidarityhub.frontend.i18n.Translator;
+import solidarityhub.frontend.service.NotificationService;
 
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Layout
 public class MainLayout extends AppLayout {
+
+    @Getter
+    private HeaderComponent header;
 
     private boolean minimized = false;
 
@@ -32,10 +43,18 @@ public class MainLayout extends AppLayout {
     private Button minimizeButton;
     private Button logOutButton;
 
-    private Translator translator = new Translator();
+    private final Translator translator = new Translator();
+
+    // ⭐ NUEVO: Sistema de notificaciones
+    private final NotificationService notificationService;
+    private ScheduledExecutorService notificationExecutor;
+    private ScheduledFuture<?> notificationChecker;
 
     public MainLayout() {
         translator.initializeTranslator();
+
+        // ⭐ NUEVO: Inicializar servicio de notificaciones
+        this.notificationService = new NotificationService();
 
         setPrimarySection(Section.DRAWER);
         addClassName("main-layout");
@@ -53,15 +72,67 @@ public class MainLayout extends AppLayout {
         UI.getCurrent().addAfterNavigationListener(e -> updateSelectedCatastropheInfo());
     }
 
-    private void initializeTranslator() {
-        Locale sessionLocale = VaadinSession.getCurrent().getAttribute(Locale.class);
-        if (sessionLocale != null) {
-            UI.getCurrent().setLocale(sessionLocale);
-        } else {
-            VaadinSession.getCurrent().setAttribute(Locale.class, new Locale("es"));
-            UI.getCurrent().setLocale(new Locale("es"));
+    // ⭐ NUEVO: Gestión del ciclo de vida para notificaciones
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        startNotificationPolling(attachEvent.getUI());
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        stopNotificationPolling();
+    }
+
+    // ⭐ NUEVO: Iniciar verificación automática de notificaciones
+    private void startNotificationPolling(UI ui) {
+        notificationExecutor = Executors.newScheduledThreadPool(1);
+
+        // Verificar notificaciones cada 30 segundos
+        notificationChecker = notificationExecutor.scheduleAtFixedRate(() -> {
+            if (ui != null && !ui.isClosing()) {
+                ui.access(() -> {
+                    try {
+                        boolean hasUnread = notificationService.hasUnreadNotifications();
+                        HeaderComponent.updateAllNotificationButtons(hasUnread);
+                    } catch (Exception e) {
+                        // Manejar errores silenciosamente para no interrumpir la UI
+                        System.err.println("Error checking notifications: " + e.getMessage());
+                    }
+                });
+            }
+        }, 0, 30, TimeUnit.SECONDS); // Verificar inmediatamente y luego cada 30 segundos
+    }
+
+    // ⭐ NUEVO: Detener verificación de notificaciones
+    private void stopNotificationPolling() {
+        if (notificationChecker != null) {
+            notificationChecker.cancel(true);
         }
-        translator = new Translator(UI.getCurrent().getLocale());
+        if (notificationExecutor != null) {
+            notificationExecutor.shutdown();
+            try {
+                if (!notificationExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    notificationExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                notificationExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    // ⭐ NUEVO: Método público para forzar actualización inmediata
+    public void forceUpdateNotificationIndicator() {
+        UI.getCurrent().access(() -> {
+            try {
+                boolean hasUnread = notificationService.hasUnreadNotifications();
+                HeaderComponent.updateAllNotificationButtons(hasUnread);
+            } catch (Exception e) {
+                System.err.println("Error forcing notification update: " + e.getMessage());
+            }
+        });
     }
 
     //===============================Menu=========================================

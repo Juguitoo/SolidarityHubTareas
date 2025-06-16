@@ -17,7 +17,7 @@
 
 .task-title {
     font-weight: bold;
-    font-size: clamp(0.8rem, 5vw, 1.2rem);;
+    font-size: clamp(0.8rem, 5vw, 1.2rem); /* Mantener tamaño original */
     color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
@@ -26,6 +26,23 @@
     margin: 0 0 0.5rem 0;
     line-height: 1.2;
     hyphens: auto;
+}
+
+/* NUEVO: Clase especial para títulos largos */
+.task-title-small {
+    font-size: 0.8rem !important; /* Más pequeño */
+    white-space: normal !important; /* Permite múltiples líneas */
+    text-overflow: unset !important; /* Sin puntos suspensivos */
+
+    /* Límite de 2 líneas */
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    /* Para palabras largas */
+    word-break: break-word;
+    line-height: 1.1;
+    margin: 0 0 0.3rem 0; /* Menos margen */
 }
 
 .task-description {
