@@ -636,7 +636,7 @@ public abstract class ManageTaskBaseView extends VerticalLayout implements Befor
         confirmDialog.setHeaderTitle(translator.get("correct_task"));
 
         confirmDialog.add(
-                new Span(translator.get("the_task") + " " + taskName.getValue() + translator.get("successfully_added") +"\n" + translator.get("next_step"))
+                new Span(translator.get("the_task") + " " + taskName.getValue() + " " + translator.get("successfully_added") +"\n" + translator.get("next_step"))
         );
         VaadinSession.getCurrent().setAttribute("cache", true);
         Button addNewTaskButton = new Button(translator.get("create_other_task"), e -> {
@@ -654,15 +654,6 @@ public abstract class ManageTaskBaseView extends VerticalLayout implements Befor
     }
 
     //===============================Modify Preview=========================================
-    protected void setupPreviewWithTranslations() {
-        if (taskPreview != null) {
-            taskPreview.updatePriority(translator.get("preview_task_priority"));
-            taskPreview.updateName(translator.get("preview_task_name"));
-            taskPreview.updateDescription(translator.get("preview_task_description"));
-            taskPreview.updateEmergencyLevel(translator.get("preview_task_emergency_level"));
-        }
-    }
-
     protected void setupFormListeners() {
         taskName.addValueChangeListener(e ->
                 updatePreview(e.getValue(), taskDescription.getValue(), taskPriority.getValue(), taskEmergency.getValue(), taskType, startDateTimePicker.getValue())
@@ -724,18 +715,6 @@ public abstract class ManageTaskBaseView extends VerticalLayout implements Befor
 
         if(date != null){
             taskPreview.updateDate(formatService.formatDateTime(date));
-        }
-    }
-
-    private void updateTaskPreview(TaskDTO task) {
-        if (taskPreview != null) {
-            taskPreview.updateName(task.getName());
-            taskPreview.updateDescription(task.getDescription());
-            taskPreview.updateDate(formatService.formatDateTime(task.getStartTimeDate()));
-            taskPreview.updatePriority(task.getPriority().toString());
-            taskPreview.updateEmergencyLevel(formatService.formatEmergencyLevel(task.getEmergencyLevel()));
-            taskPreview.updateTaskType(task.getType());
-            taskPreview.enabledEditButton(false);
         }
     }
 

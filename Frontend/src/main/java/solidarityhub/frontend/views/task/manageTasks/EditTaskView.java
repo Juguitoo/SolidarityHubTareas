@@ -24,6 +24,7 @@ import org.pingu.domain.enums.Priority;
 import org.pingu.domain.enums.Status;
 import solidarityhub.frontend.service.PDFCertificateService;
 import solidarityhub.frontend.views.HeaderComponent;
+import solidarityhub.frontend.views.task.AssignResourceDialog;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -32,11 +33,16 @@ import java.util.stream.Collectors;
 @Route("tasks/editTask")
 @PageTitle("Editar tarea")
 public class EditTaskView extends ManageTaskBaseView implements HasUrlParameter<String> {
-    private Button generateCertificatesButton;
+
 
     private final PDFCertificateService pdfCertificateService;
+
     private int taskId;
+    private TaskDTO selectedTask;
+
     private final ComboBox<Status> taskStatusComboBox;
+    private Button generateCertificatesButton;
+
     private List<NeedDTO> allNeeds;
     private List<VolunteerDTO> allVolunteers;
 
@@ -98,14 +104,14 @@ public class EditTaskView extends ManageTaskBaseView implements HasUrlParameter<
         try {
             allNeeds = needService.getAllNeeds(selectedCatastrophe.getId());
 
-            TaskDTO originalTask = taskService.getTaskById(taskId);
-            if (originalTask == null) {
+            selectedTask = taskService.getTaskById(taskId);
+            if (selectedTask == null) {
                 Notification.show(translator.get("task_not_found"));
                 UI.getCurrent().navigate("tasks");
                 return;
             }
 
-            setFormValues(originalTask);
+            setFormValues(selectedTask);
             Notification.show(translator.get("task_loaded_success"));
         } catch (Exception e) {
             Notification.show(translator.get("error_loading_task") + e.getMessage());
@@ -277,6 +283,16 @@ public class EditTaskView extends ManageTaskBaseView implements HasUrlParameter<
         needsDialog.add(dialogContent);
 
         return needsDialog;
+    }
+
+    @Override
+    protected Component getResourceAssignmentsBtn() {
+        return new Button(translator.get("assign_resource"),
+                e -> {
+                    AssignResourceDialog dialog = new AssignResourceDialog(selectedTask, selectedCatastrophe);
+                    dialog.open();
+                }
+        );
     }
 
     @Override
